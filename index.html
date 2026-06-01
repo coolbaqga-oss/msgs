@@ -184,6 +184,12 @@
 
   <div class="controls">
     <div class="ctrl-row">
+      <span class="ctrl-label">세트</span>
+      <button class="chip year-f on" data-year="all">전체</button>
+      <button class="chip year-f" data-year="note">⭐ 정리노트</button>
+      <button class="chip year-f" data-year="2015">2015 기출</button>
+    </div>
+    <div class="ctrl-row">
       <span class="ctrl-label">과목</span>
       <button class="chip subj-f on" data-subj="all">전체</button>
       <button class="chip subj-f" data-subj="성경">성경</button>
@@ -212,9 +218,10 @@
 </div>
 
 <footer>
-  <b>공부법:</b> 보기를 보기 전에 먼저 답을 떠올려 보세요(능동 회상). 모르면 솔직히 "모름"으로 표시해
-  <b>틀린 것만</b> 모아 반복하는 게 핵심입니다.<br>
-  ※ 답·해설은 학습을 돕기 위한 것이니 교재와 한 번씩 대조해 검증하세요. 진행 상황은 이 브라우저에 자동 저장됩니다.
+  <b>세트:</b> "⭐정리노트"는 빈출 위주로 추린 핵심 묶음, "2015 기출"은 해당 연도 시험을 번호순 그대로(O/X·주관식 포함) 담은 것입니다. 주관식은 정답을 떠올린 뒤 "정답 보기"로 모범답안과 대조하세요.<br>
+  <b>학습 모드:</b> 답을 먼저 떠올린 뒤 확인하고, <b>"✓ 알겠음"</b>을 누르면 그 카드는 목록에서 빠집니다(남은 카드만 반복).<br>
+  <b>⭐기출 N회</b> = 2015~2025 제공 기출 11개년 중 그 문제가 나온 연도 수(실측). 기본 정렬은 빈출 높은 순이며, "⭐빈출만"은 4회 이상만 모아 봅니다.<br>
+  ※ 답·해설은 교재와 한 번씩 대조해 검증하세요. 진행 상황은 이 브라우저에 자동 저장됩니다.
 </footer>
 
 <script>
@@ -279,9 +286,6 @@ const BANK = [
 {subj:"성경",year:"빈출",q:"아합 왕의 죄는 무엇인가?",
  opts:["벧엘과 단에 금송아지를 만듦","레위 자손 아닌 자로 제사장 삼음","사마리아에 바알과 아세라 상을 만듦","마음대로 절기를 정함","남유다와 전쟁을 벌임"],a:2,
  e:"왕상 16장 — 아합이 이세벨과 결혼해 <b>사마리아에 바알 신전·아세라 상</b>을 세움. 금송아지·제사장 임명은 여로보암의 죄."},
-{subj:"성경",year:"빈출",q:"\"세미한 소리\"로 엘리야에게 찾아오신 사건이 기록된 곳은?",
- opts:["왕상 17장","왕상 18장","왕상 19장","왕하 2장","왕상 16장"],a:2,
- e:"<b>왕상 19:11-13</b> — 강한 바람·지진·불이 아니라 세미한 소리로 임하심(호렙산)."},
 {subj:"성경",year:"빈출",q:"갈멜산에서 엘리야와 바알·아세라 선지자들의 대결이 나오는 곳은?",
  opts:["왕상 16장","왕상 17장","왕상 18장","왕상 19장","왕상 20장"],a:2,
  e:"<b>왕상 18장</b> — 불로 응답하시는 하나님 vs 바알 선지자 450인."},
@@ -475,33 +479,156 @@ const BANK = [
 {subj:"헌법",year:"빈출",q:"근신의 책벌 기간과 내용으로 맞는 것은?",
  opts:["1개월 이상 3개월 이내","2개월 이상 6개월 이내, 반성문 1회 이상 제출","3개월 이상 6개월 이내","6개월 이상 1년 이내","기간 없음"],a:1,
  e:"근신 = <b>2개월 이상 6개월 이내</b>, 반성문 1회 이상 소속 치리회장에게 제출 + 행동 삼감."},
+
+// ===================== 2015년도 기출 =====================
+// 성경
+{subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",
+ opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,
+ e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
+{subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",
+ opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,
+ e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
+{subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",
+ opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,
+ e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
+{subj:"성경",year:"2015",no:4,q:"다음 중 연결이 잘못된 것은?",
+ opts:["엘리야 — 수넴 여인의 아들을 살림","엘리야 — 까마귀로 먹을 것을 공급받음","엘리사 — 대머리","엘리사 — 선지자 가정의 빚 갚으려 그릇에 기름을 채움"],a:0,
+ e:"수넴 여인의 아들을 살린 이는 <b>엘리사</b>(왕하4장). 엘리야가 살린 것은 사르밧 과부의 아들(왕상17장)."},
+{subj:"성경",year:"2015",no:5,q:"에스겔서에서 마른 뼈가 살아난 사건과 성전에서 물이 나와 강을 이루는 내용이 기록된 장은?",
+ opts:["33장, 45장","7장, 40장","37장, 47장","31장, 45장"],a:2,
+ e:"마른 뼈 환상 = <b>겔 37장</b>, 성전 문지방에서 흐르는 생명수 강 = <b>겔 47장</b>."},
+{subj:"성경",year:"2015",no:6,q:"다니엘이 사자굴에 들어갈 때 어인을 찍고 조서를 내린 왕은?",
+ opts:["다리오","느부갓네살","벨사살","고레스"],a:0,
+ e:"<b>다리오</b> 왕(단 6장). 느부갓네살=금신상·풀무불(3장), 벨사살=벽의 글씨(5장)."},
+{subj:"성경",year:"2015",no:7,q:"에베소서 6장에 나온 내용이 아닌 것은?",
+ opts:["남편과 아내","부모와 자녀","종과 상전","하나님의 전신갑주"],a:0,
+ e:"엡6장 = 자녀-부모, 종-상전, <b>하나님의 전신갑주</b>. '남편과 아내'는 엡5장."},
+{subj:"성경",year:"2015",no:8,sa:true,q:"[주관식] 마태복음 5장 팔복이 받을 상급을 쓰시오.",
+ ans:"①심령이 가난한 자 — 천국 / ②애통하는 자 — 위로 / ③온유한 자 — 땅을 기업으로 / ④의에 주리고 목마른 자 — 배부름 / ⑤긍휼히 여기는 자 — 긍휼히 여김 / ⑥마음이 청결한 자 — 하나님을 봄 / ⑦화평하게 하는 자 — 하나님의 아들이라 일컬음 / ⑧의를 위해 박해받은 자 — 천국",
+ e:"마 5:3-10. 처음(①)과 마지막(⑧) 상급이 '천국'으로 수미상관."},
+{subj:"성경",year:"2015",no:9,sa:true,q:"[주관식] 가상칠언(십자가 위 일곱 말씀)을 쓰시오.",
+ ans:"①눅23:34 용서 기도 / ②눅23:43 낙원 약속 / ③요19:26-27 어머니를 제자에게 부탁 / ④마27:46 엘리 엘리 라마 사박다니 / ⑤요19:28 내가 목마르다 / ⑥요19:30 다 이루었다 / ⑦눅23:46 내 영혼을 아버지 손에 부탁",
+ e:"정확한 본문은 성경으로 직접 암송하세요. 눅·요·마 4복음에 분산."},
+{subj:"성경",year:"2015",no:10,sa:true,q:"[주관식] 다음 단어의 뜻을 쓰시오 — 여호와 이레 / 여호와 닛시 / 여호와 라파 / 에벤에셀 / 실로암",
+ ans:"여호와 이레=여호와께서 준비(예비)하심(창22:14) / 여호와 닛시=여호와는 나의 깃발(출17:15) / 여호와 라파=너를 치료하는 여호와(출15:26) / 에벤에셀=도움의 돌, '여호와께서 여기까지 도우셨다'(삼상7:12) / 실로암=보냄을 받았다(요9:7)",
+ e:""},
+{subj:"성경",year:"2015",no:11,sa:true,q:"[주관식] 요한계시록 일곱 교회의 이름과 각 교회의 특징을 쓰시오.",
+ ans:"①에베소-처음 사랑을 버림(수고·인내는 칭찬) / ②서머나-환난·궁핍 중 충성(책망 없음) / ③버가모-사탄의 권좌, 발람·니골라당 책망 / ④두아디라-사랑·믿음·섬김 칭찬, 이세벨 용납 책망 / ⑤사데-살았다 하나 죽은 교회 / ⑥빌라델비아-적은 능력으로 말씀 지킴(열린 문) / ⑦라오디게아-미지근함 책망",
+ e:"계 2-3장. 책망 없는 교회는 서머나·빌라델비아."},
+{subj:"성경",year:"2015",no:12,sa:true,q:"[주관식] 다음 성경 구절을 쓰시오 — 수1:8 / 단12:3 / 행4:12 / 롬6:23 / 히11:6",
+ ans:"수1:8=율법책을 주야로 묵상하면 형통 / 단12:3=지혜자는 궁창의 빛, 옳은 데로 돌이킨 자는 별처럼 빛남 / 행4:12=구원받을 다른 이름 없음 / 롬6:23=죄의 삯은 사망, 하나님의 은사는 영생 / 히11:6=믿음 없이는 하나님을 기쁘시게 못함",
+ e:"※ 저작권상 요지만 적었습니다. 정확한 본문은 성경(개역개정)을 직접 보고 필사·암송하세요."},
+// 교회사
+{subj:"교회사",year:"2015",no:1,q:"초대교회 이단 중 유대교적 이단은?",
+ opts:["에비온파","말시온파","영지주의","마니교"],a:0,
+ e:"<b>에비온파</b> — 율법 준수 강조, 예수를 사람으로 봄. 말시온=구약 배격, 영지주의·마니교=이원론."},
+{subj:"교회사",year:"2015",no:2,q:"헬라 교부 중 이단을 배격하는 5권의 저서가 있고, 구약을 신약과 동등한 비중으로 논한 최초의 인물은?",
+ opts:["클레멘트","이레니우스","오리겐","터툴리안"],a:1,
+ e:"<b>이레니우스</b> — '이단논박(Adversus Haereses)' 5권. 영지주의 반박, 구약·신약 연속성 강조."},
+{subj:"교회사",year:"2015",no:3,ox:true,q:"(O/X) '교회를 어머니로 가지지 않은 자는 하나님을 아버지로 모실 수 없다'고 한 사람은 키프리안이고, '나는 모순되는 고로 믿는다'고 한 사람은 터툴리안이다.",
+ opts:["O (맞다)","X (틀리다)"],a:0,
+ e:"둘 다 옳은 연결(O). 키프리안='교회 밖 구원 없음', 터툴리안='불합리하므로 믿는다(Credo quia absurdum)'."},
+{subj:"교회사",year:"2015",no:4,ox:true,q:"(O/X) 켈트 수도원 운동의 안정·온건한 이상과 대조적으로, 베네딕트 수도원운동은 신비주의·무모성·엄격한 금욕을 특색으로 하며 열성적 선교와 학문 헌신에 공헌했다.",
+ opts:["O (맞다)","X (틀리다)"],a:1,
+ e:"<b>설명이 뒤바뀜(X)</b>. 베네딕트 수도원은 안정·온건(기도하고 일하라), 선교 열정·학문은 오히려 켈트 수도원의 특징."},
+{subj:"교회사",year:"2015",no:5,q:"주후 800년경, 어거스틴의 『신의 도성』을 읽고 기독교 제국을 건설하려 했으며 십일조를 법제화하고 사도신경·주기도문·십계명을 널리 보급한 황제는?",
+ opts:["콘스탄티누스","샤를마뉴","인노센트 3세","그레고리 1세"],a:1,
+ e:"<b>샤를마뉴(카롤루스 대제)</b> — 800년 서로마 황제 대관. 카롤링거 르네상스, 교구제 개선."},
+{subj:"교회사",year:"2015",no:6,q:"종교개혁 전 개혁자 중 교회의 위선을 공박하고 『바보예찬』에서 교회의 타락을 비판한 사람은?",
+ opts:["에라스무스","후스","위클리프","사보나롤라"],a:0,
+ e:"<b>에라스무스</b>. '알을 낳은 자는 에라스무스, 부화시킨 자는 루터'."},
+{subj:"교회사",year:"2015",no:7,q:"빈칸 인물 연결 — '스위스 북부는 [ ]에 의해 취리히 중심으로, 남부는 베른 중심으로 [ ]에 의해 일어났고, [ ]은 제네바에서 성공했다.'",
+ opts:["츠빙글리 - 파렐 - 칼뱅","파렐 - 츠빙글리 - 칼뱅","칼뱅 - 뮌처 - 츠빙글리","츠빙글리 - 베자 - 칼뱅"],a:0,
+ e:"취리히=<b>츠빙글리</b>, 베른 일대=<b>파렐</b>, 제네바 성공=<b>칼뱅</b>(파렐의 권유로 정착)."},
+{subj:"교회사",year:"2015",no:8,q:"루터의 3대 논문 중 '교황청의 삼중 보루가 파괴되었다, 모든 신자는 다 사제다(만인사제주의)'를 담은 논문은?",
+ opts:["교회의 바벨론 포로","로마 교황권에 관하여","독일 크리스천 귀족에게 고함","크리스천의 자유에 대하여"],a:2,
+ e:"<b>독일 크리스천 귀족에게 고함</b> — 영적/세속, 성경 해석권, 공의회 소집권의 '세 담(보루)'을 무너뜨림."},
+{subj:"교회사",year:"2015",no:9,q:"칼뱅이 국가 구축의 필요 요소로 강조한 세 가지가 아닌 것은?",
+ opts:["국가의 공직자","국가의 법","정교분리의 원칙","국민의 순종"],a:2,
+ e:"칼뱅의 3요소 = 공직자(위정자)·법·백성(순종). <b>정교분리</b>는 해당 없음(교회·국가 협력 모델)."},
+{subj:"교회사",year:"2015",no:10,sa:true,q:"[주관식] 칼뱅이 주장한 교회의 4중직(네 직분)을 쓰시오.",
+ ans:"목사, 교사(박사), 장로, 집사",
+ e:"칼뱅 『기독교강요』의 4중직 — 목사(말씀·성례), 교사(교리), 장로(치리), 집사(구제)."},
+{subj:"교회사",year:"2015",no:11,q:"스코틀랜드 종교개혁자로 갤리선 노예 19개월을 겪고, '스코틀랜드 신앙고백서'와 '공동의 예배모범'을 지은 사람은?",
+ opts:["위클리프","존 낙스","토마스 크랜머","패트릭 해밀턴"],a:1,
+ e:"<b>존 낙스</b> — 칼뱅 신학의 영향. 스코틀랜드 장로교의 기초."},
+{subj:"교회사",year:"2015",no:12,q:"18세기 경건주의 운동의 교회사적 공헌으로 잘못 설명한 것은?",
+ opts:["교리논쟁용이 아니라 성령의 지도 아래 기도·명상하며 경건한 삶을 위해 성경을 읽음","교리 설교보다 주석 설교를, 구약보다 신약을 강조하고 중세 수도원운동을 강조함","목사후보생 교육을 강조하고 평신도의 위치를 높임","찬송가를 많이 만들고 해외 선교를 강조함"],a:1,
+ e:"경건주의는 <b>중세 수도원운동을 강조하지 않음</b>. 나머지(주석 설교·신약 강조·평신도·찬송·선교)는 공헌이 맞음."},
+{subj:"교회사",year:"2015",no:13,q:"교회사 시대구분과 특징 연결이 잘못된 것은?",
+ opts:["16세기 — 종교개혁 시대","18세기 — 경건주의, 교파 절대주의 시대","19세기 — 유럽의 세속화, 위대한 선교의 세기","20세기 — 에큐메니칼 운동"],a:1,
+ e:"<b>교파(신조) 절대주의는 17세기 정통주의 시대</b>. 18세기는 경건주의·계몽주의 시대."},
+{subj:"교회사",year:"2015",no:14,q:"다음 중 틀린 것은?",
+ opts:["1907.9.17 평양 장대현교회에서 독노회가 조직됨","독노회에서 평양신학교 1회 졸업 7인을 목사로 장립함","첫 독노회는 이기풍을 중국 산동성 선교사로 파송했고, 선교부 조직을 제일 중요 안건으로 다룸","'한국 장로교 첫 모임(독노회)은 사실상 선교사를 보내는 모임'이라고 블레어가 말함"],a:2,
+ e:"이기풍은 <b>제주도</b> 선교사로 파송됨(중국 산동 파송은 1912년 총회 결정). 나머지는 맞음."},
 ];
 
 /* ============================================================
    앱 로직
    ============================================================ */
 const SUBJ_CLASS = {"성경":"","교회사":"history","헌법":"law"};
-let state = {
-  subj:"all", freqOnly:false, wrongOnly:false, shuffled:false,
-  mode:"flash", idx:0, answered:false,
-  list:[],
-};
-let progress = {}; // id -> {seen,known,wrong}
+const SUBJ_ORDER = {"성경":0,"교회사":1,"헌법":2};
 
-// persistence (works on GitHub Pages; degrades gracefully)
-const STORE_KEY = "moksaProgress_v1";
+/* 출제 횟수: 2015~2025 제공 기출(11개년)에서 실측한 '등장 연도 수'.
+   여기 없는 정리노트 문항은 1회로 처리됩니다. */
+const FREQ=[
+["소망의 인내",5],["마태복음 13장과 마가복음 4장",3],["에고 에이미",3],
+["예수님의 탄생을 기록한 복음서",2],["야이로의 집",3],["작고도 가장 지혜로운",3],
+["누가복음에만 나오는",3],["소제물에 반드시",2],["여호와의 이름을 부른 때",2],
+["아합 왕의 죄",3],["도피성이 아닌",2],["창세부터 감추인",2],
+["삼위일체(Trinitas)라는",5],["유대교적 이단은",3],["우르바누스 2세가",3],
+["카놋사의 굴욕",3],["몬테카시노",2],["종교개혁 5대 솔라",3],["성찬에 대한 칼뱅",2],
+["바보예찬",3],["스코틀랜드 신앙고백서",2],["미국 제2차 대각성",2],
+["교회 안의 작은 교회",4],["절대 의존의 감정",3],["신정통주의(말씀의 신학)",3],
+["한국에 최초로 세워진 교회",2],["평양 대부흥의 발원지",3],["광혜원",3],
+["한문 주기도문을 한글로 번역",3],["1884년 9월 인천 제물포",2],["1885년 4월 부활주일",2],
+["첫 목사 안수 7인",3],["제주도로 파송된 최초의 제주",3],["총회의 초대 총회장",2],
+["주기철 목사의 신사참배 거부 설교",2],["예양협정",3],["카타콤이 생겨난",2],
+["밀라노 칙령(313)",6],["교회를 어머니로 갖지 않은",4],["30년 전쟁(1618-1648)",2],
+["혼합·변화·분열·분리",3],["1882년 최초로 성경을 한글로 번역",2],
+["'정치 원리'에 해당하지",8],["행정쟁송의 종류가",3],["니케아-콘스탄티노플 신조의 교회 고백",4],
+["치리회에 해당하지",5],["목사의 자격 연수와 나이",3],["직원 자격 연결이",7],
+["노회 조직 요건으로",3],["당회의 개회 성수",5],["담임목사 청빙에 필요한",6],
+["위임목사 청빙에 필요한",3],["장로 선택 시 공동의회 득표",6],
+["장로 피택자가 받아야 하는 당회 지도 교육",4],["회원권 정지 / 실종교인",6],
+["세례교인(입교인)의 권리와 공동의회",4],["헌법(정치·권징·예배와 예식) 개정 절차",2],
+["법규 적용 순서로",2],["치리권(행정권·권징권)을 정지하는 책벌",6],
+["교인에게 과하는 벌이",3],["권징의 목적이",4],["미조직교회에서 당회권",5],
+["소요리문답 제1문",2],["목사에 관한 소송 및",2],["권징 제4조 3항",2],
+["노회의 개회 성수",7],["근신의 책벌 기간",3],
+["당회장 결원 시 임시당회장을 노회에 요청하지",2]
+];
+function cnt(q){ for(const [s,n] of FREQ){ if(q.indexOf(s)>=0) return n; } return 1; }
+
+let state = { subj:"all", year:"all", freqOnly:false, wrongOnly:false, shuffled:false,
+  mode:"flash", idx:0, answered:false, view:[], shuffleKey:{} };
+let progress = {};
+const STORE_KEY = "moksaProgress_v2";
 function load(){ try{const r=localStorage.getItem(STORE_KEY); if(r) progress=JSON.parse(r);}catch(e){} }
 function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify(progress));}catch(e){} }
-function pid(item){ return item.subj+"|"+item.q.slice(0,40); }
+function pid(it){ return it.subj+"|"+it.q.slice(0,40); }
 
-function buildList(){
-  let arr = BANK.map((b,i)=>({...b,_i:i}));
+function buildView(){
+  let arr = BANK.map((b,i)=>({...b,_i:i,c:cnt(b.q)}));
+  // 세트(연도) 필터
+  if(state.year==="note") arr = arr.filter(x=>!x.no);          // 정리노트 = 연도번호 없는 것
+  else if(state.year!=="all") arr = arr.filter(x=>x.year===state.year);
   if(state.subj!=="all") arr = arr.filter(x=>x.subj===state.subj);
-  if(state.freqOnly) arr = arr.filter(x=>x.freq);
+  if(state.freqOnly) arr = arr.filter(x=>x.c>=4);
   if(state.wrongOnly) arr = arr.filter(x=>{const p=progress[pid(x)]; return p&&p.wrong;});
-  if(state.shuffled){ for(let k=arr.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[arr[k],arr[j]]=[arr[j],arr[k]];} }
-  state.list = arr;
+  if(state.mode==="flash") arr = arr.filter(x=>{const p=progress[pid(x)]; return !(p&&p.known);}); // 외운 카드 제외
+  const yearMode = (state.year!=="all" && state.year!=="note");
+  if(state.shuffled){
+    arr.forEach(x=>{ if(state.shuffleKey[x._i]==null) state.shuffleKey[x._i]=Math.random(); });
+    arr.sort((a,b)=>state.shuffleKey[a._i]-state.shuffleKey[b._i]);
+  } else if(yearMode){
+    arr.sort((a,b)=> (SUBJ_ORDER[a.subj]-SUBJ_ORDER[b.subj]) || ((a.no||0)-(b.no||0)) ); // 시험지 순서
+  } else {
+    arr.sort((a,b)=> (b.c-a.c) || (a._i-b._i) ); // 빈출 높은 순
+  }
+  state.view = arr;
   if(state.idx>=arr.length) state.idx=0;
+  if(state.idx<0) state.idx=0;
 }
 
 function renderStats(){
@@ -513,26 +640,75 @@ function renderStats(){
   document.getElementById("st-seen").textContent=seen;
 }
 
+function freqTag(c){
+  if(c>=4) return '<span class="tag freq">⭐ 기출 '+c+'회</span>';
+  if(c>=2) return '<span class="tag freq" style="background:#c79a52">기출 '+c+'회</span>';
+  return '<span class="tag year">기출 1회</span>';
+}
+function tagsFor(item){
+  let t='<span class="tag subj '+SUBJ_CLASS[item.subj]+'">'+item.subj+'</span>';
+  if(item.no){ // 연도 기출
+    t+='<span class="tag year">'+item.year+' · '+item.no+'번</span>';
+    if(item.sa) t+='<span class="tag freq" style="background:#5a6b8c">주관식</span>';
+    else if(item.ox) t+='<span class="tag freq" style="background:#6b5a8c">O/X</span>';
+  } else {
+    t+=freqTag(item.c);
+  }
+  return t;
+}
+
 function render(){
-  buildList();
+  buildView();
   renderStats();
   const stage=document.getElementById("stage");
   const pos=document.getElementById("pos");
 
-  if(state.list.length===0){
+  if(state.view.length===0){
     pos.textContent="0 / 0";
-    stage.innerHTML='<div class="empty"><div class="big">🗂️</div>조건에 맞는 문제가 없습니다.<br>필터를 바꿔보세요.</div>';
+    if(state.mode==="flash" && !state.wrongOnly){
+      stage.innerHTML='<div class="empty"><div class="big">🎉</div>이 범위의 카드를 모두 "알겠음"으로 넘겼습니다.<br>'+
+        '<button class="btn-sm" style="margin-top:14px;padding:9px 16px" id="redo">이 범위 다시 보기</button></div>';
+      document.getElementById("redo").onclick=()=>{
+        BANK.forEach((b)=>{ const okSubj=(state.subj==="all"||b.subj===state.subj);
+          const okYear=(state.year==="all")||(state.year==="note"&&!b.no)||(b.year===state.year);
+          if(okSubj&&okYear){ const id=pid(b); if(progress[id]) progress[id].known=false; } });
+        save(); state.idx=0; render();
+      };
+    } else {
+      stage.innerHTML='<div class="empty"><div class="big">🗂️</div>조건에 맞는 문제가 없습니다.<br>필터를 바꿔보세요.</div>';
+    }
     return;
   }
   state.answered=false;
-  const item=state.list[state.idx];
-  pos.textContent=(state.idx+1)+" / "+state.list.length;
-  const p=progress[pid(item)]||{};
+  const item=state.view[state.idx];
+  pos.textContent=(state.idx+1)+" / "+state.view.length;
+  const tags=tagsFor(item);
 
-  let tags='<span class="tag subj '+SUBJ_CLASS[item.subj]+'">'+item.subj+'</span>';
-  tags+='<span class="tag year">'+item.year+'</span>';
-  if(item.freq) tags+='<span class="tag freq">⭐ 빈출</span>';
+  // ----- 주관식(sa): 회상 + 정답 보기 + 자가채점 (모드 공통) -----
+  if(item.sa){
+    stage.innerHTML=
+      '<div class="card"><div class="card-top">'+tags+'</div>'+
+      '<div class="q"><span class="qnum">Q.</span>'+item.q+'</div>'+
+      '<button class="reveal-btn" id="reveal">정답 보기</button>'+
+      '<div class="answer-box" id="abox">'+
+        '<div class="ans-label">모범답안</div>'+
+        '<div class="explain" style="border-left-color:var(--green)">'+item.ans+'</div>'+
+        (item.e?'<div class="explain" style="margin-top:10px">'+item.e+'</div>':'')+
+        '<div class="grade-row">'+
+          '<button class="grade dunno" id="g-dunno">✗ 아직 모름</button>'+
+          '<button class="grade know" id="g-know">✓ 알겠음</button>'+
+        '</div>'+
+      '</div></div>'+navHTML();
+    document.getElementById("reveal").onclick=()=>{
+      document.getElementById("abox").classList.add("show");
+      document.getElementById("reveal").style.display="none";
+    };
+    document.getElementById("g-know").onclick=()=>gradeCard(item,true);
+    document.getElementById("g-dunno").onclick=()=>gradeCard(item,false);
+    wireNav(); return;
+  }
 
+  // ----- 객관식 / O·X -----
   let opts=item.opts.map((o,i)=>{
     const mk=["①","②","③","④","⑤"][i]||(i+1);
     return '<button class="opt" data-oi="'+i+'"><span class="marker">'+mk+'</span><span>'+o+'</span></button>';
@@ -550,40 +726,35 @@ function render(){
         '<div class="explain">'+item.e+'</div>'+
         '<div class="grade-row">'+
           '<button class="grade dunno" id="g-dunno">✗ 아직 모름</button>'+
-          '<button class="grade know" id="g-know">✓ 알겠음</button>'+
+          '<button class="grade know" id="g-know">✓ 알겠음 (빼기)</button>'+
         '</div>'+
-      '</div></div>'+
-      navHTML();
+      '</div></div>'+navHTML();
     document.getElementById("reveal").onclick=()=>{
       document.getElementById("abox").classList.add("show");
       document.getElementById("reveal").style.display="none";
-      // mark correct option
-      const ob=document.querySelectorAll("#opts .opt");
-      ob[item.a].classList.add("correct");
+      document.querySelectorAll("#opts .opt")[item.a].classList.add("correct");
     };
-    document.getElementById("g-know").onclick=()=>{grade(item,true);};
-    document.getElementById("g-dunno").onclick=()=>{grade(item,false);};
+    document.getElementById("g-know").onclick=()=>gradeCard(item,true);
+    document.getElementById("g-dunno").onclick=()=>gradeCard(item,false);
   } else {
     stage.innerHTML=
       '<div class="card"><div class="card-top">'+tags+'</div>'+
       '<div class="q"><span class="qnum">Q.</span>'+item.q+'</div>'+
       '<div class="opts" id="opts">'+opts+'</div>'+
-      '<div class="answer-box" id="abox">'+
-        '<div class="explain">'+item.e+'</div>'+
-      '</div></div>'+
-      navHTML();
+      '<div class="answer-box" id="abox"><div class="explain">'+item.e+'</div></div>'+
+      '</div>'+navHTML();
     document.querySelectorAll("#opts .opt").forEach(btn=>{
       btn.onclick=()=>{
         if(state.answered) return;
         state.answered=true;
-        const chosen=parseInt(btn.dataset.oi);
-        const correct=item.a;
+        const chosen=parseInt(btn.dataset.oi), correct=item.a;
         const ob=document.querySelectorAll("#opts .opt");
         ob.forEach((b,i)=>{ b.disabled=true; if(i!==correct&&i!==chosen) b.classList.add("dim"); });
         ob[correct].classList.add("correct");
-        if(chosen!==correct){ btn.classList.add("wrong"); }
+        if(chosen!==correct) btn.classList.add("wrong");
         document.getElementById("abox").classList.add("show");
-        grade(item, chosen===correct, true);
+        mark(item, chosen===correct);
+        renderStats();
       };
     });
   }
@@ -593,27 +764,35 @@ function render(){
 function navHTML(){
   return '<div class="nav">'+
     '<button id="prev"'+(state.idx===0?' disabled':'')+'>← 이전</button>'+
-    '<button class="primary" id="next">'+(state.idx===state.list.length-1?'처음으로':'다음 →')+'</button>'+
+    '<button class="primary" id="next">'+(state.idx>=state.view.length-1?'처음으로':'다음 →')+'</button>'+
     '</div>';
 }
 function wireNav(){
   document.getElementById("prev").onclick=()=>{ if(state.idx>0){state.idx--;render();window.scrollTo({top:0,behavior:'smooth'});} };
-  document.getElementById("next").onclick=()=>{ state.idx=(state.idx+1)%state.list.length; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+  document.getElementById("next").onclick=()=>{ state.idx=(state.idx+1)%state.view.length; render(); window.scrollTo({top:0,behavior:'smooth'}); };
 }
 
-function grade(item, known, silent){
+function mark(item, known){
   const id=pid(item);
   const p=progress[id]||{seen:false,known:false,wrong:false};
   p.seen=true;
-  if(known){ p.known=true; p.wrong=false; }
-  else { p.wrong=true; p.known=false; }
-  progress[id]=p; save(); renderStats();
-  if(!silent){ // flashcard: auto-advance
-    setTimeout(()=>{ state.idx=(state.idx+1)%state.list.length; render(); window.scrollTo({top:0,behavior:'smooth'}); },180);
-  }
+  if(known){ p.known=true; p.wrong=false; } else { p.wrong=true; p.known=false; }
+  progress[id]=p; save();
+}
+
+function gradeCard(item, known){
+  mark(item, known);
+  // 학습+알겠음: 카드가 목록에서 빠짐 → idx 유지(다음이 당겨짐). 그 외엔 다음으로 이동.
+  if(!(state.mode==="flash" && known)) state.idx++;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // controls
+document.querySelectorAll(".year-f").forEach(c=>c.onclick=()=>{
+  document.querySelectorAll(".year-f").forEach(x=>x.classList.remove("on"));
+  c.classList.add("on"); state.year=c.dataset.year; state.idx=0; render();
+});
 document.querySelectorAll(".subj-f").forEach(c=>c.onclick=()=>{
   document.querySelectorAll(".subj-f").forEach(x=>x.classList.remove("on"));
   c.classList.add("on"); state.subj=c.dataset.subj; state.idx=0; render();
@@ -627,13 +806,12 @@ document.querySelectorAll(".chip[data-filter]").forEach(c=>c.onclick=()=>{
 });
 document.querySelectorAll(".mode-tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".mode-tab").forEach(x=>x.classList.remove("on"));
-  t.classList.add("on"); state.mode=t.dataset.mode; render();
+  t.classList.add("on"); state.mode=t.dataset.mode; state.idx=0; render();
 });
 document.getElementById("reset").onclick=()=>{
   if(confirm("진행 상황(아는 것/틀린 것 기록)을 모두 지울까요?")){ progress={}; save(); state.idx=0; render(); }
 };
 
-// keyboard
 document.addEventListener("keydown",e=>{
   if(e.key==="ArrowRight"){ const n=document.getElementById("next"); if(n)n.click(); }
   if(e.key==="ArrowLeft"){ const p=document.getElementById("prev"); if(p&&!p.disabled)p.click(); }
