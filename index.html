@@ -736,8 +736,8 @@ let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let list = [];
 let showAns = false;
 
-// 시험모드 전용 데이터 객체
-let examData = { active: false, finished: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+// 시험모드 전용 데이터 객체 (isSequentialMode 추가)
+let examData = { active: false, finished: false, isSequentialMode: false, list: [], answers: [], timeLeft: 1200, timerId: null };
 
 const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
 
@@ -749,6 +749,7 @@ function save() {
 // 3. UI 렌더링 및 필터링 로직
 // ==========================================
 function render() {
+  // ✨ 시험 모드일 경우 전용 렌더러로 분기
   if (state.mode === 'exam') return renderExam();
 
   const cArea = document.getElementById("content-area");
@@ -765,6 +766,7 @@ function render() {
       const rec = progress[getQId(q)];
       if (!rec || rec === 'O') return false;
     }
+    // 잦은 오답 필터 (3회 이상 틀린 문제만)
     if (state.wrongnoteOnly) {
       if (!wrongNotes[getQId(q)] || wrongNotes[getQId(q)].count < 3) return false;
     }
@@ -777,7 +779,7 @@ function render() {
   updateDashboard();
 
   if (list.length === 0) {
-    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
+    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다. (오답이나 빈출 데이터가 없을 수 있습니다.)</div>`;
     return;
   }
   
@@ -796,8 +798,10 @@ function updateDashboard() {
   allQuestions.forEach(q => {
     const qid = getQId(q);
     if (progress[qid] === 'O' || progress[qid] === 'X') {
-      stats[q.subj].t++;
-      if (progress[qid] === 'O') stats[q.subj].c++;
+      if (stats[q.subj]) {
+          stats[q.subj].t++;
+          if (progress[qid] === 'O') stats[q.subj].c++;
+      }
     }
   });
 
@@ -905,13 +909,33 @@ function renderExam() {
 
   // 시험 대기 화면
   if (!examData.active && !examData.finished) {
-    let text = state.subj === 'all' ? '<b>성경 11 / 교회사 11 / 헌법 11</b>' : `<b>${state.subj} 33문제</b>`;
+    let yearText = state.year === 'all' ? '전체 연도' : state.year + '년';
+    let subjText = state.subj === 'all' ? '성경/교회사/헌법' : state.subj;
+    
+    // 연도별 기출 풀기를 위한 문항 수 계산
+    let currentList = allQuestions.filter(q => {
+        if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
+        if (state.freqOnly && q.year !== '빈출') return false;
+        if (state.subj !== 'all' && q.subj !== state.subj) return false;
+        return true;
+    });
+
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
         <h2 style="color:var(--burgundy); margin-bottom:15px;">⏳ 실전 모의고사</h2>
-        <p>현재 설정된 필터 내에서 랜덤으로<br>${text}가 출제됩니다.</p>
-        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">실제 목사고시와 동일하게 20분의 시간이 주어집니다.</p>
-        <button onclick="startExam()" style="margin-top:30px; padding:12px 24px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">시험 시작하기</button>
+        <p>현재 설정된 필터: [<b>${yearText} / ${subjText}</b>]</p>
+        
+        <div style="margin-top:30px; display:flex; flex-direction:column; gap:10px;">
+            <button onclick="startExam(false)" style="padding:15px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">
+                🔀 랜덤 모의고사 (33제 섞기)
+            </button>
+            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">전체 문제은행에서 랜덤으로 33문제를 섞어서 출제합니다. (20분)</p>
+            
+            <button onclick="startExam(true)" style="padding:15px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">
+                📚 연도별 기출 풀기 (순서대로)
+            </button>
+            <p style="font-size:0.8rem; color:var(--muted);">선택한 필터의 문제(${currentList.length}문제)를 실제 기출 번호 순서대로 모두 출제합니다. (제한시간 없음)</p>
+        </div>
       </div>`;
     return;
   }
@@ -932,8 +956,10 @@ function renderExam() {
       <h3 style="margin-bottom:10px;">오답 노트 (틀린 문제 해설)</h3>
     `;
 
+    let hasWrong = false;
     examData.list.forEach((q, idx) => {
       if (examData.answers[idx] !== q.a) {
+        hasWrong = true;
         html += `
           <div class="card" style="margin-top:15px; border-left:4px solid var(--red);">
             <div class="q-meta">${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''} <span class="wrong-badge">내가 고른 답: ${examData.answers[idx] !== undefined ? examData.answers[idx]+1+'번' : '미체크'}</span></div>
@@ -945,21 +971,32 @@ function renderExam() {
           </div>`;
       }
     });
+    
+    if(!hasWrong) {
+        html += `<div class="card" style="text-align:center;">🎉 모두 맞았습니다! 완벽합니다!</div>`;
+    }
+    
     cArea.innerHTML = html;
     window.scrollTo(0, 0);
     return;
   }
 
   // 시험 진행 화면
-  const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
-  const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
+  let timerHtml = "";
+  if (!examData.isSequentialMode) {
+      const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
+      const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
+      timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
+  } else {
+      timerHtml = `<div class="exam-timer" style="background:var(--ink);">실전 기출 풀이 모드 (총 ${examData.list.length}문제)</div>`;
+  }
   
-  let html = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
+  let html = timerHtml;
   
   examData.list.forEach((q, qIndex) => {
     html += `
       <div class="card" style="margin-bottom:20px; padding:20px;">
-        <div class="q-meta">${qIndex + 1}번. (${q.year} ${q.subj})</div>
+        <div class="q-meta">${qIndex + 1}번. (${q.year} ${q.subj} ${q.no ? q.no+'번' : ''})</div>
         <div class="q-text" style="font-size:1.1rem;">${q.q}</div>
         <div class="options">
           ${q.opts.map((opt, i) => `
@@ -977,35 +1014,60 @@ function renderExam() {
   cArea.innerHTML = html;
 }
 
-function startExam() {
+function startExam(isSequential) {
   let pool = [];
-  
-  // 전체 과목 선택 시 (각 과목별 11문제씩 완벽 믹스)
-  if (state.subj === 'all') {
-    let bible = allQuestions.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
-    let history = allQuestions.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
-    let law = allQuestions.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
-    pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
-  } else {
-    // 단일 과목 선택 시
-    let currentList = allQuestions.filter(q => q.subj === state.subj);
-    pool = currentList.sort(()=>Math.random()-0.5).slice(0, 33);
-  }
+  let currentList = allQuestions.filter(q => {
+    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
+    if (state.freqOnly && q.year !== '빈출') return false;
+    if (state.subj !== 'all' && q.subj !== state.subj) return false;
+    return true;
+  });
 
-  if (pool.length === 0) return alert("현재 필터 조건에 맞는 문제가 없습니다.");
+  if (currentList.length === 0) return alert("현재 필터 조건에 맞는 문제가 없습니다.");
+
+  if (isSequential) {
+      // 연도별 기출 풀기 모드 (순서대로 전체 출제)
+      // 정렬: 과목순(성경->교회사->헌법) -> 번호순
+      const subjOrder = {"성경":1, "교회사":2, "헌법":3};
+      pool = [...currentList].sort((a, b) => {
+          if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
+          return (a.no || 0) - (b.no || 0);
+      });
+  } else {
+      // 랜덤 모의고사 모드
+      if (state.subj === 'all') {
+        let bible = currentList.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
+        let history = currentList.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
+        let law = currentList.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
+        pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
+      } else {
+        pool = [...currentList].sort(()=>Math.random()-0.5).slice(0, 33);
+      }
+  }
   
-  examData = { active: true, finished: false, list: pool, answers: new Array(pool.length).fill(undefined), timeLeft: 1200, timerId: null };
+  examData = { 
+      active: true, 
+      finished: false, 
+      isSequentialMode: isSequential,
+      list: pool, 
+      answers: new Array(pool.length).fill(undefined), 
+      timeLeft: 1200, 
+      timerId: null 
+  };
   
-  examData.timerId = setInterval(() => {
-    examData.timeLeft--;
-    if (examData.timeLeft <= 0) {
-      clearInterval(examData.timerId);
-      alert("시간이 종료되었습니다. 자동 제출됩니다.");
-      submitExam();
-    } else {
-      renderExam();
-    }
-  }, 1000);
+  // 랜덤 모의고사에만 타이머 적용
+  if (!isSequential) {
+      examData.timerId = setInterval(() => {
+        examData.timeLeft--;
+        if (examData.timeLeft <= 0) {
+          clearInterval(examData.timerId);
+          alert("시간이 종료되었습니다. 자동 제출됩니다.");
+          submitExam();
+        } else {
+          renderExam();
+        }
+      }, 1000);
+  }
   
   renderExam();
 }
@@ -1016,8 +1078,8 @@ function markExamAnswer(qIndex, optIndex) {
 }
 
 function submitExam() {
-  // 모달 팝업 대신 내장 컨펌 사용 방지 요청에 맞추어 팝업 없이 즉시 제출되도록 하거나 자체 모달을 띄워야 합니다.
-  // 시스템 규칙에 위배되므로 기본 confirm 제거 후 즉시 제출되도록 로직 수정.
+  // 모달 팝업 대신 내장 컨펌 사용 방지 요청에 따라 커스텀 로직이나 즉시 제출 사용.
+  // 시스템 컨펌룰 준수를 위해 임시 허용
   clearInterval(examData.timerId);
   
   // 제출 시 틀린 문제들은 자동으로 오답노트에 추가
@@ -1033,11 +1095,12 @@ function submitExam() {
   
   examData.active = false;
   examData.finished = true;
+  updateDashboard();
   renderExam();
 }
 
 function resetExam() {
-  examData = { active: false, finished: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+  examData = { active: false, finished: false, isSequentialMode: false, list: [], answers: [], timeLeft: 1200, timerId: null };
   renderExam();
 }
 
@@ -1067,18 +1130,19 @@ document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
   t.classList.add("on"); state.mode = t.dataset.mode; state.idx = 0; 
   if(state.mode !== 'exam' && examData.active) {
-    // 자체 초기화 (alert나 confirm 없이 즉시 해제)
+    // 시험 중단 처리
     clearInterval(examData.timerId); examData.active = false;
   }
   render();
 });
 
 document.getElementById("reset").onclick = () => {
-  // 모달 경고 없이 즉시 초기화 (시스템 컨펌룰 준수)
+  // 경고 팝업 없이 즉시 데이터 초기화
   progress = {}; localStorage.removeItem("moksagosi_prog");
   wrongNotes = {}; localStorage.removeItem("wrongNotes");
   state.idx = 0; 
-  showToast("모든 학습 기록이 초기화되었습니다.");
+  showToast("학습 기록 및 오답노트가 초기화되었습니다.");
+  updateDashboard();
   render(); 
 };
 
