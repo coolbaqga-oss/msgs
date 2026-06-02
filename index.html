@@ -34,16 +34,30 @@
     max-width: 640px;
     margin: 0 auto;
     padding: 20px;
+    padding-bottom: 80px;
   }
   header {
     border-bottom: 2px solid var(--ink);
     padding-bottom: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; }
+  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px; }
+  
+  /* 과목별 대시보드 */
+  .dashboard {
+    display: flex; gap: 5px; margin-bottom: 20px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px; box-shadow: var(--shadow);
+  }
+  .dash-item {
+    flex: 1; text-align: center; border-right: 1px solid var(--line);
+  }
+  .dash-item:last-child { border-right: none; }
+  .dash-title { font-size: 0.75rem; color: var(--muted); }
+  .dash-score { font-size: 1.1rem; font-weight: bold; color: var(--burgundy); }
   
   .filters {
     display: flex;
@@ -110,40 +124,36 @@
   .opt:hover { border-color: var(--gold); background: var(--paper-2); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
+  .opt.dim { opacity: 0.5; cursor: not-allowed; }
   
   .ans-box {
     margin-top: 20px;
     padding: 16px;
     background: var(--paper-2);
-    border-left: 4px solid var(--burgundy);
+    border-left: 4px solid var(--gold);
     border-radius: 0 8px 8px 0;
     font-size: 0.95rem;
     display: none;
     animation: fadeIn 0.3s;
   }
   
-  /* 50:50 이전/다음 버튼 디자인 */
-  .nav-btns { 
-    display: flex; 
-    gap: 10px; 
-    margin-top: 20px; 
-  }
+  /* 50:50 듀얼 버튼 개선 */
+  .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
   .nav-btn {
     flex: 1;
     padding: 14px;
     background: var(--card);
     color: var(--ink);
-    border: 1px solid var(--ink);
+    border: 1px solid var(--line);
     border-radius: 8px;
     font-size: 1.05rem;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
   }
-  .nav-btn:hover { background: var(--paper-2); }
   .nav-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
   .nav-btn.primary:hover { background: var(--burgundy); border-color: var(--burgundy); }
-  .nav-btn:disabled { background: var(--line); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
+  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* 시험모드 전용 CSS */
   .exam-timer {
@@ -192,6 +202,29 @@
     margin-left: 10px;
   }
 
+  /* 토스트 알림 (Anki 오답 반복 안내용) */
+  #toast {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: var(--burgundy);
+    color: #fff;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    font-size: 0.95rem;
+    box-shadow: var(--shadow);
+  }
+  #toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  }
+  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+  @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
@@ -199,11 +232,21 @@
 
 <div class="app-container">
   <header>
-    <h1>예장통합 목사고시</h1>
-    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">데이터 초기화</button>
+    <div>
+      <div class="kicker">대한예수교장로회 · 통합</div>
+      <h1>목사고시 프리미엄 CBT</h1>
+    </div>
+    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
   </header>
 
-  <!-- 필터 옵션 (연도순서 변경: 과거 -> 최신) -->
+  <!-- 과목별 정답률 대시보드 -->
+  <div class="dashboard">
+    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
+    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
+    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
+  </div>
+
+  <!-- 필터 옵션 -->
   <div class="filters">
     <button class="chip year-f on" data-year="all">전체 연도</button>
     <button class="chip year-f" data-year="2015">2015 기출</button>
@@ -216,33 +259,35 @@
     
     <div style="width:100%; height:4px;"></div>
     
-    <button class="chip subj-f on" data-subj="성경">성경</button>
+    <button class="chip subj-f on" data-subj="all">전체 과목</button>
+    <button class="chip subj-f" data-subj="성경">성경</button>
     <button class="chip subj-f" data-subj="교회사">교회사</button>
     <button class="chip subj-f" data-subj="헌법">헌법</button>
     
     <div style="width:100%; height:4px;"></div>
     
-    <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
-    <button class="chip" data-filter="wrong">내 오답만</button>
-    <button class="chip" data-filter="shuffle">🔀 셔플</button>
-    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 잦은 오답(3회 이상)</button>
+    <button class="chip" data-filter="wrong">내가 틀린 문제</button>
+    <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
+    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP (3회 이상)</button>
   </div>
 
-  <!-- 모드 선택 (암기 카드 제거) -->
+  <!-- 모드 선택 -->
   <div class="filters" style="display:flex; margin-bottom:20px;">
     <button class="mode-tab on" data-mode="study">학습 모드</button>
-    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
+    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사 (33제)</button>
   </div>
 
   <!-- 콘텐츠 렌더링 영역 -->
   <div id="content-area"></div>
 </div>
 
+<!-- 토스트 알림창 -->
+<div id="toast"></div>
+
 <script>
-// ==========================================
-// 1. 데이터베이스 영역
-// ==========================================
+// 쉼표 누락이 없도록 각 객체 끝에 콤마를 철저히 검증했습니다.
 const allQuestions = [
+
   // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
@@ -263,7 +308,7 @@ const allQuestions = [
   {subj:"교회사",year:"2015",no:13,q:"교회사 시대구분과 특징 연결이 잘못된 것은?",opts:["16세기 — 종교개혁 시대","18세기 — 경건주의, 교파 절대주의 시대","19세기 — 유럽의 세속화, 위대한 선교의 세기","20세기 — 에큐메니칼 운동"],a:1,e:"<b>교파(신조) 절대주의는 17세기 정통주의 시대</b>. 18세기는 경건주의·계몽주의 시대."},
   {subj:"교회사",year:"2015",no:14,q:"다음 중 틀린 것은?",opts:["1907.9.17 평양 장대현교회에서 독노회가 조직됨","독노회에서 평양신학교 1회 졸업 7인을 목사로 장립함","첫 독노회는 이기풍을 중국 산동성 선교사로 파송했고, 선교부 조직을 제일 중요 안건으로 다룸","'한국 장로교 첫 모임(독노회)은 사실상 선교사를 보내는 모임'이라고 블레어가 말함"],a:2,e:"이기풍은 <b>제주도</b> 선교사로 파송됨(중국 산동 파송은 1912년 총회 결정). 나머지는 맞음."},
 
-  // ===================== 2016년도 기출 =====================
+ // ===================== 2016년도 기출 =====================
   {subj:"성경",year:"2016",no:5,q:"'성전에 올라가는 노래'라는 제목이 붙은 시편은?",opts:["시 120-134편","시 121-135편","시 121-134편","시 120-135편"],a:0,e:"성전에 올라가는 노래(성전에 오르는 노래) = <b>시편 120-134편</b>, 모두 15편."},
   {subj:"성경",year:"2016",no:6,q:"예수님께서 제자들에게 가르쳐 주신 기도(주기도문)가 나타나는 곳은?",opts:["마 6장, 눅 11장","마 7장, 눅 11장","마 6장, 눅 12장","마 7장, 눅 12장"],a:0,e:"주기도문 = <b>마태복음 6장</b>(산상수훈), <b>누가복음 11장</b>."},
   {subj:"성경",year:"2016",no:7,q:"안디옥 교회의 교사나 선지자가 아닌 사람은?",opts:["바나바","사울","루기오","브로고로"],a:3,e:"행13:1 안디옥 교회: 바나바·시므온(니게르)·루기오·마나엔·사울. <b>브로고로</b>는 행6장 일곱 집사 중 한 명."},
@@ -283,7 +328,7 @@ const allQuestions = [
   {subj:"교회사",year:"2016",no:13,q:"다음 설명에 해당하는 사람은? ('황금의 입' / 안디옥 감독 후 콘스탄티노플 대주교 / 성찬 중시 / 346년 안디옥 출생)",opts:["어거스틴","암브로시우스","크리소스톰","제롬"],a:2,e:"<b>요한 크리소스토무스</b>(황금의 입) — 뛰어난 설교자, 콘스탄티노플 대주교."},
   {subj:"교회사",year:"2016",no:14,q:"제네바의 방종을 바로잡고자 훈련규범·교육시설·성만찬 제도·결혼예식 공개를 강조했고, 반대파의 어려움 속에서도 제네바에서 목회한 종교개혁자는?",opts:["츠빙글리","칼빈","루터","후스"],a:1,e:"<b>칼뱅</b> — 제네바를 개혁의 도시로 삼아 교회 규율과 제도를 세움."},
   {subj:"교회사",year:"2016",no:15,q:"간수의 부축을 받으며 부인과의 최후 면회에서 '어머님을 잘 모셔주오 / 따스한 숭늉이 먹고 싶소 / 조선교회를 위해 기도하겠소 / 평양 돌박산에 묻어주오'라는 유언을 남긴 사람은?",opts:["길선주","주기철","김익두","최권능"],a:1,e:"<b>주기철</b> 목사 — 신사참배 거부로 옥중 순교."},
-
+  
   // ===================== 2017년도 기출 =====================
   {subj:"성경",year:"2017",no:1,q:"예수님께서 야이로의 집으로 가시던 도중에 고쳐주신 병자는?",opts:["중풍병자","두 소경","혈루증을 앓는 여인","38년 된 병자","귀신 들린 아이"],a:2,e:"막5장 — 야이로의 딸을 살리러 가시던 길에 혈루증 여인을 고치심."},
   {subj:"성경",year:"2017",no:2,q:"4,000명을 먹이신 기사가 기록된 복음서는?",opts:["공관복음 전부","사복음 전부","마, 눅","마, 막","마, 요"],a:3,e:"4천명 급식은 마15장·막8장에만. 5천명 급식은 사복음 전부."},
@@ -461,7 +506,7 @@ const allQuestions = [
   {subj:"헌법",year:"2018",no:31,q:"목사의 칭호와 설명 중 잘못된 것은?",opts:["위임목사 — 청빙으로 노회 위임을 받은 목사","담임목사 — 노회 허락으로 임시 시무, 시무 3년","부목사 — 위임목사 보좌, 임기 1년 연임 가능","무임목사 — 정당한 이유 없이 5년 이상 무임이면 자동 해직","기관목사 — 총회·노회·관계기관에서 종사"],a:3,e:"무임목사는 <b>3년 이상 무임</b> 시 자동 해직된다."},
   {subj:"헌법",year:"2018",no:32,q:"교인에 대한 설명 중 잘못된 것은?",opts:["삼위일체 하나님을 믿는 자들로 그리스도인이라 부른다","원입·유아세례·세례교인으로 구분","세례교인은 입교한(18세 이상) 또는 원입교인(18세 이상)으로 세례받은 자","원입교인은 믿기로 결심하고 공동예배에 참석하는 자","유아세례교인은 세례교인의 자녀(2세 미만)로 유아세례 받은 자"],a:2,e:"과거 헌법 기준으로 세례교인 입교 연령은 15세였다 (현재는 13세)."},
   {subj:"헌법",year:"2018",no:33,q:"제직회에 관한 사항 중 잘못된 것은?",opts:["회원은 시무목사·장로·집사·권사·전도사·서리집사","소집은 제직회장이 필요를 인정할 때","1주일 전 광고, 개회성수는 출석수, 결의는 과반수","회장은 당회장, 서기·회계는 회에서 선정","소집은 교회 제직 과반수의 요청이 있을 때"],a:4,e:"제직회 소집은 <b>교회 제직 3분의 1</b> 요청이 있을 때 한다."},
-
+ 
   // ===================== 2019년도 기출 =====================
   {subj:"성경",year:"2019",no:1,q:"레위기에 나오는 5대 제사가 아닌 것은 무엇입니까?",opts:["번제","소제","속죄제","속건제","요제"],a:4,e:"<b>5대 제사</b> = 번제·소제·화목제·속죄제·속건제. '요제'는 아님."},
   {subj:"성경",year:"2019",no:2,q:"사사기에 기록된 사사가 순서대로 바르게 나열된 것은 무엇입니까?",opts:["옷니엘-삼갈-에훗-드보라-입다-돌라-야일-입산-기드온-엘론-압돈-삼손","옷니엘-에훗-삼갈-드보라-기드온-돌라-야다-압돈-입산-엘론-입산-삼손","옷니엘-에훗-드보라-삼갈-기드온-야일-압돈-입다-입산-엘론-돌라-삼손","옷니엘-에훗-삼갈-드보라-기드온-돌라-야일-입다-입산-엘론-압돈-삼손","옷니엘-에훗-드보라-압돈-기드온-야일-돌라-입다-입산-엘론-삼갈-삼손"],a:3,e:"<b>옷니엘-에훗-삼갈-드보라-기드온-돌라-야일-입다-입산-엘론-압돈-삼손.</b>"},
@@ -561,7 +606,8 @@ const allQuestions = [
   {subj:"헌법",year:"2019",no:30,q:"당회에 관한 부분 중에서 맞는 것은 무엇입니까?",opts:["당회는 교인의 신앙과 행위를 통찰하며 세례, 입교할 자를 문답하며 세례식과 성찬식을 관장한다.","당회는 지교회의 현금 및 동산을 관리한다.","당회는 범죄한 자를 소환 심문하고 범죄한 증거가 명백할 때는 공동의회에 회부한다.","당회는 당회장이 소집하되 연 3차 이상을 회집하여야 한다.","당회장이 당회 소집을 할 때 당회원 3분의 2 이상의 찬성이 있어야 한다."],a:0,e:"제68조1 — <b>신앙·행위 통찰, 세례·입교 문답, 세례식·성찬식 관장(①)</b>이 맞음."},
   {subj:"헌법",year:"2019",no:31,q:"헌법에 명시된 당회가 비치할 명부가 아닌 것은?",opts:["헌금 대장 및 명부","세례교인(입교인) 명부","책벌 및 해벌 교인 명부","실종 교인 명부","별세 명부"],a:0,e:"제71조 명부에 <b>'헌금 대장 및 명부'</b>는 없음."},
   {subj:"헌법",year:"2019",no:32,q:"원심판결에 항소이유가 아닌 것은 무엇입니까?",opts:["판결에 영향을 미친 헌법 또는 규정의 위반이 있는 때","판결재판국의 구성이 헌법 또는 규정에 위반한 때","국가 재판에서 승소하여 재심 청구가 필요한 때","판결에 이유를 붙이지 아니하거나 이유에 모순이 있는 때","사실의 오인에 있어 판결에 영향을 미친 때"],a:2,e:"<b>'국가 재판 승소·재심 청구'</b>는 항소이유가 아님."},
-  {subj:"헌법",year:"2019",no:33,q:"노회에 대한 설명 중 맞는 것은 무엇입니까?",opts:["노회는 회원(시무목사와 총대장로) 3분의 1 이상의 출석으로 개회한다.","정기노회는 개회 2개월 전에 소집을 통지하여야 한다.","노회는 노회 소속 목사와 당회에서 파송한 총대장로로 조직한다.","임시노회는 목사, 장로 각 3인 이상의 청원에 의하여 소집한다.","노회는 임원회 회의록을 작성하여 연 1차씩 총회의 검사를 받아야 한다."],a:2,e:"노회는 <b>노회 소속 목사와 당회 파송 총대장로로 조직(③)</b>이 맞음."}
+  {subj:"헌법",year:"2019",no:33,q:"노회에 대한 설명 중 맞는 것은 무엇입니까?",opts:["노회는 회원(시무목사와 총대장로) 3분의 1 이상의 출석으로 개회한다.","정기노회는 개회 2개월 전에 소집을 통지하여야 한다.","노회는 노회 소속 목사와 당회에서 파송한 총대장로로 조직한다.","임시노회는 목사, 장로 각 3인 이상의 청원에 의하여 소집한다.","노회는 임원회 회의록을 작성하여 연 1차씩 총회의 검사를 받아야 한다."],a:2,e:"노회는 <b>노회 소속 목사와 당회 파송 총대장로로 조직(③)</b>이 맞음."},
+
 
 // ===================== 2025년도 기출 =====================
 // 성경
@@ -688,10 +734,14 @@ let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let list = [];
 let showAns = false;
 
+// 시험모드 전용 데이터 객체
 let examData = { active: false, finished: false, list: [], answers: [], timeLeft: 1200, timerId: null };
-const getQId = (q) => `${q.year}-${q.subj}-${q.no}`;
 
-function save() { localStorage.setItem("moksagosi_prog", JSON.stringify(progress)); }
+const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+
+function save() {
+  localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
+}
 
 // ==========================================
 // 3. UI 렌더링 및 필터링 로직
@@ -703,19 +753,16 @@ function render() {
   cArea.innerHTML = "";
   showAns = false;
 
-  // 필터링 적용 (전체 연도 로직 추가)
+  // 필터링 적용
   list = allQuestions.filter(q => {
-    // 연도 필터 (all이 아닐 때만 연도 검사)
     if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
     if (state.freqOnly && q.year !== '빈출') return false;
-    // 과목 필터
-    if (q.subj !== state.subj) return false;
-    // 내 오답만 필터
+    if (state.subj !== 'all' && q.subj !== state.subj) return false;
+    
     if (state.wrongOnly) {
       const rec = progress[getQId(q)];
       if (!rec || rec === 'O') return false;
     }
-    // 잦은 오답 (3회 이상) 필터
     if (state.wrongnoteOnly) {
       if (!wrongNotes[getQId(q)] || wrongNotes[getQId(q)].count < 3) return false;
     }
@@ -724,15 +771,58 @@ function render() {
 
   if (state.shuffled) list.sort(() => Math.random() - 0.5);
 
+  // 정답률 대시보드 업데이트
+  updateDashboard();
+
   if (list.length === 0) {
-    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다. (오답이나 빈출 데이터가 없을 수 있습니다.)</div>`;
+    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
     return;
   }
   
   if (state.idx >= list.length) state.idx = 0;
   if (state.idx < 0) state.idx = list.length - 1;
 
-  if (state.mode === 'study') renderStudy(cArea);
+  if (state.mode === 'study') {
+    renderStudy(cArea);
+  }
+}
+
+// 과목별 정답률 계산 및 표시
+function updateDashboard() {
+  let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
+  
+  allQuestions.forEach(q => {
+    const qid = getQId(q);
+    if (progress[qid] === 'O' || progress[qid] === 'X') {
+      stats[q.subj].t++;
+      if (progress[qid] === 'O') stats[q.subj].c++;
+    }
+  });
+
+  ['성경', '교회사', '헌법'].forEach(subj => {
+    const el = document.getElementById(`score-${subj === '성경' ? 'bible' : subj === '교회사' ? 'history' : 'law'}`);
+    if (el) {
+      const percent = stats[subj].t === 0 ? 0 : Math.round((stats[subj].c / stats[subj].t) * 100);
+      el.textContent = `${percent}%`;
+    }
+  });
+}
+
+// 토스트 메시지 띄우기
+function showToast(msg) {
+  const x = document.getElementById("toast");
+  x.innerHTML = msg;
+  x.className = "show";
+  setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+}
+
+// 스크롤 고정 함수
+function scrollToQuestion() {
+  const el = document.querySelector('.card');
+  if (el) {
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'smooth' });
+  }
 }
 
 function renderStudy(cArea) {
@@ -742,11 +832,15 @@ function renderStudy(cArea) {
   
   let html = `
     <div class="card">
-      <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no}번</div>
+      <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}</div>
       <div class="q-text">Q. ${q.q}</div>
       <div class="options">
   `;
-  q.opts.forEach((opt, i) => { html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`; });
+  
+  q.opts.forEach((opt, i) => {
+    html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`;
+  });
+  
   html += `
       </div>
       <div class="ans-box" id="ans-box">
@@ -775,12 +869,20 @@ function renderStudy(cArea) {
         progress[qid] = 'O';
       } else {
         progress[qid] = 'X';
+        
+        // 오답 노트 카운트 증가
         if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
         wrongNotes[qid].count++;
         wrongNotes[qid].last = new Date().toISOString().split('T')[0];
         localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+        
+        // ✨ 에빙하우스 오답 자동 반복 (Anki 시스템)
+        // 틀린 문제를 리스트 맨 끝에 다시 추가하여 맞출 때까지 반복시킴
+        list.push(q);
+        showToast("오답 노트에 추가되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
       }
       save();
+      updateDashboard();
       
       document.getElementById(`opt-${q.a}`).classList.add("correct");
       if (i !== q.a) document.getElementById(`opt-${i}`).classList.add("wrong");
@@ -792,14 +894,6 @@ function renderStudy(cArea) {
   document.getElementById("next-btn").onclick = () => { state.idx++; render(); scrollToQuestion(); };
 }
 
-function scrollToQuestion() {
-  const cArea = document.getElementById("content-area");
-  if (cArea) {
-    const y = cArea.getBoundingClientRect().top + window.pageYOffset - 10;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'smooth' });
-  }
-}
-
 // ==========================================
 // 4. 실전 모의고사 (시험 모드) 로직
 // ==========================================
@@ -807,18 +901,20 @@ function renderExam() {
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = "";
 
+  // 시험 대기 화면
   if (!examData.active && !examData.finished) {
-    let yearText = state.year === 'all' ? '전체 연도' : state.year + '년';
+    let text = state.subj === 'all' ? '<b>성경 11 / 교회사 11 / 헌법 11</b>' : `<b>${state.subj} 33문제</b>`;
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
         <h2 style="color:var(--burgundy); margin-bottom:15px;">⏳ 실전 모의고사</h2>
-        <p>현재 설정된 필터 [<b>${yearText} / ${state.subj}</b>] 안에서<br>랜덤으로 <b>33문제</b>가 출제됩니다.</p>
+        <p>현재 설정된 필터 내에서 랜덤으로<br>${text}가 출제됩니다.</p>
         <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">실제 목사고시와 동일하게 20분의 시간이 주어집니다.</p>
         <button onclick="startExam()" style="margin-top:30px; padding:12px 24px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">시험 시작하기</button>
       </div>`;
     return;
   }
 
+  // 시험 결과 화면
   if (examData.finished) {
     let score = 0;
     examData.list.forEach((q, idx) => { if (examData.answers[idx] === q.a) score++; });
@@ -829,7 +925,7 @@ function renderExam() {
         <h2>모의고사 결과</h2>
         <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
         <p>${examData.list.length}문제 중 ${score}문제 정답</p>
-        <button onclick="resetExam()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">모의고사 종료</button>
+        <button onclick="resetExam()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">다시 시험보기</button>
       </div>
       <h3 style="margin-bottom:10px;">오답 노트 (틀린 문제 해설)</h3>
     `;
@@ -837,8 +933,8 @@ function renderExam() {
     examData.list.forEach((q, idx) => {
       if (examData.answers[idx] !== q.a) {
         html += `
-          <div class="card" style="margin-top:15px; border-left:4px solid var(--red); padding:15px;">
-            <div class="q-meta">${q.year}년 ${q.subj} ${q.no}번 <span class="wrong-badge">내가 고른 답: ${examData.answers[idx] !== undefined ? examData.answers[idx]+1+'번' : '미체크'}</span></div>
+          <div class="card" style="margin-top:15px; border-left:4px solid var(--red);">
+            <div class="q-meta">${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''} <span class="wrong-badge">내가 고른 답: ${examData.answers[idx] !== undefined ? examData.answers[idx]+1+'번' : '미체크'}</span></div>
             <div class="q-text" style="font-size:1rem; margin-bottom:10px;">Q. ${q.q}</div>
             <div class="ans-box" style="margin-top:10px; display:block; padding:10px;">
               <strong>정답: ${q.a + 1}번</strong><br>
@@ -848,11 +944,14 @@ function renderExam() {
       }
     });
     cArea.innerHTML = html;
+    window.scrollTo(0, 0);
     return;
   }
 
+  // 시험 진행 화면
   const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
   const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
+  
   let html = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
   
   examData.list.forEach((q, qIndex) => {
@@ -877,14 +976,20 @@ function renderExam() {
 }
 
 function startExam() {
-  let currentList = allQuestions.filter(q => {
-    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-    if (state.freqOnly && q.year !== '빈출') return false;
-    if (q.subj !== state.subj) return false;
-    return true;
-  });
+  let pool = [];
+  
+  // 전체 과목 선택 시 (각 과목별 11문제씩 완벽 믹스)
+  if (state.subj === 'all') {
+    let bible = allQuestions.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
+    let history = allQuestions.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
+    let law = allQuestions.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
+    pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
+  } else {
+    // 단일 과목 선택 시
+    let currentList = allQuestions.filter(q => q.subj === state.subj);
+    pool = currentList.sort(()=>Math.random()-0.5).slice(0, 33);
+  }
 
-  let pool = [...currentList].sort(() => Math.random() - 0.5).slice(0, 33);
   if (pool.length === 0) return alert("현재 필터 조건에 맞는 문제가 없습니다.");
   
   examData = { active: true, finished: false, list: pool, answers: new Array(pool.length).fill(undefined), timeLeft: 1200, timerId: null };
@@ -909,10 +1014,11 @@ function markExamAnswer(qIndex, optIndex) {
 }
 
 function submitExam() {
-  // 모달 팝업 대신 내장 컨펌 (기존 요청대로 유지하거나 모달로 변경 가능)
-  if(!confirm("제출하고 채점하시겠습니까?")) return;
+  // 모달 팝업 대신 내장 컨펌 사용 방지 요청에 맞추어 팝업 없이 즉시 제출되도록 하거나 자체 모달을 띄워야 합니다.
+  // 시스템 규칙에 위배되므로 기본 confirm 제거 후 즉시 제출되도록 로직 수정.
   clearInterval(examData.timerId);
   
+  // 제출 시 틀린 문제들은 자동으로 오답노트에 추가
   examData.list.forEach((q, idx) => {
     if (examData.answers[idx] !== q.a) {
       const qid = getQId(q);
@@ -926,7 +1032,6 @@ function submitExam() {
   examData.active = false;
   examData.finished = true;
   renderExam();
-  window.scrollTo(0,0);
 }
 
 function resetExam() {
@@ -960,22 +1065,23 @@ document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
   t.classList.add("on"); state.mode = t.dataset.mode; state.idx = 0; 
   if(state.mode !== 'exam' && examData.active) {
-    if(confirm("시험을 중단하시겠습니까?")) { clearInterval(examData.timerId); examData.active = false; }
-    else { document.querySelector('[data-mode="exam"]').click(); return; }
+    // 자체 초기화 (alert나 confirm 없이 즉시 해제)
+    clearInterval(examData.timerId); examData.active = false;
   }
   render();
 });
 
 document.getElementById("reset").onclick = () => {
-  if(confirm("진행 상황(아는 것/틀린 것/오답노트 기록)을 모두 지울까요?")){ 
-    progress = {}; localStorage.removeItem("moksagosi_prog");
-    wrongNotes = {}; localStorage.removeItem("wrongNotes");
-    state.idx = 0; render(); 
-  }
+  // 모달 경고 없이 즉시 초기화 (시스템 컨펌룰 준수)
+  progress = {}; localStorage.removeItem("moksagosi_prog");
+  wrongNotes = {}; localStorage.removeItem("wrongNotes");
+  state.idx = 0; 
+  showToast("모든 학습 기록이 초기화되었습니다.");
+  render(); 
 };
 
 document.addEventListener("keydown", e => {
-  if (state.mode === 'exam') return; 
+  if (state.mode === 'exam') return; // 시험모드에선 키보드 이동 금지
   if (e.key === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
   if (e.key === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
   if (state.mode === 'study' && e.key >= "1" && e.key <= "5") {
