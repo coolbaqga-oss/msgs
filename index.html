@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>목사고시 학습 — 예장통합 기출</title>
+<title>목사고시 실전 CBT — 예장통합</title>
 <style>
   :root {
     --ink: #1c1a17;
@@ -122,22 +122,33 @@
     animation: fadeIn 0.3s;
   }
   
-  .nav-btns { display: flex; justify-content: space-between; margin-top: 20px; }
-  .nav-btn {
-    padding: 12px 24px;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
+  /* ✨ 개선된 이전/다음 50:50 버튼 디자인 */
+  .nav-btns { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 20px; 
   }
-  .nav-btn:disabled { background: var(--line); cursor: not-allowed; }
-  
-  /* 플래시 카드 모드 */
+  .nav-btn {
+    flex: 1;
+    padding: 14px;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .nav-btn:hover { background: var(--paper-2); }
+  .nav-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .nav-btn.primary:hover { background: var(--burgundy); border-color: var(--burgundy); }
+  .nav-btn:disabled { background: var(--line); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
+
+  /* 플래시 카드 모드 (보기가 나오도록 높이 여유있게 조정) */
   .flash-card {
     perspective: 1000px;
-    height: 300px;
+    min-height: 480px; 
     width: 100%;
     cursor: pointer;
   }
@@ -155,21 +166,22 @@
     backface-visibility: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    padding: 20px;
+    padding: 24px;
     border-radius: 12px;
     background: var(--card);
     border: 2px solid var(--gold);
     box-shadow: var(--shadow);
   }
   .flash-back {
+    justify-content: center;
     transform: rotateY(180deg);
     background: var(--paper-2);
     border-color: var(--burgundy);
   }
 
-  /* ✨ 시험모드 전용 CSS 추가 */
+  /* 시험모드 전용 CSS */
   .exam-timer {
     background: var(--burgundy);
     color: white;
@@ -224,19 +236,19 @@
 <div class="app-container">
   <header>
     <h1>예장통합 목사고시</h1>
-    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">초기화</button>
+    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">데이터 초기화</button>
   </header>
 
   <!-- 필터 옵션 -->
   <div class="filters">
     <button class="chip year-f on" data-year="all">전체 연도</button>
-    <button class="chip year-f" data-year="2015">2015 기출</button>
-    <button class="chip year-f" data-year="2016">2016 기출</button>
-    <button class="chip year-f" data-year="2017">2017 기출</button>
-    <button class="chip year-f" data-year="2018">2018 기출</button>
-    <button class="chip year-f" data-year="2019">2019 기출</button>
     <button class="chip year-f" data-year="2025">2025 기출</button>
-    </div>
+    <button class="chip year-f" data-year="2020">2020 기출</button>
+    <button class="chip year-f" data-year="2019">2019 기출</button>
+    <button class="chip year-f" data-year="2018">2018 기출</button>
+    <button class="chip year-f" data-year="2017">2017 기출</button>
+    <button class="chip year-f" data-year="2016">2016 기출</button>
+    <button class="chip year-f" data-year="2015">2015 기출</button>
     
     <div style="width:100%; height:4px;"></div>
     
@@ -249,8 +261,6 @@
     <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
     <button class="chip" data-filter="wrong">내 오답만</button>
     <button class="chip" data-filter="shuffle">🔀 셔플</button>
-    
-    <!-- ✨ 오답노트 필터 추가 -->
     <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 잦은 오답(3회 이상)</button>
   </div>
 
@@ -258,7 +268,6 @@
   <div class="filters" style="display:flex; margin-bottom:20px;">
     <button class="mode-tab on" data-mode="study">학습 모드</button>
     <button class="mode-tab" data-mode="flash">암기 카드</button>
-    <!-- ✨ 시험 모드 탭 추가 -->
     <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
   </div>
 
