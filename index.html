@@ -938,7 +938,138 @@ function renderFlash(cArea) {
   document.getElementById("prev-btn").onclick = () => { state.idx--; render(); };
   document.getElementById("next-btn").onclick = () => { state.idx++; render(); };
 }
+  
+// ==========================================
+// 4. 실전 모의고사 (시험 모드) 로직
+// ==========================================
+function renderExam() {
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = "";
 
+  if (!examData.active && !examData.finished) {
+    let yearText = state.year === 'all' ? '전체 연도' : state.year + '년';
+    cArea.innerHTML = `
+      <div class="card" style="text-align:center; padding:40px 20px;">
+        <h2 style="color:var(--burgundy); margin-bottom:15px;">⏳ 실전 모의고사</h2>
+        <p>현재 설정된 필터 [<b>${yearText} / ${state.subj}</b>] 안에서<br>랜덤으로 <b>33문제</b>가 출제됩니다.</p>
+        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">실제 목사고시와 동일하게 20분의 시간이 주어집니다.</p>
+        <button onclick="startExam()" style="margin-top:30px; padding:12px 24px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">시험 시작하기</button>
+      </div>`;
+    return;
+  }
+
+  if (examData.finished) {
+    let score = 0;
+    examData.list.forEach((q, idx) => { if (examData.answers[idx] === q.a) score++; });
+    const finalScore = Math.round((score / examData.list.length) * 100);
+
+    let html = `
+      <div class="exam-result-box">
+        <h2>모의고사 결과</h2>
+        <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
+        <p>${examData.list.length}문제 중 ${score}문제 정답</p>
+        <button onclick="resetExam()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">모의고사 종료</button>
+      </div>
+      <h3 style="margin-bottom:10px;">오답 노트 (틀린 문제 해설)</h3>
+    `;
+
+    examData.list.forEach((q, idx) => {
+      if (examData.answers[idx] !== q.a) {
+        html += `
+          <div class="card" style="margin-top:15px; border-left:4px solid var(--red); padding:15px;">
+            <div class="q-meta">${q.year}년 ${q.subj} ${q.no}번 <span class="wrong-badge">내가 고른 답: ${examData.answers[idx] !== undefined ? examData.answers[idx]+1+'번' : '미체크'}</span></div>
+            <div class="q-text" style="font-size:1rem; margin-bottom:10px;">Q. ${q.q}</div>
+            <div class="ans-box" style="margin-top:10px; display:block; padding:10px;">
+              <strong>정답: ${q.a + 1}번</strong><br>
+              ${q.e}
+            </div>
+          </div>`;
+      }
+    });
+    cArea.innerHTML = html;
+    return;
+  }
+
+  const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
+  const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
+  let html = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
+  
+  examData.list.forEach((q, qIndex) => {
+    html += `
+      <div class="card" style="margin-bottom:20px; padding:20px;">
+        <div class="q-meta">${qIndex + 1}번. (${q.year} ${q.subj})</div>
+        <div class="q-text" style="font-size:1.1rem;">${q.q}</div>
+        <div class="options">
+          ${q.opts.map((opt, i) => `
+            <div class="opt" 
+                 onclick="markExamAnswer(${qIndex}, ${i})" 
+                 style="cursor:pointer; padding:10px; border:1px solid var(--line); margin-bottom:5px; border-radius:4px; ${examData.answers[qIndex] === i ? 'background:var(--burgundy-soft); color:white; border-color:var(--burgundy);' : ''}">
+              ${i + 1}. ${opt}
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  });
+
+  html += `<button class="exam-submit-btn" onclick="submitExam()">답안 제출 및 채점하기</button>`;
+  cArea.innerHTML = html;
+}
+
+function startExam() {
+  let currentList = allQuestions.filter(q => {
+    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
+    if (state.freqOnly && q.year !== '빈출') return false;
+    if (q.subj !== state.subj) return false;
+    return true;
+  });
+
+  let pool = [...currentList].sort(() => Math.random() - 0.5).slice(0, 33);
+  if (pool.length === 0) return alert("현재 필터 조건에 맞는 문제가 없습니다.");
+  
+  examData = { active: true, finished: false, list: pool, answers: new Array(pool.length).fill(undefined), timeLeft: 1200, timerId: null };
+  
+  examData.timerId = setInterval(() => {
+    examData.timeLeft--;
+    if (examData.timeLeft <= 0) {
+      clearInterval(examData.timerId);
+      alert("시간이 종료되었습니다. 자동 제출됩니다.");
+      submitExam();
+    } else {
+      renderExam();
+    }
+  }, 1000);
+  
+  renderExam();
+}
+
+function markExamAnswer(qIndex, optIndex) {
+  examData.answers[qIndex] = optIndex;
+  renderExam(); 
+}
+
+function submitExam() {
+  if(!confirm("제출하고 채점하시겠습니까?")) return;
+  clearInterval(examData.timerId);
+  
+  examData.list.forEach((q, idx) => {
+    if (examData.answers[idx] !== q.a) {
+      const qid = getQId(q);
+      if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
+      wrongNotes[qid].count++;
+      wrongNotes[qid].last = new Date().toISOString().split('T')[0];
+    }
+  });
+  localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+  
+  examData.active = false;
+  examData.finished = true;
+  renderExam();
+}
+
+function resetExam() {
+  examData = { active: false, finished: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+  renderExam();
+}
 
 // ==========================================
 // 5. 이벤트 리스너 연결 및 초기화
