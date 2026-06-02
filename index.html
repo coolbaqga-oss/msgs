@@ -909,23 +909,35 @@ function renderStudy(cArea) {
     };
   });
   
+ <!-- ... existing code ... -->
+function renderStudy(cArea) {
+// ... existing code ...
   document.getElementById("prev-btn").onclick = () => { state.idx--; render(); };
   document.getElementById("next-btn").onclick = () => { state.idx++; render(); };
 }
 
 function renderFlash(cArea) {
   const q = list[state.idx];
+  
+  // ✨ 앞면에 보여줄 1~5번 보기 HTML 생성
+  let optsHtml = '<div style="margin-top:20px; font-size:0.95rem; text-align:left; width:100%; max-width:90%; line-height:1.5;">';
+  q.opts.forEach((opt, i) => {
+    optsHtml += `<div style="margin-bottom:8px; color:var(--ink);"><b>${i + 1}.</b> ${opt}</div>`;
+  });
+  optsHtml += '</div>';
+
   cArea.innerHTML = `
     <div class="q-meta" style="text-align:center; margin-bottom:10px;">${state.idx + 1} / ${list.length}</div>
-    <div class="flash-card" id="f-card">
+    <div class="flash-card" id="f-card" style="height: 480px;">
       <div class="flash-inner">
-        <div class="flash-front">
+        <div class="flash-front" style="justify-content: flex-start; padding-top: 30px;">
           <div class="q-text" style="text-align:center; margin:0;">${q.q}</div>
-          <div style="margin-top:20px; color:var(--gold); font-size:0.9rem;">(터치하여 정답 확인)</div>
+          ${optsHtml}
+          <div style="margin-top:auto; padding-top:20px; color:var(--gold); font-size:0.9rem; text-align:center;">(터치하여 정답 확인)</div>
         </div>
         <div class="flash-back">
-          <strong style="color:var(--burgundy); font-size:1.3rem; margin-bottom:15px;">${q.opts[q.a]}</strong>
-          <div style="font-size:0.9rem; color:var(--muted);">${q.e}</div>
+          <strong style="color:var(--burgundy); font-size:1.2rem; margin-bottom:15px; word-break:keep-all;">${q.a + 1}번. ${q.opts[q.a]}</strong>
+          <div style="font-size:0.95rem; color:var(--muted); line-height:1.6;">${q.e}</div>
         </div>
       </div>
     </div>
@@ -938,6 +950,11 @@ function renderFlash(cArea) {
   document.getElementById("prev-btn").onclick = () => { state.idx--; render(); };
   document.getElementById("next-btn").onclick = () => { state.idx++; render(); };
 }
+
+// ==========================================
+// 4. ✨ 실전 모의고사 (시험 모드) 로직
+// ==========================================
+<!-- ... existing code ... -->
   
 // ==========================================
 // 4. 실전 모의고사 (시험 모드) 로직
