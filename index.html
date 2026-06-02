@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>목사고시 기출문제</title>
+<title>목사고시 실전 CBT — 예장통합</title>
 <style>
   :root {
     --ink: #1c1a17;
@@ -44,7 +44,7 @@
     justify-content: space-between;
     align-items: flex-end;
   }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px; }
+  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px;}
   
   /* 과목별 대시보드 */
   .dashboard {
@@ -234,8 +234,8 @@
 <div class="app-container">
   <header>
     <div>
-      <div class="kicker">올해 꼭 붙자</div>
-      <h1>목사고시 프리미엄 CBT</h1>
+      <div class="kicker">대한예수교장로회 · 통합</div>
+      <h1>목사고시 실전 CBT</h1>
     </div>
     <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
   </header>
@@ -267,14 +267,16 @@
     
     <div style="width:100%; height:4px;"></div>
     
+    <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
     <button class="chip" data-filter="wrong">내가 틀린 문제</button>
     <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
-    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP (3회 이상)</button>
+    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP(3회 이상)</button>
   </div>
 
-  <!-- 모드 선택 -->
+  <!-- ✨ 카테고리(모드) 3분할 -->
   <div class="filters" style="display:flex; margin-bottom:20px;">
     <button class="mode-tab on" data-mode="study">학습 모드</button>
+    <button class="mode-tab" data-mode="yearly">📚 연도별 기출</button>
     <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
   </div>
 
@@ -287,10 +289,14 @@
 
 <script>
 // ==========================================
-// 1. 데이터베이스 영역 (모든 연도 통합)
+// 1. 데이터베이스 영역
 // ==========================================
 const allQuestions = [
-  // ===================== 2015년도 기출 =====================
+  // =========================================================================
+  // 💡 여기에 기존에 가지고 계신 기출문제 데이터를 그대로 복사해서 붙여넣으세요!
+  // (렌더링 시간 단축을 위해 배열을 비워두었습니다)
+  // =========================================================================
+ // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
   {subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
@@ -716,14 +722,15 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."}
 
 ];
+];
 
 // ==========================================
 // 2. 상태 및 로컬 스토리지 관리
 // ==========================================
 let state = {
-  year: 'all', // 초기값: 전체 연도
-  subj: '성경',
-  mode: 'study', // 'study', 'exam'
+  year: 'all', 
+  subj: 'all',
+  mode: 'study', // 'study', 'yearly', 'exam'
   idx: 0,
   freqOnly: false,
   wrongOnly: false,
@@ -736,8 +743,8 @@ let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let list = [];
 let showAns = false;
 
-// 시험모드 전용 데이터 객체 (isSequentialMode 추가)
-let examData = { active: false, finished: false, isSequentialMode: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+// 모의고사/연도별기출 공용 데이터 객체
+let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
 
 const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
 
@@ -749,9 +756,11 @@ function save() {
 // 3. UI 렌더링 및 필터링 로직
 // ==========================================
 function render() {
-  // ✨ 시험 모드일 경우 전용 렌더러로 분기
+  // 모드별 분기
+  if (state.mode === 'yearly') return renderYearly();
   if (state.mode === 'exam') return renderExam();
 
+  // --- 이하 학습 모드(study) 로직 ---
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = "";
   showAns = false;
@@ -766,32 +775,37 @@ function render() {
       const rec = progress[getQId(q)];
       if (!rec || rec === 'O') return false;
     }
-    // 잦은 오답 필터 (3회 이상 틀린 문제만)
+    // 약점 오답 필터 (3회 이상 틀린 문제만)
     if (state.wrongnoteOnly) {
       if (!wrongNotes[getQId(q)] || wrongNotes[getQId(q)].count < 3) return false;
     }
     return true;
   });
 
-  if (state.shuffled) list.sort(() => Math.random() - 0.5);
+  // 셔플 및 빈출 2배수 적용 (학습 모드)
+  if (state.shuffled) {
+    let pool = [];
+    list.forEach(q => {
+      pool.push(q);
+      if (state.freqOnly && q.year === '빈출') pool.push(q);
+    });
+    list = pool.sort(() => Math.random() - 0.5);
+  }
 
-  // 정답률 대시보드 업데이트
   updateDashboard();
 
   if (list.length === 0) {
-    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다. (오답이나 빈출 데이터가 없을 수 있습니다.)</div>`;
+    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
     return;
   }
   
   if (state.idx >= list.length) state.idx = 0;
   if (state.idx < 0) state.idx = list.length - 1;
 
-  if (state.mode === 'study') {
-    renderStudy(cArea);
-  }
+  renderStudy(cArea);
 }
 
-// 과목별 정답률 계산 및 표시
+// 과목별 정답률 계산
 function updateDashboard() {
   let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
   
@@ -814,7 +828,6 @@ function updateDashboard() {
   });
 }
 
-// 토스트 메시지 띄우기
 function showToast(msg) {
   const x = document.getElementById("toast");
   x.innerHTML = msg;
@@ -822,15 +835,17 @@ function showToast(msg) {
   setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
 }
 
-// 스크롤 고정 함수
 function scrollToQuestion() {
   const el = document.querySelector('.card');
   if (el) {
     const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'smooth' });
+    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
   }
 }
 
+// ==========================================
+// [학습 모드] 렌더링
+// ==========================================
 function renderStudy(cArea) {
   const q = list[state.idx];
   const qid = getQId(q);
@@ -882,10 +897,9 @@ function renderStudy(cArea) {
         wrongNotes[qid].last = new Date().toISOString().split('T')[0];
         localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
         
-        // ✨ 에빙하우스 오답 자동 반복 (Anki 시스템)
-        // 틀린 문제를 리스트 맨 끝에 다시 추가하여 맞출 때까지 반복시킴
+        // ✨ 에빙하우스 오답 자동 반복 (틀리면 맨 뒤에 다시 추가)
         list.push(q);
-        showToast("오답 노트에 추가되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
+        showToast("오답 노트에 기록되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
       }
       save();
       updateDashboard();
@@ -901,46 +915,62 @@ function renderStudy(cArea) {
 }
 
 // ==========================================
-// 4. 실전 모의고사 (시험 모드) 로직
+// [연도별 기출] 렌더링
+// ==========================================
+function renderYearly() {
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = "";
+
+  if (!examData.active && !examData.finished) {
+    if (state.year === 'all') {
+        cArea.innerHTML = `
+        <div class="card" style="text-align:center; padding:40px 20px;">
+            <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 연도별 기출 풀기</h2>
+            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.</p>
+            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2025 기출 / 전체 과목)</p>
+        </div>`;
+        return;
+    }
+
+    let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
+    
+    cArea.innerHTML = `
+      <div class="card" style="text-align:center; padding:40px 20px;">
+        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${state.year}년도 기출 풀기</h2>
+        <p>선택하신 [<b>${state.subj === 'all' ? '전체 과목' : state.subj}</b>] 총 <b>${currentList.length}문제</b>를<br>실제 시험지 번호 순서대로 풀어봅니다.</p>
+        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(본 모드는 제한 시간이 없습니다.)</p>
+        <button onclick="startExamMode(true)" style="margin-top:30px; padding:12px 24px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">기출 풀기 시작</button>
+      </div>`;
+    return;
+  }
+
+  drawExamUI(cArea, true); // true = yearly mode
+}
+
+// ==========================================
+// [실전 모의고사] 렌더링 (랜덤 33문제)
 // ==========================================
 function renderExam() {
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = "";
 
-  // 시험 대기 화면
   if (!examData.active && !examData.finished) {
-    let yearText = state.year === 'all' ? '전체 연도' : state.year + '년';
-    let subjText = state.subj === 'all' ? '성경/교회사/헌법' : state.subj;
-    
-    // 연도별 기출 풀기를 위한 문항 수 계산
-    let currentList = allQuestions.filter(q => {
-        if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-        if (state.freqOnly && q.year !== '빈출') return false;
-        if (state.subj !== 'all' && q.subj !== state.subj) return false;
-        return true;
-    });
-
+    let subjText = state.subj === 'all' ? '전체 과목 믹스' : state.subj;
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
-        <h2 style="color:var(--burgundy); margin-bottom:15px;">⏳ 실전 모의고사</h2>
-        <p>현재 설정된 필터: [<b>${yearText} / ${subjText}</b>]</p>
-        
-        <div style="margin-top:30px; display:flex; flex-direction:column; gap:10px;">
-            <button onclick="startExam(false)" style="padding:15px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">
-                🔀 랜덤 모의고사 (33제 섞기)
-            </button>
-            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:10px;">전체 문제은행에서 랜덤으로 33문제를 섞어서 출제합니다. (20분)</p>
-            
-            <button onclick="startExam(true)" style="padding:15px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">
-                📚 연도별 기출 풀기 (순서대로)
-            </button>
-            <p style="font-size:0.8rem; color:var(--muted);">선택한 필터의 문제(${currentList.length}문제)를 실제 기출 번호 순서대로 모두 출제합니다. (제한시간 없음)</p>
-        </div>
+        <h2 style="color:var(--red); margin-bottom:15px;">⏳ 실전 모의고사 (33제)</h2>
+        <p>선택된 필터 내에서 [<b>${subjText}</b>]<br><b>랜덤 33문제</b>가 섞여서 출제됩니다.</p>
+        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">실제 목사고시와 동일하게 20분 타이머가 작동합니다.</p>
+        <button onclick="startExamMode(false)" style="margin-top:30px; padding:12px 24px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">모의고사 시작</button>
       </div>`;
     return;
   }
 
-  // 시험 결과 화면
+  drawExamUI(cArea, false); // false = random exam mode
+}
+
+// 공통 시험/모의고사 UI 그리기 함수
+function drawExamUI(cArea, isYearly) {
   if (examData.finished) {
     let score = 0;
     examData.list.forEach((q, idx) => { if (examData.answers[idx] === q.a) score++; });
@@ -948,12 +978,12 @@ function renderExam() {
 
     let html = `
       <div class="exam-result-box">
-        <h2>모의고사 결과</h2>
+        <h2>${isYearly ? state.year+'년 기출 결과' : '모의고사 결과'}</h2>
         <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
         <p>${examData.list.length}문제 중 ${score}문제 정답</p>
-        <button onclick="resetExam()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">다시 시험보기</button>
+        <button onclick="resetExamMode()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">종료하고 돌아가기</button>
       </div>
-      <h3 style="margin-bottom:10px;">오답 노트 (틀린 문제 해설)</h3>
+      <h3 style="margin-bottom:10px; color:var(--red);">틀린 문제 오답 노트</h3>
     `;
 
     let hasWrong = false;
@@ -972,23 +1002,21 @@ function renderExam() {
       }
     });
     
-    if(!hasWrong) {
-        html += `<div class="card" style="text-align:center;">🎉 모두 맞았습니다! 완벽합니다!</div>`;
-    }
+    if(!hasWrong) html += `<div class="card" style="text-align:center; font-weight:bold;">🎉 완벽합니다! 모두 맞았습니다.</div>`;
     
     cArea.innerHTML = html;
     window.scrollTo(0, 0);
     return;
   }
 
-  // 시험 진행 화면
+  // 문제 푸는 화면 (타이머 유무)
   let timerHtml = "";
-  if (!examData.isSequentialMode) {
+  if (!isYearly) {
       const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
       const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
       timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
   } else {
-      timerHtml = `<div class="exam-timer" style="background:var(--ink);">실전 기출 풀이 모드 (총 ${examData.list.length}문제)</div>`;
+      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${state.year}년 기출 풀이 (총 ${examData.list.length}문제)</div>`;
   }
   
   let html = timerHtml;
@@ -1010,79 +1038,77 @@ function renderExam() {
       </div>`;
   });
 
-  html += `<button class="exam-submit-btn" onclick="submitExam()">답안 제출 및 채점하기</button>`;
+  html += `<button class="exam-submit-btn" onclick="submitExamMode()">답안 제출 및 채점하기</button>`;
   cArea.innerHTML = html;
 }
 
-function startExam(isSequential) {
+// 시험 시작 컨트롤러
+function startExamMode(isYearly) {
   let pool = [];
-  let currentList = allQuestions.filter(q => {
-    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-    if (state.freqOnly && q.year !== '빈출') return false;
-    if (state.subj !== 'all' && q.subj !== state.subj) return false;
-    return true;
-  });
 
-  if (currentList.length === 0) return alert("현재 필터 조건에 맞는 문제가 없습니다.");
-
-  if (isSequential) {
-      // 연도별 기출 풀기 모드 (순서대로 전체 출제)
-      // 정렬: 과목순(성경->교회사->헌법) -> 번호순
+  if (isYearly) {
+      // 연도별: 선택 연도/과목에 맞춰 기출 번호(no) 순서대로 정렬
       const subjOrder = {"성경":1, "교회사":2, "헌법":3};
-      pool = [...currentList].sort((a, b) => {
+      let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
+      pool = currentList.sort((a, b) => {
           if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
           return (a.no || 0) - (b.no || 0);
       });
   } else {
-      // 랜덤 모의고사 모드
-      if (state.subj === 'all') {
-        let bible = currentList.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
-        let history = currentList.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
-        let law = currentList.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
-        pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
+      // 랜덤 모의고사: 33문제 추출
+      let currentList = allQuestions.filter(q => {
+        if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
+        if (state.freqOnly && q.year !== '빈출') return false;
+        if (state.subj !== 'all' && q.subj !== state.subj) return false;
+        return true;
+      });
+      
+      // '전체 과목'일 경우 각 과목별로 11문제씩 공평하게 뽑아 섞음
+      if (state.subj === 'all' && currentList.length >= 33) {
+          let bible = currentList.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
+          let history = currentList.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
+          let law = currentList.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
+          pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
       } else {
-        pool = [...currentList].sort(()=>Math.random()-0.5).slice(0, 33);
+          pool = [...currentList].sort(()=>Math.random()-0.5).slice(0, 33);
       }
   }
   
   examData = { 
       active: true, 
       finished: false, 
-      isSequentialMode: isSequential,
+      isYearly: isYearly,
       list: pool, 
       answers: new Array(pool.length).fill(undefined), 
       timeLeft: 1200, 
       timerId: null 
   };
   
-  // 랜덤 모의고사에만 타이머 적용
-  if (!isSequential) {
+  if (!isYearly) {
       examData.timerId = setInterval(() => {
         examData.timeLeft--;
         if (examData.timeLeft <= 0) {
           clearInterval(examData.timerId);
-          alert("시간이 종료되었습니다. 자동 제출됩니다.");
-          submitExam();
+          alert("시간이 종료되었습니다. 자동 채점합니다.");
+          submitExamMode();
         } else {
-          renderExam();
+          render(); // 타이머 갱신
         }
       }, 1000);
   }
   
-  renderExam();
+  render();
 }
 
 function markExamAnswer(qIndex, optIndex) {
   examData.answers[qIndex] = optIndex;
-  renderExam(); 
+  render(); 
 }
 
-function submitExam() {
-  // 모달 팝업 대신 내장 컨펌 사용 방지 요청에 따라 커스텀 로직이나 즉시 제출 사용.
-  // 시스템 컨펌룰 준수를 위해 임시 허용
+function submitExamMode() {
   clearInterval(examData.timerId);
   
-  // 제출 시 틀린 문제들은 자동으로 오답노트에 추가
+  // 틀린 문제 오답노트 자동 등록
   examData.list.forEach((q, idx) => {
     if (examData.answers[idx] !== q.a) {
       const qid = getQId(q);
@@ -1096,16 +1122,16 @@ function submitExam() {
   examData.active = false;
   examData.finished = true;
   updateDashboard();
-  renderExam();
+  render();
 }
 
-function resetExam() {
-  examData = { active: false, finished: false, isSequentialMode: false, list: [], answers: [], timeLeft: 1200, timerId: null };
-  renderExam();
+function resetExamMode() {
+  examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+  render();
 }
 
 // ==========================================
-// 5. 이벤트 리스너 연결 및 초기화
+// 5. 이벤트 리스너 연결
 // ==========================================
 document.querySelectorAll(".year-f").forEach(c => c.onclick = () => {
   document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
@@ -1126,38 +1152,37 @@ document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
   state.idx = 0; render();
 });
 
+// 모드 탭 클릭 이벤트 (3가지 모드 분기)
 document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
-  t.classList.add("on"); state.mode = t.dataset.mode; state.idx = 0; 
-  if(state.mode !== 'exam' && examData.active) {
-    // 시험 중단 처리
-    clearInterval(examData.timerId); examData.active = false;
+  t.classList.add("on"); 
+  state.mode = t.dataset.mode; 
+  state.idx = 0; 
+  
+  if(state.mode === 'study' && examData.active) {
+      clearInterval(examData.timerId); examData.active = false;
   }
   render();
 });
 
 document.getElementById("reset").onclick = () => {
-  // 경고 팝업 없이 즉시 데이터 초기화
   progress = {}; localStorage.removeItem("moksagosi_prog");
   wrongNotes = {}; localStorage.removeItem("wrongNotes");
-  state.idx = 0; 
-  showToast("학습 기록 및 오답노트가 초기화되었습니다.");
-  updateDashboard();
-  render(); 
+  state.idx = 0; render(); 
+  alert("학습 기록 및 오답노트가 모두 초기화되었습니다.");
 };
 
 document.addEventListener("keydown", e => {
-  if (state.mode === 'exam') return; // 시험모드에선 키보드 이동 금지
+  if (state.mode !== 'study') return; 
   if (e.key === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
   if (e.key === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
-  if (state.mode === 'study' && e.key >= "1" && e.key <= "5") {
+  if (e.key >= "1" && e.key <= "5") {
     const idx = parseInt(e.key) - 1;
     const btn = document.getElementById(`opt-${idx}`);
     if (btn) btn.click();
   }
 });
 
-// 첫 화면 렌더링
 render();
 </script>
 </body>
