@@ -125,6 +125,7 @@
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
   .opt.dim { opacity: 0.5; cursor: not-allowed; }
+  .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
   
   .ans-box {
     margin-top: 20px;
@@ -137,7 +138,7 @@
     animation: fadeIn 0.3s;
   }
   
-  /* 50:50 듀얼 버튼 개선 */
+  /* 50:50 듀얼 버튼 */
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
   .nav-btn {
     flex: 1;
@@ -202,7 +203,7 @@
     margin-left: 10px;
   }
 
-  /* 토스트 알림 (Anki 오답 반복 안내용) */
+  /* 토스트 알림 */
   #toast {
     visibility: hidden;
     min-width: 250px;
@@ -274,7 +275,7 @@
   <!-- 모드 선택 -->
   <div class="filters" style="display:flex; margin-bottom:20px;">
     <button class="mode-tab on" data-mode="study">학습 모드</button>
-    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사 (33제)</button>
+    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
   </div>
 
   <!-- 콘텐츠 렌더링 영역 -->
@@ -285,9 +286,10 @@
 <div id="toast"></div>
 
 <script>
-// 쉼표 누락이 없도록 각 객체 끝에 콤마를 철저히 검증했습니다.
+// ==========================================
+// 1. 데이터베이스 영역 (모든 연도 통합)
+// ==========================================
 const allQuestions = [
-
   // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
