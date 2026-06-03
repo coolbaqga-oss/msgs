@@ -1350,6 +1350,7 @@ let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let srs = JSON.parse(localStorage.getItem("srs")) || {};  // 간격 반복 일정
 let studyStats = JSON.parse(localStorage.getItem("studyStats")) || { streak: 0, lastDate: null, daily: {} };
 let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};  // 별표 모음
+let lastQid = localStorage.getItem("lastQid") || null;  // 마지막으로 본 문제(이어보기)
 let list = [];
 let showAns = false;
 
@@ -1512,6 +1513,13 @@ function render() {
     return;
   }
   
+  // 이어보기: 복원/재접속 시 마지막으로 본 문제로 이동
+  if (state.pendingResume) {
+    const i = list.findIndex(q => getQId(q) === state.pendingResume);
+    if (i >= 0) state.idx = i;
+    state.pendingResume = null;
+  }
+
   if (state.idx >= list.length) state.idx = 0;
   if (state.idx < 0) state.idx = list.length - 1;
 
@@ -1585,6 +1593,10 @@ function renderStudy(cArea) {
   const qid = getQId(q);
   const rec = progress[qid];
   let graded = false;
+
+  // 이어보기용: 마지막으로 본 문제 저장
+  lastQid = qid;
+  localStorage.setItem("lastQid", qid);
 
   // 현재 카드의 복습 예정 정보
   let schedInfo = "";
@@ -2015,7 +2027,8 @@ document.getElementById("reset").onclick = () => {
   srs = {}; localStorage.removeItem("srs");
   studyStats = { streak: 0, lastDate: null, daily: {} }; localStorage.removeItem("studyStats");
   bookmarks = {}; localStorage.removeItem("bookmarks");
-  state.idx = 0; render(); updateBmBadge();
+  lastQid = null; localStorage.removeItem("lastQid");
+  state.idx = 0; state.pendingResume = null; render(); updateBmBadge();
   alert("학습 기록, 오답노트, 복습 일정, 통계, 별표가 모두 초기화되었습니다.");
 };
 
@@ -2029,7 +2042,8 @@ document.getElementById("backup").onclick = () => {
     wrongNotes: wrongNotes,
     srs: srs,
     studyStats: studyStats,
-    bookmarks: bookmarks
+    bookmarks: bookmarks,
+    lastQid: lastQid
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -2071,15 +2085,18 @@ document.getElementById("restore-file").onchange = (ev) => {
       srs = data.srs || {};
       studyStats = data.studyStats || { streak: 0, lastDate: null, daily: {} };
       bookmarks = data.bookmarks || {};
+      lastQid = data.lastQid || null;
       localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
       localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
       localStorage.setItem("srs", JSON.stringify(srs));
       localStorage.setItem("studyStats", JSON.stringify(studyStats));
       localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+      if (lastQid) localStorage.setItem("lastQid", lastQid); else localStorage.removeItem("lastQid");
       state.idx = 0;
+      state.pendingResume = lastQid;  // 복원 후 마지막 본 문제로 이어서 시작
       render();
       updateBmBadge();
-      alert("진도와 오답노트를 복원했습니다.");
+      alert(lastQid ? "복원 완료! 마지막으로 보던 문제부터 이어집니다." : "진도와 오답노트를 복원했습니다.");
     } catch (err) {
       alert("파일을 읽는 중 오류가 발생했습니다. 백업 파일이 손상되었을 수 있습니다.");
     } finally {
@@ -2114,6 +2131,7 @@ document.addEventListener("keydown", e => {
   if (k === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
 });
 
+state.pendingResume = lastQid;
 render();
 updateDueBadge();
 updateBmBadge();
