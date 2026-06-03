@@ -58,6 +58,9 @@
   .dash-item:last-child { border-right: none; }
   .dash-title { font-size: 0.75rem; color: var(--muted); }
   .dash-score { font-size: 1.1rem; font-weight: bold; color: var(--burgundy); }
+  .dash-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .kbd-hint { font-size: 0.75rem; color: var(--muted); margin-top: 12px; text-align: center; line-height: 1.7; }
+  .kbd-hint kbd { background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 0.72rem; color: var(--ink); }
   
   .filters {
     display: flex;
@@ -237,14 +240,32 @@
       <div class="kicker">올해 모두 붙어버리자!</div>
       <h1>목사고시 기출문제(2015-2025)</h1>
     </div>
-    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬇ 진도 백업</button>
+      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬆ 진도 복원</button>
+      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
+      <input type="file" id="restore-file" accept="application/json,.json" style="display:none;">
+    </div>
   </header>
 
   <!-- 과목별 정답률 대시보드 -->
   <div class="dashboard">
-    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
-    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
-    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
+    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div><div class="dash-sub" id="cnt-bible">0/0</div></div>
+    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div><div class="dash-sub" id="cnt-history">0/0</div></div>
+    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div><div class="dash-sub" id="cnt-law">0/0</div></div>
+  </div>
+
+  <!-- 학습 통계 대시보드 -->
+  <div class="dashboard">
+    <div class="dash-item"><div class="dash-title">오늘 푼 문제</div><div class="dash-score" id="stat-today">0</div></div>
+    <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
+    <div class="dash-item"><div class="dash-title">전체 진척도</div><div class="dash-score" id="stat-progress">0%</div><div class="dash-sub" id="stat-progress-sub">0/0</div></div>
+    <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
+  </div>
+
+  <!-- 검색 -->
+  <div style="margin-bottom:12px;">
+    <input id="search-box" type="text" placeholder="🔍 문제·보기·해설 키워드 검색 (예: 위임목사, 터툴리아누스)" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; box-sizing:border-box;">
   </div>
 
   <!-- 필터 옵션 -->
@@ -272,9 +293,17 @@
     <div style="width:100%; height:4px;"></div>
     
     <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
+    <button class="chip" data-filter="due" style="border-color:var(--ink); color:var(--ink); font-weight:bold;">📅 오늘 복습 <span id="due-count"></span></button>
     <button class="chip" data-filter="wrong">내가 틀린 문제</button>
     <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
     <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP(3회 이상)</button>
+    <button class="chip" style="border-color:var(--gold); color:#9a7d00; font-weight:bold;" data-filter="bookmark">⭐ 별표 모음 <span id="bm-count"></span></button>
+    <select id="tag-filter" class="chip" style="cursor:pointer;">
+      <option value="all">🏷 오답 태그: 전체</option>
+      <option value="헷갈림">🏷 헷갈림</option>
+      <option value="암기부족">🏷 암기부족</option>
+      <option value="실수">🏷 실수</option>
+    </select>
   </div>
 
   <!-- ✨ 카테고리(모드) 3분할 -->
@@ -1245,6 +1274,56 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."}
 
 ];
+
+// ==========================================
+// ⭐ 빈출 문제 세트 (2015~2025 출제 빈도 분석 기반)
+//    year:"빈출"로 표시 → '빈출 2배수' 필터에서 추출
+// ==========================================
+const FREQ_BANK = [
+  // ----- 빈출 헌법 (12) -----
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 대한예수교장로회 정치 원리에 해당하지 않는 것은?",opts:["양심의 자유","교회의 자유","진리와 행위","종교의 자유","치리권"],a:3,e:"<b>정치 제1장</b> — 6대 원리: 양심의 자유·교회의 자유·진리와 행위·교회의 직원·치리권·권징. <b>'종교의 자유'</b>는 없다. (거의 매년 출제)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교인 구분에 관해 옳은 것은?",opts:["유아세례는 세례교인 자녀로 6세 이하면 받는다","아동세례는 7~15세이면 받는다","입교(세례교인) 연령은 15세 이상이다","공동의회 회원권은 15세 이상이다","원입교인은 세례를 받은 자이다"],a:0,e:"<b>정치 제13조[개정2021]</b> — 유아세례 6세 이하 / 아동세례 7~12세 / 입교(세례교인) 13세 이상 / 공동의회 회원권 18세 이상."},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교인이 신고 없이 떠나 의무를 행치 않으면 (   ) 경과 시 회원권 정지, (   ) 경과 시 실종교인이 된다.",opts:["3개월,6개월","6개월,1년","1년,2년","6개월,2년","1년,1년 6개월"],a:1,e:"<b>정치 제18조</b> — <b>6개월</b> → 회원권 정지, <b>1년</b> → 실종교인."},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 당회의 개회 성수로 맞는 것은?",opts:["당회장을 제외한 과반수","당회장을 포함한 과반수","장로 전원 출석","재적 3분의 2","당회장 단독"],a:1,e:"<b>정치 제66조</b> — 당회는 <b>당회장을 포함한</b> 과반수 출석으로 개회한다. (대리당회장은 성수에 불산입)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교회의 치리회를 바르게 구분한 것은?",opts:["당회·제직회·노회·총회","당회·노회·총회","공동의회·당회·노회·총회","당회·노회·대회·총회","제직회·당회·노회·총회"],a:1,e:"<b>정치 제60·61조</b> — 치리회는 <b>당회·노회·총회</b>로만 구분한다. (공동의회·제직회는 치리회가 아님)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 다음 중 헌법에 명시된 목사의 칭호가 아닌 것은?",opts:["위임목사","전도목사","선교목사","기관목사","군목목사"],a:4,e:"<b>정치 제27조</b> — 올바른 명칭은 <b>군종목사</b>이다. (군목목사는 명칭 오류)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 3개월 이상 1년 이내 기간 치리권(행정권과 권징권)을 정지하는 책벌은?",opts:["시무정지","시무해임","수찬정지","정직","견책"],a:0,e:"<b>권징 제5조</b> — 치리권을 정지하는 책벌은 <b>시무정지</b>. (시무해임은 설교권 포함 모든 시무 정지)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 노회의 개회 성수는 회원 (    ) 각 과반수의 출석으로 한다.",opts:["목사와 장로","시무목사와 총대장로","목사와 총대장로","시무목사와 장로","노회목사와 노회장로"],a:1,e:"<b>정치 제76조</b> — 노회는 회원인 <b>시무목사와 총대장로</b> 각 과반수의 출석으로 개회한다."},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 공동의회 소집 시 당회의 결의 없이도 소집할 수 있는 유일한 경우는?",opts:["세례교인 3분의 1 이상의 청원","제직회의 청원","상회의 지시","전체 교인 과반수의 청원","당회장의 요청"],a:2,e:"<b>정치 제90조</b> — 공동의회는 원칙적으로 당회 결의로 소집하며, <b>상회의 지시</b>만이 당회 결의 없이 가능한 예외이다."},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 안수집사·권사로 피택된 자가 임직 전 당회의 지도를 받는 교양 기간은?",opts:["2개월 이상","3개월 이상","4개월 이상","5개월 이상","6개월 이상"],a:1,e:"<b>정치 제53·55조</b> — 안수집사·권사는 <b>3개월 이상</b>, 장로는 4개월 이상 당회의 지도를 받는다."},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 목사의 자격으로 옳은 것은?",opts:["무흠 세례교인 5년·30세 이상","무흠 세례교인 7년·30세 이상","무흠 세례교인 7년·40세 이상","무흠 세례교인 5년·35세 이상","무흠 세례교인 10년·30세 이상"],a:1,e:"<b>정치 제26조</b> — 목사는 무흠 세례교인으로 <b>7년 경과·30세 이상</b>. (장로는 7년·40세)"},
+  {subj:"헌법",year:"빈출",no:0,q:"[빈출] 노회 3분의 2 가결과 투표 총수 3분의 2 이상 찬성이라는 가장 엄격한 절차로 개정되는 헌법은?",opts:["정치","권징","교리(신조·요리문답)","예배와 예식","총회규칙"],a:2,e:"<b>정치 제103조</b> — <b>교리편</b>은 노회 2/3·투표 2/3 + 1년 연구의 최고 난이도 개정 절차. (정치·권징·예배는 노회 과반)"},
+
+  // ----- 빈출 성경 (12) -----
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 다음 중 누가복음에만 단독으로 나오는 예수님의 비유는?",opts:["달란트 비유","어리석은 부자 비유","그물 비유","가라지 비유","겨자씨 비유"],a:1,e:"<b>누가복음 12장</b> — 어리석은 부자 비유는 누가복음 고유. (달란트·그물·가라지는 마태)"},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] '믿음의 역사와 사랑의 수고와 소망의 인내'로 칭찬받은 교회는?",opts:["갈라디아교회","데살로니가교회","고린도교회","안디옥교회","에베소교회"],a:1,e:"<b>데살로니가전서 1:3</b> — 데살로니가교회를 향한 칭찬."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] '내가 예수 그리스도의 (   )으로 너희를 사모하노니 하나님이 내 (   )이시니라'(빌 1:8)",opts:["사랑, 증인","심장, 증인","심장, 증거","생명, 보증","심장, 약속"],a:1,e:"<b>빌립보서 1:8</b> — <b>심장</b>으로 사모, 하나님이 내 <b>증인</b>."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 예수님이 4,000명을 먹이신 기사가 기록된 복음서는?",opts:["공관복음","마·눅","마·막","마·요","막·눅"],a:2,e:"<b>마태복음 15장·마가복음 8장</b> — 칠병이어(4천 명)는 마태와 마가에만 기록."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 엘리야의 승천이 기록된 곳은 열왕기하 몇 장인가?",opts:["2장","3장","4장","5장","6장"],a:0,e:"<b>열왕기하 2장</b> — 엘리야가 회오리바람으로 하늘로 올라감."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 소제물에 반드시 들어가야 하는 것은?",opts:["꿀","누룩","소금","유향","기름과 꿀"],a:2,e:"<b>레위기 2:13</b> — 모든 소제물에 언약의 <b>소금</b>을 쳐야 한다. 누룩과 꿀은 금지(2:11)."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 마가복음에서 예수님이 행하신 첫 번째 이적은?",opts:["귀신 들린 사람을 고침","물로 포도주를 만드심","나병환자를 고치심","중풍병자를 고치심","오병이어"],a:0,e:"<b>마가복음 1:23-26</b> — 가버나움 회당의 더러운 귀신 들린 사람을 내쫓으심."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 다음 중 도피성이 아닌 곳은?",opts:["게데스","세겜","헤브론","바산 골란","딤낫세라"],a:4,e:"<b>도피성 6곳</b> — 게데스·세겜·헤브론(서편), 베셀·길르앗 라못·바산 골란(동편). 딤낫세라는 여호수아의 기업."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 잠언 30장에서 '작고도 가장 지혜로운 것 넷'에 해당하지 않는 것은?",opts:["개미","사반","메뚜기","도마뱀","거머리"],a:4,e:"<b>잠언 30:24-28</b> — 개미·사반·메뚜기·도마뱀. 거머리(30:15)는 탐욕의 비유."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] 다음 중 솔로몬의 시로 묶인 것은?",opts:["시 72·127","시 73·127","시 89·127","시 90·127","시 72·128"],a:0,e:"<b>시편 72편·127편</b>이 솔로몬의 시(표제)."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] '모세의 노래'는 신명기 몇 장에 기록되어 있는가?",opts:["31장","32장","33장","34장","30장"],a:1,e:"<b>신명기 32장</b> — 모세의 노래(배교 경고). 33장은 모세의 축복."},
+  {subj:"성경",year:"빈출",no:0,q:"[빈출] '너희는 택하신 (   )이요 왕 같은 제사장들이요 거룩한 (   )요'(벧전 2:9)",opts:["족속, 나라","민족, 백성","족속, 백성","나라, 족속","백성, 나라"],a:0,e:"<b>베드로전서 2:9</b> — 택하신 <b>족속</b>, 왕 같은 제사장, 거룩한 <b>나라</b>, 그의 소유된 백성."},
+
+  // ----- 빈출 교회사 (12) -----
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 삼위일체(Trinitas)라는 신학 용어를 최초로 사용한 서방 교부는?",opts:["오리게네스","터툴리아누스","아우구스티누스","유스티누스","키프리아누스"],a:1,e:"<b>터툴리아누스</b> — '세 위격 한 본질'을 라틴어 삼위일체로 정립."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 주일학교 운동의 창시자는?",opts:["로버트 레이크스","조나단 에드워즈","존 웨슬리","친첸도르프","토마스 아퀴나스"],a:0,e:"<b>로버트 레이크스</b> — 1780년 영국에서 빈민 아동을 위한 주일학교 시작."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 자유주의 신학에 맞서 신정통주의(말씀의 신학)를 주창한 신학자는?",opts:["슐라이어마허","칼 바르트","불트만","존 녹스","조나단 에드워즈"],a:1,e:"<b>칼 바르트</b> — 『로마서 강해』로 자유주의 신학에 반기를 들고 신정통주의를 엶."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 종교를 '절대 의존의 감정'으로 정의한 '자유주의 신학의 아버지'는?",opts:["칼 바르트","슐라이어마허","리츨","하르낙","불트만"],a:1,e:"<b>슐라이어마허</b> — 이성의 시대에 종교의 독자 영역(감정)을 변증."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] '카놋사의 굴욕'과 관계있는 두 인물은?",opts:["그레고리우스 1세·하인리히 4세","그레고리우스 7세·하인리히 4세","인노켄티우스 3세·하인리히 4세","보니파키우스 8세·필립 4세","레오 1세·하인리히 4세"],a:1,e:"<b>그레고리우스 7세 & 하인리히 4세</b> — 서임권 논쟁으로 1077년 황제가 굴복."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 부활절 날짜(춘분 후 만월 다음 첫 주일)를 결정한 공의회는?",opts:["니케아 공의회","콘스탄티노플 공의회","에베소 공의회","칼케돈 공의회","카르타고 공의회"],a:0,e:"<b>니케아 공의회(325)</b> — 아리우스 정죄와 함께 부활절 통일."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 다음 중 1907년에 일어난 사건이 아닌 것은?",opts:["평양 대부흥운동","독노회(대한로회) 조직","12신조와 규칙 채택","100만인 구령운동","평양신학교 첫 졸업·목사 안수"],a:3,e:"<b>100만인 구령운동은 1909~1910년</b> 사건. 나머지는 모두 1907년."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 1912년 조선예수교장로회 최초 총회의 초대 총회장은?",opts:["언더우드","길선주","이기풍","마포삼열","한석진"],a:0,e:"<b>언더우드(원두우)</b> — 1912년 9월 평양 첫 총회에서 초대 총회장 피선."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 1884년 최초로 내한하여 광혜원(제중원)을 세운 미국 북장로회 의료선교사는?",opts:["언더우드","아펜젤러","알렌","스크랜턴","게일"],a:2,e:"<b>호러스 알렌</b> — 갑신정변 무렵 입국, 광혜원 설립. 미국 북장로회 소속."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 초기 선교사들의 '예양협정'(선교지 분할)의 목적은?",opts:["선교 경쟁 구도 조성","선교부 간 마찰·중복 방지","교파 통합","총회 조직","공동 신학교 설립"],a:1,e:"<b>예양협정</b> — 여러 선교부의 중복·마찰을 피하고 효율적 전도를 위해 지역을 분할한 협력 정책."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 종교개혁의 5대 솔라(Five Solas)가 아닌 것은?",opts:["오직 성경","오직 믿음","오직 성령","오직 은혜","오직 그리스도"],a:2,e:"<b>5대 솔라</b> — 오직 성경·믿음·은혜·그리스도·하나님께 영광. <b>'오직 성령'</b>은 포함되지 않는다."},
+  {subj:"교회사",year:"빈출",no:0,q:"[빈출] 네비우스 선교정책의 3대 자립 원칙과 관계가 없는 것은?",opts:["자전(신자 각자가 복음의 선생)","자치(현지 지도자 양성)","자급(재정 자립)","선교사 중심의 소송·치리 해결","조직적인 성경공부(사경회)"],a:3,e:"<b>네비우스 정책</b> — 자전·자치·자급이 핵심. 치리·소송은 현지 교인 스스로 해결케 했으므로 '선교사 중심 해결'은 틀림."}
+];
+// 빈출 세트를 전체 문제에 합산 (기존 기출 BANK는 그대로 유지)
+FREQ_BANK.forEach(q => allQuestions.push(q));
 // ==========================================
 // 2. 상태 및 로컬 스토리지 관리
 // ==========================================
@@ -1256,11 +1335,18 @@ let state = {
   freqOnly: false,
   wrongOnly: false,
   shuffled: false,
-  wrongnoteOnly: false
+  wrongnoteOnly: false,
+  dueOnly: false,
+  bookmarkOnly: false,
+  search: "",
+  tagFilter: "all"
 };
 
 let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
 let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
+let srs = JSON.parse(localStorage.getItem("srs")) || {};  // 간격 반복 일정
+let studyStats = JSON.parse(localStorage.getItem("studyStats")) || { streak: 0, lastDate: null, daily: {} };
+let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};  // 별표 모음
 let list = [];
 let showAns = false;
 
@@ -1271,6 +1357,81 @@ const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
 
 function save() {
   localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
+}
+
+// ===== 간격 반복(Spaced Repetition) =====
+const SRS_STEPS = [1, 3, 7, 14, 30, 60]; // 알겠음 연속 시 복습 간격(일)
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function addDays(dateStr, n) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate() + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+// 카드 채점 → 다음 복습일 계산. knew=true(알겠음)면 간격 증가, false(모르겠음)면 오늘로 리셋
+function scheduleCard(qid, knew) {
+  let s = srs[qid] || { box: 0, interval: 0, due: null, last: null };
+  if (knew) {
+    s.box = (s.box || 0) + 1;
+    s.interval = SRS_STEPS[Math.min(s.box - 1, SRS_STEPS.length - 1)];
+  } else {
+    s.box = 0;
+    s.interval = 0; // 오늘 다시 복습 대상
+  }
+  s.last = todayStr();
+  s.due = addDays(todayStr(), s.interval);
+  srs[qid] = s;
+  localStorage.setItem("srs", JSON.stringify(srs));
+  return s;
+}
+// 오늘 복습할(예정일 도래) 카드 수
+function dueCount() {
+  const t = todayStr();
+  let n = 0;
+  for (const id in srs) { if (srs[id] && srs[id].due && srs[id].due <= t) n++; }
+  return n;
+}
+function updateDueBadge() {
+  const el = document.getElementById("due-count");
+  if (el) { const n = dueCount(); el.textContent = n > 0 ? `(${n})` : ""; }
+}
+function updateBmBadge() {
+  const el = document.getElementById("bm-count");
+  if (el) { const n = Object.keys(bookmarks).length; el.textContent = n > 0 ? `(${n})` : ""; }
+}
+// 오늘 푼 문제 수 + 연속 학습일(스트릭) 갱신
+function bumpStudyStats() {
+  const t = todayStr();
+  if (!studyStats.daily) studyStats.daily = {};
+  studyStats.daily[t] = (studyStats.daily[t] || 0) + 1;
+  if (studyStats.lastDate !== t) {
+    const yesterday = addDays(t, -1);
+    studyStats.streak = (studyStats.lastDate === yesterday) ? (studyStats.streak || 0) + 1 : 1;
+    studyStats.lastDate = t;
+  }
+  localStorage.setItem("studyStats", JSON.stringify(studyStats));
+}
+// 채점 공통 처리: 진도/오답노트/간격반복 갱신
+function applyGrade(q, qid, knew) {
+  progress[qid] = knew ? 'O' : 'X';
+  const info = scheduleCard(qid, knew);
+  bumpStudyStats();
+  if (!knew) {
+    if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
+    wrongNotes[qid].count++;
+    wrongNotes[qid].last = todayStr();
+    localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+    if (!state.dueOnly) list.push(q); // 같은 세션 안에서 다시 출제(복습 모드 제외)
+    showToast("✗ 오답 기록 — 곧 다시 출제됩니다.");
+  } else {
+    showToast(`✓ 알겠음 — ${info.interval}일 후 복습 예정`);
+  }
+  save();
+  updateDashboard();
+  updateDueBadge();
 }
 
 // ==========================================
@@ -1288,29 +1449,57 @@ function render() {
 
   // 필터링 적용
   list = allQuestions.filter(q => {
-    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-    if (state.freqOnly && q.year !== '빈출') return false;
+    const qid = getQId(q);
+
+    // 🔍 검색: 활성 시 연도/빈출/복습 제한을 건너뛰고 전체 기출에서 찾음(과목·별표·태그는 적용)
+    if (state.search) {
+      if (q.year === '빈출') return false;
+      const hay = (q.q + ' ' + q.opts.join(' ') + ' ' + q.e).toLowerCase();
+      if (!hay.includes(state.search.toLowerCase())) return false;
+      if (state.subj !== 'all' && q.subj !== state.subj) return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+      return true;
+    }
+
+    // ⭐ 별표 모음
+    if (state.bookmarkOnly && !bookmarks[qid]) return false;
+    // 🏷 오답 태그 필터
+    if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+
+    // 📅 오늘 복습 모드: 예정일이 도래한 카드만 (과목 필터만 함께 적용)
+    if (state.dueOnly) {
+      const s = srs[qid];
+      if (!s || !s.due || s.due > todayStr()) return false;
+      if (state.subj !== 'all' && q.subj !== state.subj) return false;
+      return true;
+    }
+    if (!state.freqOnly) {
+      if (q.year === '빈출') return false;                       // 빈출은 빈출 모드에서만
+      if (state.year !== 'all' && q.year !== state.year) return false;
+    } else {
+      if (q.year !== '빈출') return false;                       // 빈출 모드: 빈출만
+    }
     if (state.subj !== 'all' && q.subj !== state.subj) return false;
     
     if (state.wrongOnly) {
-      const rec = progress[getQId(q)];
+      const rec = progress[qid];
       if (!rec || rec === 'O') return false;
     }
     // 약점 오답 필터 (3회 이상 틀린 문제만)
     if (state.wrongnoteOnly) {
-      if (!wrongNotes[getQId(q)] || wrongNotes[getQId(q)].count < 3) return false;
+      if (!wrongNotes[qid] || wrongNotes[qid].count < 3) return false;
     }
     return true;
   });
 
-  // 셔플 및 빈출 2배수 적용 (학습 모드)
+  // 빈출 2배수: 빈출 모드일 때 각 문제를 2번씩 풀도록 복제
+  if (state.freqOnly && !state.dueOnly) {
+    list = [...list, ...list];
+  }
+  // 셔플 적용 (학습 모드)
   if (state.shuffled) {
-    let pool = [];
-    list.forEach(q => {
-      pool.push(q);
-      if (state.freqOnly && q.year === '빈출') pool.push(q);
-    });
-    list = pool.sort(() => Math.random() - 0.5);
+    list = list.sort(() => Math.random() - 0.5);
   }
 
   updateDashboard();
@@ -1329,10 +1518,14 @@ function render() {
 // 과목별 정답률 계산
 function updateDashboard() {
   let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
-  
+  let answeredReal = 0, totalReal = 0;
+
   allQuestions.forEach(q => {
+    if (q.year === '빈출') return; // 진척도/정답률 집계는 실제 기출 기준
+    totalReal++;
     const qid = getQId(q);
     if (progress[qid] === 'O' || progress[qid] === 'X') {
+      answeredReal++;
       if (stats[q.subj]) {
           stats[q.subj].t++;
           if (progress[qid] === 'O') stats[q.subj].c++;
@@ -1340,13 +1533,30 @@ function updateDashboard() {
     }
   });
 
+  const map = { '성경': 'bible', '교회사': 'history', '헌법': 'law' };
   ['성경', '교회사', '헌법'].forEach(subj => {
-    const el = document.getElementById(`score-${subj === '성경' ? 'bible' : subj === '교회사' ? 'history' : 'law'}`);
+    const key = map[subj];
+    const el = document.getElementById(`score-${key}`);
     if (el) {
       const percent = stats[subj].t === 0 ? 0 : Math.round((stats[subj].c / stats[subj].t) * 100);
       el.textContent = `${percent}%`;
     }
+    const cnt = document.getElementById(`cnt-${key}`);
+    if (cnt) cnt.textContent = `${stats[subj].c}/${stats[subj].t} 정답`;
   });
+
+  // 둘째 줄: 학습 통계
+  const today = todayStr();
+  const todayEl = document.getElementById("stat-today");
+  if (todayEl) todayEl.textContent = `${(studyStats.daily && studyStats.daily[today]) || 0}`;
+  const streakEl = document.getElementById("stat-streak");
+  if (streakEl) streakEl.textContent = `${studyStats.streak || 0}일`;
+  const progEl = document.getElementById("stat-progress");
+  if (progEl) progEl.textContent = totalReal === 0 ? '0%' : `${Math.round((answeredReal / totalReal) * 100)}%`;
+  const progSub = document.getElementById("stat-progress-sub");
+  if (progSub) progSub.textContent = `${answeredReal}/${totalReal}`;
+  const dueEl = document.getElementById("stat-due");
+  if (dueEl) dueEl.textContent = `${dueCount()}`;
 }
 
 function showToast(msg) {
@@ -1371,18 +1581,25 @@ function renderStudy(cArea) {
   const q = list[state.idx];
   const qid = getQId(q);
   const rec = progress[qid];
-  
+  let graded = false;
+
+  // 현재 카드의 복습 예정 정보
+  let schedInfo = "";
+  if (srs[qid] && srs[qid].due) {
+    schedInfo = srs[qid].due <= todayStr()
+      ? ` <span style="color:var(--ink)">[복습 예정일 도래]</span>`
+      : ` <span style="color:var(--muted)">[다음 복습 ${srs[qid].due}]</span>`;
+  }
+
   let html = `
     <div class="card">
-      <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}</div>
+      <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}${schedInfo}<span id="bm-star" title="별표 저장/해제" style="float:right; cursor:pointer; font-size:1.2rem; color:${bookmarks[qid] ? 'var(--gold)' : 'var(--muted)'};">${bookmarks[qid] ? '★' : '☆'}</span></div>
       <div class="q-text">Q. ${q.q}</div>
       <div class="options">
   `;
-  
   q.opts.forEach((opt, i) => {
     html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`;
   });
-  
   html += `
       </div>
       <div class="ans-box" id="ans-box">
@@ -1390,49 +1607,123 @@ function renderStudy(cArea) {
         ${q.e}
       </div>
     </div>
-    <div class="nav-btns">
-      <button class="nav-btn" id="prev-btn">◀ 이전</button>
-      <button class="nav-btn primary" id="next-btn">다음 ▶</button>
+    <div id="study-actions"></div>
+    <div class="kbd-hint">
+      ⌨ 단축키 &nbsp; <kbd>1</kbd>~<kbd>5</kbd> 보기 선택 &nbsp;·&nbsp; <kbd>Space</kbd> 정답 보기/다음 &nbsp;·&nbsp; <kbd>O</kbd> 알겠음 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
     </div>
   `;
-  
   cArea.innerHTML = html;
-  
-  // 마킹 정보 표시
+
+  // 이전 마킹 표시
   if (rec === 'O') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--green)">[맞힘]</span>`;
   if (rec === 'X') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--red)">[틀림]</span>`;
-  
+
+  const actions = document.getElementById("study-actions");
+
+  // ⭐ 별표 토글
+  const star = document.getElementById("bm-star");
+  if (star) star.onclick = () => {
+    if (bookmarks[qid]) delete bookmarks[qid]; else bookmarks[qid] = true;
+    localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+    star.textContent = bookmarks[qid] ? '★' : '☆';
+    star.style.color = bookmarks[qid] ? 'var(--gold)' : 'var(--muted)';
+    updateBmBadge();
+  };
+
+  function goPrev() { state.idx--; render(); scrollToQuestion(); }
+  function goNext() { state.idx++; render(); scrollToQuestion(); }
+
+  function revealUI(picked) {
+    showAns = true;
+    document.getElementById(`opt-${q.a}`).classList.add("correct");
+    if (picked !== undefined && picked !== q.a) document.getElementById(`opt-${picked}`).classList.add("wrong");
+    // 오답지별 해설(데이터에 q.oe가 있을 때만 표시)
+    if (q.oe) {
+      q.opts.forEach((opt, i) => {
+        if (i !== q.a && q.oe[i]) {
+          const el = document.getElementById(`opt-${i}`);
+          if (el && !el.dataset.oe) { el.dataset.oe = "1"; el.innerHTML += `<div style="font-size:0.82rem; color:var(--burgundy); margin-top:6px;">↳ ${q.oe[i]}</div>`; }
+        }
+      });
+    }
+    document.getElementById("ans-box").style.display = "block";
+  }
+
+  // 채점 후 '다음' 버튼 노출 (틀린 경우 오답 태그도 함께)
+  function grade(knew, picked) {
+    if (graded) return;
+    graded = true;
+    if (!showAns) revealUI(picked);
+    applyGrade(q, qid, knew);
+    let tagRow = '';
+    if (!knew) {
+      const cur = (wrongNotes[qid] && wrongNotes[qid].tag) || '';
+      const mk = (t) => `<button class="nav-btn tag-btn" data-tag="${t}" style="${cur===t?'background:var(--ink);color:#fff;border-color:var(--ink);':''}">${t}</button>`;
+      tagRow = `
+      <div class="kbd-hint" style="margin-top:14px; margin-bottom:4px;">왜 틀렸나요? (선택)</div>
+      <div class="nav-btns" id="tag-row">${mk('헷갈림')}${mk('암기부족')}${mk('실수')}</div>`;
+    }
+    actions.innerHTML = `
+      <div class="nav-btns">
+        <button class="nav-btn" id="prev-btn">◀ 이전</button>
+        <button class="nav-btn primary" id="next-btn">다음 ▶</button>
+      </div>${tagRow}`;
+    document.getElementById("prev-btn").onclick = goPrev;
+    document.getElementById("next-btn").onclick = goNext;
+    if (!knew) {
+      document.querySelectorAll('#tag-row .tag-btn').forEach(b => b.onclick = () => {
+        const t = b.dataset.tag;
+        if (!wrongNotes[qid]) wrongNotes[qid] = { count: 1, last: todayStr() };
+        wrongNotes[qid].tag = t;
+        localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+        document.querySelectorAll('#tag-row .tag-btn').forEach(x => { x.style.background=''; x.style.color=''; x.style.borderColor=''; });
+        b.style.background='var(--ink)'; b.style.color='#fff'; b.style.borderColor='var(--ink)';
+        showToast(`오답 태그: ${t}`);
+      });
+    }
+  }
+
+  // 보기 클릭 = 자가 채점(맞으면 알겠음, 틀리면 모르겠음) + 정답 표시 + 다음 버튼
   q.opts.forEach((opt, i) => {
     document.getElementById(`opt-${i}`).onclick = () => {
       if (showAns) return;
-      showAns = true;
-      
-      if (i === q.a) {
-        progress[qid] = 'O';
-      } else {
-        progress[qid] = 'X';
-        
-        // 오답 노트 카운트 증가
-        if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
-        wrongNotes[qid].count++;
-        wrongNotes[qid].last = new Date().toISOString().split('T')[0];
-        localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-        
-        // ✨ 에빙하우스 오답 자동 반복 (틀리면 맨 뒤에 다시 추가)
-        list.push(q);
-        showToast("오답 노트에 기록되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
-      }
-      save();
-      updateDashboard();
-      
-      document.getElementById(`opt-${q.a}`).classList.add("correct");
-      if (i !== q.a) document.getElementById(`opt-${i}`).classList.add("wrong");
-      document.getElementById("ans-box").style.display = "block";
+      grade(i === q.a, i);
     };
   });
-  
-  document.getElementById("prev-btn").onclick = () => { state.idx--; render(); scrollToQuestion(); };
-  document.getElementById("next-btn").onclick = () => { state.idx++; render(); scrollToQuestion(); };
+
+  // 정답 보기(답을 떠올리지 못해 확인) = 채점 없이 정답만 표시 → 자가평가 버튼 유지
+  function revealOnly() {
+    if (showAns) return;
+    revealUI();
+    actions.innerHTML = `
+      <div class="nav-btns">
+        <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
+        <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
+      </div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="prev-btn">◀ 이전</button>
+      </div>`;
+    document.getElementById("know-btn").onclick = () => grade(true);
+    document.getElementById("dunno-btn").onclick = () => grade(false);
+    document.getElementById("prev-btn").onclick = goPrev;
+  }
+
+  // 초기 버튼: 모르겠음 / 알겠음(자가평가) + 이전 / 정답 보기
+  actions.innerHTML = `
+    <div class="nav-btns">
+      <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
+      <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn" id="prev-btn">◀ 이전</button>
+      <button class="nav-btn" id="reveal-btn">정답 보기</button>
+    </div>`;
+  document.getElementById("know-btn").onclick = () => grade(true);
+  document.getElementById("dunno-btn").onclick = () => grade(false);
+  document.getElementById("reveal-btn").onclick = revealOnly;
+  document.getElementById("prev-btn").onclick = goPrev;
+
+  updateDueBadge();
 }
 
 // ==========================================
@@ -1578,8 +1869,12 @@ function startExamMode(isYearly) {
   } else {
       // 랜덤 모의고사: 33문제 추출
       let currentList = allQuestions.filter(q => {
-        if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-        if (state.freqOnly && q.year !== '빈출') return false;
+        if (!state.freqOnly) {
+          if (q.year === '빈출') return false;
+          if (state.year !== 'all' && q.year !== state.year) return false;
+        } else {
+          if (q.year !== '빈출') return false;
+        }
         if (state.subj !== 'all' && q.subj !== state.subj) return false;
         return true;
       });
@@ -1666,14 +1961,29 @@ document.querySelectorAll(".subj-f").forEach(c => c.onclick = () => {
 
 document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
   const f = c.dataset.filter;
-  if(f === "freq"){ state.freqOnly = !state.freqOnly; c.classList.toggle("on"); }
+  if(f === "freq"){ state.freqOnly = !state.freqOnly; c.classList.toggle("on"); if(state.freqOnly){ state.dueOnly=false; document.querySelector('.chip[data-filter="due"]').classList.remove("on"); } }
+  if(f === "due"){ state.dueOnly = !state.dueOnly; c.classList.toggle("on"); if(state.dueOnly){ state.freqOnly=false; document.querySelector('.chip[data-filter="freq"]').classList.remove("on"); } }
   if(f === "wrong"){ state.wrongOnly = !state.wrongOnly; c.classList.toggle("on"); }
   if(f === "shuffle"){ state.shuffled = !state.shuffled; c.classList.toggle("on"); }
   if(f === "wrongnote"){ state.wrongnoteOnly = !state.wrongnoteOnly; c.classList.toggle("on"); }
+  if(f === "bookmark"){ state.bookmarkOnly = !state.bookmarkOnly; c.classList.toggle("on"); }
   state.idx = 0; render();
 });
 
-// 모드 탭 클릭 이벤트 (3가지 모드 분기)
+// 🔍 검색 입력
+(function(){
+  const box = document.getElementById("search-box");
+  if (box) {
+    let t = null;
+    box.oninput = () => {
+      clearTimeout(t);
+      t = setTimeout(() => { state.search = box.value.trim(); state.idx = 0; render(); }, 200);
+    };
+  }
+  // 🏷 오답 태그 필터
+  const tf = document.getElementById("tag-filter");
+  if (tf) tf.onchange = () => { state.tagFilter = tf.value; state.idx = 0; render(); };
+})();
 document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
   t.classList.add("on"); 
@@ -1689,22 +1999,111 @@ document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
 document.getElementById("reset").onclick = () => {
   progress = {}; localStorage.removeItem("moksagosi_prog");
   wrongNotes = {}; localStorage.removeItem("wrongNotes");
-  state.idx = 0; render(); 
-  alert("학습 기록 및 오답노트가 모두 초기화되었습니다.");
+  srs = {}; localStorage.removeItem("srs");
+  studyStats = { streak: 0, lastDate: null, daily: {} }; localStorage.removeItem("studyStats");
+  bookmarks = {}; localStorage.removeItem("bookmarks");
+  state.idx = 0; render(); updateBmBadge();
+  alert("학습 기록, 오답노트, 복습 일정, 통계, 별표가 모두 초기화되었습니다.");
+};
+
+// ===== 진도 백업(내보내기) =====
+document.getElementById("backup").onclick = () => {
+  const data = {
+    type: "moksagosi-backup",
+    version: 2,
+    savedAt: new Date().toISOString(),
+    progress: progress,
+    wrongNotes: wrongNotes,
+    srs: srs,
+    studyStats: studyStats,
+    bookmarks: bookmarks
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const today = new Date().toISOString().split("T")[0];
+  a.href = url;
+  a.download = `목사고시_진도백업_${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("진도와 오답노트를 파일로 저장했습니다.");
+};
+
+// ===== 진도 복원(불러오기) =====
+document.getElementById("restore").onclick = () => {
+  document.getElementById("restore-file").click();
+};
+document.getElementById("restore-file").onchange = (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.type !== "moksagosi-backup" || typeof data.progress !== "object") {
+        alert("올바른 백업 파일이 아닙니다. (목사고시 백업 파일만 복원할 수 있습니다)");
+        return;
+      }
+      const pCount = Object.keys(data.progress || {}).length;
+      const wCount = Object.keys(data.wrongNotes || {}).length;
+      const when = data.savedAt ? data.savedAt.split("T")[0] : "알 수 없음";
+      if (!confirm(`이 백업으로 복원하시겠습니까?\n\n· 저장일: ${when}\n· 학습 기록: ${pCount}문항\n· 오답노트: ${wCount}문항\n\n⚠ 현재 기기의 기록은 덮어쓰기 됩니다.`)) {
+        ev.target.value = "";
+        return;
+      }
+      progress = data.progress || {};
+      wrongNotes = data.wrongNotes || {};
+      srs = data.srs || {};
+      studyStats = data.studyStats || { streak: 0, lastDate: null, daily: {} };
+      bookmarks = data.bookmarks || {};
+      localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
+      localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+      localStorage.setItem("srs", JSON.stringify(srs));
+      localStorage.setItem("studyStats", JSON.stringify(studyStats));
+      localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+      state.idx = 0;
+      render();
+      updateBmBadge();
+      alert("진도와 오답노트를 복원했습니다.");
+    } catch (err) {
+      alert("파일을 읽는 중 오류가 발생했습니다. 백업 파일이 손상되었을 수 있습니다.");
+    } finally {
+      ev.target.value = ""; // 같은 파일 다시 선택 가능하도록 초기화
+    }
+  };
+  reader.readAsText(file);
 };
 
 document.addEventListener("keydown", e => {
-  if (state.mode !== 'study') return; 
-  if (e.key === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
-  if (e.key === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
-  if (e.key >= "1" && e.key <= "5") {
-    const idx = parseInt(e.key) - 1;
-    const btn = document.getElementById(`opt-${idx}`);
+  if (state.mode !== 'study') return;
+  const k = e.key;
+  // 보기 선택 1~5
+  if (k >= "1" && k <= "5") {
+    const btn = document.getElementById(`opt-${parseInt(k) - 1}`);
     if (btn) btn.click();
+    return;
   }
+  // Space: 정답 보기 → (이미 봤으면) 다음
+  if (k === " " || k === "Spacebar") {
+    e.preventDefault();
+    const rv = document.getElementById("reveal-btn");
+    const nx = document.getElementById("next-btn");
+    if (rv) rv.click(); else if (nx) nx.click();
+    return;
+  }
+  // O: 알겠음 / X: 모르겠음
+  if (k === "o" || k === "O") { const b = document.getElementById("know-btn"); if (b) b.click(); return; }
+  if (k === "x" || k === "X") { const b = document.getElementById("dunno-btn"); if (b) b.click(); return; }
+  // 이동
+  if (k === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
+  if (k === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
 });
 
 render();
+updateDueBadge();
+updateBmBadge();
 </script>
 </body>
 </html>
