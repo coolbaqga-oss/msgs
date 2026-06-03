@@ -1578,9 +1578,9 @@ function showToast(msg) {
 }
 
 function scrollToQuestion() {
-  const el = document.querySelector('.card');
+  const el = document.querySelector('#content-area .nav-btns') || document.querySelector('.card');
   if (el) {
-    const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 16;
     window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
   }
 }
@@ -1603,6 +1603,10 @@ function renderStudy(cArea) {
   }
 
   let html = `
+    <div class="nav-btns" style="margin-top:0; margin-bottom:14px;">
+      <button class="nav-btn" id="prev-btn">◀ 이전</button>
+      <button class="nav-btn primary" id="next-btn">다음 ▶</button>
+    </div>
     <div class="card">
       <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}${schedInfo}<span id="bm-star" title="별표 저장/해제" style="float:right; cursor:pointer; font-size:1.2rem; color:${bookmarks[qid] ? 'var(--gold)' : 'var(--muted)'};">${bookmarks[qid] ? '★' : '☆'}</span></div>
       <div class="q-text">Q. ${q.q}</div>
@@ -1618,11 +1622,9 @@ function renderStudy(cArea) {
         ${q.e}
       </div>
     </div>
-    <div class="study-sticky">
-      <div id="study-actions"></div>
-      <div class="kbd-hint">
-        ⌨ <kbd>1</kbd>~<kbd>5</kbd> 보기 &nbsp;·&nbsp; <kbd>Space</kbd> 정답/다음 &nbsp;·&nbsp; <kbd>O</kbd> 확실함 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음/찍음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
-      </div>
+    <div id="study-actions"></div>
+    <div class="kbd-hint">
+      ⌨ <kbd>1</kbd>~<kbd>5</kbd> 보기 &nbsp;·&nbsp; <kbd>Space</kbd> 정답 보기 &nbsp;·&nbsp; <kbd>O</kbd> 확실함 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음/찍음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
     </div>
   `;
   cArea.innerHTML = html;
@@ -1633,6 +1635,12 @@ function renderStudy(cArea) {
 
   const actions = document.getElementById("study-actions");
 
+  // 상단 이전/다음 (항상 노출)
+  function goPrev() { state.idx--; render(); scrollToQuestion(); }
+  function goNext() { state.idx++; render(); scrollToQuestion(); }
+  document.getElementById("prev-btn").onclick = goPrev;
+  document.getElementById("next-btn").onclick = goNext;
+
   // ⭐ 별표 토글
   const star = document.getElementById("bm-star");
   if (star) star.onclick = () => {
@@ -1642,9 +1650,6 @@ function renderStudy(cArea) {
     star.style.color = bookmarks[qid] ? 'var(--gold)' : 'var(--muted)';
     updateBmBadge();
   };
-
-  function goPrev() { state.idx--; render(); scrollToQuestion(); }
-  function goNext() { state.idx++; render(); scrollToQuestion(); }
 
   function revealUI(picked) {
     showAns = true;
@@ -1662,74 +1667,55 @@ function renderStudy(cArea) {
     document.getElementById("ans-box").style.display = "block";
   }
 
-  // 오답 태그 버튼 와이어링
+  // 오답 태그 버튼 와이어링 (태그 선택 시 다음으로 이동)
   function wireTags() {
     document.querySelectorAll('#tag-row .tag-btn').forEach(b => b.onclick = () => {
       const t = b.dataset.tag;
       if (!wrongNotes[qid]) wrongNotes[qid] = { count: 1, last: todayStr() };
       wrongNotes[qid].tag = t;
       localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-      document.querySelectorAll('#tag-row .tag-btn').forEach(x => { x.style.background=''; x.style.color=''; x.style.borderColor=''; });
-      b.style.background='var(--ink)'; b.style.color='#fff'; b.style.borderColor='var(--ink)';
-      showToast(`오답 태그: ${t}`);
+      goNext();
     });
   }
 
-  // 채점 확정 → 다음 버튼(틀린 경우 오답 태그도 함께)
-  function commitGrade(knew) {
-    applyGrade(q, qid, knew);
-    let tagRow = '';
-    if (!knew) {
-      const cur = (wrongNotes[qid] && wrongNotes[qid].tag) || '';
-      const mk = (t) => `<button class="nav-btn tag-btn" data-tag="${t}" style="${cur===t?'background:var(--ink);color:#fff;border-color:var(--ink);':''}">${t}</button>`;
-      tagRow = `
-      <div class="kbd-hint" style="margin:8px 0 4px;">왜 틀렸나요? (선택)</div>
-      <div class="nav-btns" id="tag-row">${mk('헷갈림')}${mk('암기부족')}${mk('실수')}</div>`;
-    }
-    actions.innerHTML = `
-      <div class="nav-btns">
-        <button class="nav-btn" id="prev-btn">◀ 이전</button>
-        <button class="nav-btn primary" id="next-btn">다음 ▶</button>
-      </div>${tagRow}`;
-    document.getElementById("prev-btn").onclick = goPrev;
-    document.getElementById("next-btn").onclick = goNext;
-    if (!knew) wireTags();
-  }
-
-  // 자가평가(정답 보기/초기 버튼 경로): 정답 표시 후 알겠음/모르겠음
-  function grade(knew) {
+  // 알겠음/확실함/찍었음 → 채점하고 즉시 다음 문제로
+  function gradeAndAdvance(knew) {
     if (graded) return;
     graded = true;
     if (!showAns) revealUI();
-    commitGrade(knew);
+    applyGrade(q, qid, knew);
+    goNext();
   }
 
-  // 정답을 골랐을 때: 확실히 알았는지 / 찍었는지 한 번 더 확인
-  function askSelfCheck() {
+  // 오답 보기를 골랐을 때 → 모르겠음 채점 + 태그만 표시(이동은 상단 다음으로)
+  function gradeWrongWithTags() {
+    if (graded) return;
+    graded = true;
+    applyGrade(q, qid, false);
+    const cur = (wrongNotes[qid] && wrongNotes[qid].tag) || '';
+    const mk = (t) => `<button class="nav-btn tag-btn" data-tag="${t}" style="${cur===t?'background:var(--ink);color:#fff;border-color:var(--ink);':''}">${t}</button>`;
     actions.innerHTML = `
-      <div class="kbd-hint" style="margin:0 0 4px; color:var(--green);">정답입니다! 확실히 아셨나요?</div>
-      <div class="nav-btns">
-        <button class="nav-btn" id="sure-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 확실함</button>
-        <button class="nav-btn" id="guess-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🤔 찍었음</button>
-      </div>
-      <div class="nav-btns">
-        <button class="nav-btn" id="prev-btn">◀ 이전</button>
-      </div>`;
-    document.getElementById("sure-btn").onclick = () => { if (graded) return; graded = true; commitGrade(true); };
-    document.getElementById("guess-btn").onclick = () => { if (graded) return; graded = true; commitGrade(false); };
-    document.getElementById("prev-btn").onclick = goPrev;
+      <div class="kbd-hint" style="margin:4px 0 4px;">왜 틀렸나요? (선택 — 누르면 다음 ▶ 으로 이동)</div>
+      <div class="nav-btns" id="tag-row">${mk('헷갈림')}${mk('암기부족')}${mk('실수')}</div>`;
+    wireTags();
   }
 
-  // 보기 클릭: 맞으면 확실함/찍었음 물어보고, 틀리면 즉시 모르겠음 처리
+  // 보기 클릭: 맞으면 확실함/찍었음 확인, 틀리면 모르겠음 + 태그
   q.opts.forEach((opt, i) => {
     document.getElementById(`opt-${i}`).onclick = () => {
       if (showAns) return;
       revealUI(i);
       if (i === q.a) {
-        askSelfCheck();
+        actions.innerHTML = `
+          <div class="kbd-hint" style="margin:0 0 4px; color:var(--green);">정답입니다! 확실히 아셨나요?</div>
+          <div class="nav-btns">
+            <button class="nav-btn" id="sure-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 확실함</button>
+            <button class="nav-btn" id="guess-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🤔 찍었음</button>
+          </div>`;
+        document.getElementById("sure-btn").onclick = () => gradeAndAdvance(true);
+        document.getElementById("guess-btn").onclick = () => gradeAndAdvance(false);
       } else {
-        graded = true;
-        commitGrade(false);
+        gradeWrongWithTags();
       }
     };
   });
@@ -1742,29 +1728,21 @@ function renderStudy(cArea) {
       <div class="nav-btns">
         <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
         <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
-      </div>
-      <div class="nav-btns">
-        <button class="nav-btn" id="prev-btn">◀ 이전</button>
       </div>`;
-    document.getElementById("know-btn").onclick = () => grade(true);
-    document.getElementById("dunno-btn").onclick = () => grade(false);
-    document.getElementById("prev-btn").onclick = goPrev;
+    document.getElementById("know-btn").onclick = () => gradeAndAdvance(true);
+    document.getElementById("dunno-btn").onclick = () => gradeAndAdvance(false);
   }
 
-  // 초기 버튼: 모르겠음 / 알겠음(보기 안 보고 바로 자가평가) + 이전 / 정답 보기
+  // 초기 버튼: 모르겠음 / 알겠음(바로 자가평가) + 정답 보기
   actions.innerHTML = `
     <div class="nav-btns">
       <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
       <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
-    </div>
-    <div class="nav-btns">
-      <button class="nav-btn" id="prev-btn">◀ 이전</button>
       <button class="nav-btn" id="reveal-btn">정답 보기</button>
     </div>`;
-  document.getElementById("know-btn").onclick = () => grade(true);
-  document.getElementById("dunno-btn").onclick = () => grade(false);
+  document.getElementById("know-btn").onclick = () => gradeAndAdvance(true);
+  document.getElementById("dunno-btn").onclick = () => gradeAndAdvance(false);
   document.getElementById("reveal-btn").onclick = revealOnly;
-  document.getElementById("prev-btn").onclick = goPrev;
 
   updateDueBadge();
 }
