@@ -143,17 +143,9 @@
   
   /* 50:50 듀얼 버튼 */
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
-  /* 학습 모드 하단 고정 액션 바 */
-  .study-sticky {
-    position: sticky; bottom: 0; z-index: 50;
-    background: var(--card);
-    border-top: 1px solid var(--line);
-    padding: 10px 0 12px;
-    margin-top: 16px;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
-  }
-  .study-sticky .nav-btns { margin-top: 0; }
-  .study-sticky .nav-btns + .nav-btns { margin-top: 8px; }
+  /* 학습 모드 채점 버튼: 보기와 해설 사이에 위치 */
+  #study-actions .nav-btns { margin-top: 14px; }
+  #study-actions:empty { display: none; }
   .nav-btn {
     flex: 1;
     padding: 14px;
@@ -1617,12 +1609,12 @@ function renderStudy(cArea) {
   });
   html += `
       </div>
+      <div id="study-actions"></div>
       <div class="ans-box" id="ans-box">
         <strong>정답: ${q.a + 1}번</strong><br><br>
         ${q.e}
       </div>
     </div>
-    <div id="study-actions"></div>
     <div class="kbd-hint">
       ⌨ <kbd>1</kbd>~<kbd>5</kbd> 보기 &nbsp;·&nbsp; <kbd>Space</kbd> 정답 보기 &nbsp;·&nbsp; <kbd>O</kbd> 확실함 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음/찍음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
     </div>
