@@ -143,6 +143,17 @@
   
   /* 50:50 듀얼 버튼 */
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
+  /* 학습 모드 하단 고정 액션 바 */
+  .study-sticky {
+    position: sticky; bottom: 0; z-index: 50;
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    padding: 10px 0 12px;
+    margin-top: 16px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
+  }
+  .study-sticky .nav-btns { margin-top: 0; }
+  .study-sticky .nav-btns + .nav-btns { margin-top: 8px; }
   .nav-btn {
     flex: 1;
     padding: 14px;
@@ -1607,9 +1618,11 @@ function renderStudy(cArea) {
         ${q.e}
       </div>
     </div>
-    <div id="study-actions"></div>
-    <div class="kbd-hint">
-      ⌨ 단축키 &nbsp; <kbd>1</kbd>~<kbd>5</kbd> 보기 선택 &nbsp;·&nbsp; <kbd>Space</kbd> 정답 보기/다음 &nbsp;·&nbsp; <kbd>O</kbd> 알겠음 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
+    <div class="study-sticky">
+      <div id="study-actions"></div>
+      <div class="kbd-hint">
+        ⌨ <kbd>1</kbd>~<kbd>5</kbd> 보기 &nbsp;·&nbsp; <kbd>Space</kbd> 정답/다음 &nbsp;·&nbsp; <kbd>O</kbd> 확실함 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음/찍음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
+      </div>
     </div>
   `;
   cArea.innerHTML = html;
@@ -1649,18 +1662,28 @@ function renderStudy(cArea) {
     document.getElementById("ans-box").style.display = "block";
   }
 
-  // 채점 후 '다음' 버튼 노출 (틀린 경우 오답 태그도 함께)
-  function grade(knew, picked) {
-    if (graded) return;
-    graded = true;
-    if (!showAns) revealUI(picked);
+  // 오답 태그 버튼 와이어링
+  function wireTags() {
+    document.querySelectorAll('#tag-row .tag-btn').forEach(b => b.onclick = () => {
+      const t = b.dataset.tag;
+      if (!wrongNotes[qid]) wrongNotes[qid] = { count: 1, last: todayStr() };
+      wrongNotes[qid].tag = t;
+      localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+      document.querySelectorAll('#tag-row .tag-btn').forEach(x => { x.style.background=''; x.style.color=''; x.style.borderColor=''; });
+      b.style.background='var(--ink)'; b.style.color='#fff'; b.style.borderColor='var(--ink)';
+      showToast(`오답 태그: ${t}`);
+    });
+  }
+
+  // 채점 확정 → 다음 버튼(틀린 경우 오답 태그도 함께)
+  function commitGrade(knew) {
     applyGrade(q, qid, knew);
     let tagRow = '';
     if (!knew) {
       const cur = (wrongNotes[qid] && wrongNotes[qid].tag) || '';
       const mk = (t) => `<button class="nav-btn tag-btn" data-tag="${t}" style="${cur===t?'background:var(--ink);color:#fff;border-color:var(--ink);':''}">${t}</button>`;
       tagRow = `
-      <div class="kbd-hint" style="margin-top:14px; margin-bottom:4px;">왜 틀렸나요? (선택)</div>
+      <div class="kbd-hint" style="margin:8px 0 4px;">왜 틀렸나요? (선택)</div>
       <div class="nav-btns" id="tag-row">${mk('헷갈림')}${mk('암기부족')}${mk('실수')}</div>`;
     }
     actions.innerHTML = `
@@ -1670,28 +1693,48 @@ function renderStudy(cArea) {
       </div>${tagRow}`;
     document.getElementById("prev-btn").onclick = goPrev;
     document.getElementById("next-btn").onclick = goNext;
-    if (!knew) {
-      document.querySelectorAll('#tag-row .tag-btn').forEach(b => b.onclick = () => {
-        const t = b.dataset.tag;
-        if (!wrongNotes[qid]) wrongNotes[qid] = { count: 1, last: todayStr() };
-        wrongNotes[qid].tag = t;
-        localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-        document.querySelectorAll('#tag-row .tag-btn').forEach(x => { x.style.background=''; x.style.color=''; x.style.borderColor=''; });
-        b.style.background='var(--ink)'; b.style.color='#fff'; b.style.borderColor='var(--ink)';
-        showToast(`오답 태그: ${t}`);
-      });
-    }
+    if (!knew) wireTags();
   }
 
-  // 보기 클릭 = 자가 채점(맞으면 알겠음, 틀리면 모르겠음) + 정답 표시 + 다음 버튼
+  // 자가평가(정답 보기/초기 버튼 경로): 정답 표시 후 알겠음/모르겠음
+  function grade(knew) {
+    if (graded) return;
+    graded = true;
+    if (!showAns) revealUI();
+    commitGrade(knew);
+  }
+
+  // 정답을 골랐을 때: 확실히 알았는지 / 찍었는지 한 번 더 확인
+  function askSelfCheck() {
+    actions.innerHTML = `
+      <div class="kbd-hint" style="margin:0 0 4px; color:var(--green);">정답입니다! 확실히 아셨나요?</div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="sure-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 확실함</button>
+        <button class="nav-btn" id="guess-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🤔 찍었음</button>
+      </div>
+      <div class="nav-btns">
+        <button class="nav-btn" id="prev-btn">◀ 이전</button>
+      </div>`;
+    document.getElementById("sure-btn").onclick = () => { if (graded) return; graded = true; commitGrade(true); };
+    document.getElementById("guess-btn").onclick = () => { if (graded) return; graded = true; commitGrade(false); };
+    document.getElementById("prev-btn").onclick = goPrev;
+  }
+
+  // 보기 클릭: 맞으면 확실함/찍었음 물어보고, 틀리면 즉시 모르겠음 처리
   q.opts.forEach((opt, i) => {
     document.getElementById(`opt-${i}`).onclick = () => {
       if (showAns) return;
-      grade(i === q.a, i);
+      revealUI(i);
+      if (i === q.a) {
+        askSelfCheck();
+      } else {
+        graded = true;
+        commitGrade(false);
+      }
     };
   });
 
-  // 정답 보기(답을 떠올리지 못해 확인) = 채점 없이 정답만 표시 → 자가평가 버튼 유지
+  // 정답 보기(답이 안 떠올라 확인) = 채점 보류 → 알겠음/모르겠음 자가평가
   function revealOnly() {
     if (showAns) return;
     revealUI();
@@ -1708,7 +1751,7 @@ function renderStudy(cArea) {
     document.getElementById("prev-btn").onclick = goPrev;
   }
 
-  // 초기 버튼: 모르겠음 / 알겠음(자가평가) + 이전 / 정답 보기
+  // 초기 버튼: 모르겠음 / 알겠음(보기 안 보고 바로 자가평가) + 이전 / 정답 보기
   actions.innerHTML = `
     <div class="nav-btns">
       <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
@@ -2093,9 +2136,9 @@ document.addEventListener("keydown", e => {
     if (rv) rv.click(); else if (nx) nx.click();
     return;
   }
-  // O: 알겠음 / X: 모르겠음
-  if (k === "o" || k === "O") { const b = document.getElementById("know-btn"); if (b) b.click(); return; }
-  if (k === "x" || k === "X") { const b = document.getElementById("dunno-btn"); if (b) b.click(); return; }
+  // O: 확실함/알겠음 / X: 찍었음/모르겠음
+  if (k === "o" || k === "O") { const b = document.getElementById("know-btn") || document.getElementById("sure-btn"); if (b) b.click(); return; }
+  if (k === "x" || k === "X") { const b = document.getElementById("dunno-btn") || document.getElementById("guess-btn"); if (b) b.click(); return; }
   // 이동
   if (k === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
   if (k === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
