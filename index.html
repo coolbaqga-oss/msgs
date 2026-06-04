@@ -44,7 +44,12 @@
     justify-content: space-between;
     align-items: flex-end;
   }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px;}
+  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px; white-space: nowrap; }
+  @media (max-width: 600px) {
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    h1 { font-size: 1.25rem; }
+    header .header-actions { width: 100%; justify-content: flex-start; gap: 18px; }
+  }
   
   /* 과목별 대시보드 */
   .dashboard {
@@ -243,10 +248,10 @@
       <div class="kicker">올해 모두 붙어버리자!</div>
       <h1>목사고시 기출문제(2015-2025)</h1>
     </div>
-    <div style="display:flex; gap:14px; align-items:center;">
-      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬇ 진도 백업</button>
-      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬆ 진도 복원</button>
-      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
+    <div class="header-actions" style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬇ 진도 백업</button>
+      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬆ 진도 복원</button>
+      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; white-space:nowrap;">기록 초기화</button>
       <input type="file" id="restore-file" accept="application/json,.json" style="display:none;">
     </div>
   </header>
