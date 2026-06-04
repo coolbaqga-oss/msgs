@@ -167,7 +167,7 @@
 <script>
 const allQuestions = [
   // 여기에 2015~2025 전체 문제를 붙여넣기
- // ===================== 2015년도 기출 =====================
+  // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
   {subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
@@ -1107,6 +1107,7 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:31,q:"군목과 선교목사의 임직식은 노회의 위임을 받아 어디에서 주관하는가?",opts:["파송교회 및 기관단체","노회 임원회","노회선교부(국내선교부)","총회 파송부서","시무 군부대 및 선교처"],a:1,e:"<b>헌법 정치 제33조</b> — 군목과 선교목사의 임직식은 예외적으로 노회의 위임을 받아 노회 임원회가 주관할 수 있다."},
 {subj:"헌법",year:"2025",no:32,q:"총회 출석 회원 3분의 2 이상의 가결로 개정안을 작성, 각 노회 3분의 2 이상의 가결과 투표 총수의 3분의 2 이상의 찬성을 얻어야 개정할 수 있는 헌법은 무엇인가?",opts:["정치","권징","교리","예배와 예식","재판규정"],a:2,e:"<b>헌법 정치 제103조</b> — 교리편은 가장 엄격한 개정 절차(노회 3/2 가결 및 투표 3/2 이상 찬성)를 거친다."},
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."},
+
 ];
 
 function keyText(t) {
@@ -1130,7 +1131,8 @@ freqPool.forEach(q => allQuestions.push(q));
 
 let state = {
   years: [], subj: "all", mode: "study", idx: 0,
-  yearlyYears: [], yearlyIdx: 0,
+  yearlyYears: [],
+  examCount: 33, yearlyCount: 33,
   freqOnly: false, wrongOnly: false, shuffled: false,
   bookmarkOnly: false, search: "", tagFilter: "all",
   wrongnoteOnly: false, weakOnly: false, dueOnly: false
@@ -1143,10 +1145,9 @@ let bookmarks = JSON.parse(localStorage.getItem("mok_bm")) || {};
 let stats = JSON.parse(localStorage.getItem("mok_stats")) || {};
 let streakInfo = JSON.parse(localStorage.getItem("mok_streak")) || { last: "", streak: 0 };
 
-let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null };
+let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null, source: "" };
 
 let listCache = { key: "", list: [] };
-let yearlyCache = { key: "", list: [] };
 
 function normalize(s) { return (s || "").toLowerCase().trim(); }
 function formatDate(d) { return d.toISOString().split("T")[0]; }
@@ -1191,7 +1192,6 @@ function saveAll() {
 
 function invalidateList() {
   listCache.key = "";
-  yearlyCache.key = "";
 }
 
 function getTopWrongIds(n) {
@@ -1276,11 +1276,10 @@ function getYearList() {
   return [...new Set(allQuestions.filter(q => q.year !== "빈출").map(q => q.year))].sort();
 }
 
-function buildYearlyList() {
+function buildYearlyPool(forExam) {
   if (!state.yearlyYears.length) return [];
   const search = normalize(state.search);
-  let temp = allQuestions.filter(q => state.yearlyYears.includes(q.year));
-
+  let temp = allQuestions.filter(q => q.year !== "빈출" && state.yearlyYears.includes(q.year));
   if (state.subj !== "all") temp = temp.filter(q => q.subj === state.subj);
 
   if (search) {
@@ -1290,54 +1289,30 @@ function buildYearlyList() {
     });
   }
 
-  temp = temp.filter(q => {
-    const qid = getQId(q);
-    if (state.dueOnly && !isDue(qid)) return false;
-    if (state.wrongOnly && progress[qid] !== "X") return false;
-    if (state.bookmarkOnly && !bookmarks[qid]) return false;
-    if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
-    return true;
-  });
+  if (!forExam) {
+    temp = temp.filter(q => {
+      const qid = getQId(q);
+      if (state.dueOnly && !isDue(qid)) return false;
+      if (state.wrongOnly && progress[qid] !== "X") return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
+      return true;
+    });
 
-  if (state.wrongnoteOnly) {
-    const set = getTopWrongIds(3);
-    temp = temp.filter(q => set.has(getQId(q)));
-  }
-  if (state.weakOnly) {
-    const set = getWeakIds(temp);
-    temp = temp.filter(q => set.has(getQId(q)));
+    if (state.wrongnoteOnly) {
+      const set = getTopWrongIds(3);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
+    if (state.weakOnly) {
+      const set = getWeakIds(temp);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
   }
 
   if (!state.shuffled) {
     temp.sort((a, b) => (a.year || "").localeCompare(b.year || "") || ((a.no || 0) - (b.no || 0)));
   }
   return temp;
-}
-
-function getYearlyList() {
-  const key = JSON.stringify({
-    yearlyYears: state.yearlyYears.slice().sort(),
-    subj: state.subj, shuffled: state.shuffled, search: state.search, tagFilter: state.tagFilter,
-    wrongnoteOnly: state.wrongnoteOnly, weakOnly: state.weakOnly, dueOnly: state.dueOnly,
-    wrongOnly: state.wrongOnly, bookmarkOnly: state.bookmarkOnly
-  });
-  if (yearlyCache.key !== key) {
-    let list = buildYearlyList();
-    if (state.shuffled) list = shuffleArr(list);
-    yearlyCache = { key, list };
-  }
-  return yearlyCache.list;
-}
-
-function getActiveList() {
-  return state.mode === "yearly" ? getYearlyList() : getList(false);
-}
-function getActiveIdx() {
-  return state.mode === "yearly" ? state.yearlyIdx : state.idx;
-}
-function setActiveIdx(v) {
-  if (state.mode === "yearly") state.yearlyIdx = v;
-  else state.idx = v;
 }
 
 function syncFilterVisibility() {
@@ -1348,8 +1323,8 @@ function syncFilterVisibility() {
 function render() {
   syncFilterVisibility();
   const cArea = document.getElementById("content-area");
-  if (state.mode === "exam") return renderExam(cArea);
-  if (state.mode === "yearly") return renderYearly(cArea);
+  if (state.mode === "exam") return renderExamMode(cArea);
+  if (state.mode === "yearly") return renderYearlyMode(cArea);
   return renderStudy(cArea);
 }
 
@@ -1392,240 +1367,142 @@ function renderStudy(cArea) {
   updateDashboard();
 }
 
-function renderYearSelection(cArea) {
+function renderExamMode(cArea) {
+  if (exam.active && exam.source === "exam") return renderExamScreen(cArea);
+  return renderExamSetup(cArea);
+}
+
+function renderYearlyMode(cArea) {
+  if (exam.active && exam.source === "yearly") return renderExamScreen(cArea);
+  return renderYearlySetup(cArea);
+}
+
+function renderExamSetup(cArea) {
+  cArea.innerHTML = `
+    <div class="card">
+      <div class="q-text">모의고사 설정</div>
+      <div style="display:flex; gap:10px; margin-bottom:10px;">
+        <input id="exam-count" type="number" min="1" step="1" value="${state.examCount || 33}"
+          style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);" placeholder="문항 수 (기본 33)">
+        <select id="exam-time" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
+          <option value="30">30분</option>
+          <option value="40" selected>40분</option>
+          <option value="60">60분</option>
+        </select>
+      </div>
+      <button class="nav-btn primary" onclick="startExam()">모의고사 시작</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function renderYearlySetup(cArea) {
   const years = getYearList();
+  const allOn = years.length > 0 && state.yearlyYears.length === years.length;
   cArea.innerHTML = `
     <div class="card">
-      <div class="q-text">연도 선택 (복수 선택 가능)</div>
+      <div class="q-text">기출 연도 선택 (복수 선택)</div>
       <div class="filters" id="year-pick-wrap" style="margin-top:10px;">
-        <button class="chip pick year-pick" data-year="all">전체</button>
-        ${years.map(y => `<button class="chip pick year-pick" data-year="${y}">${y}</button>`).join("")}
+        <button class="chip pick year-pick ${allOn ? "on" : ""}" onclick="toggleYearPick('all')">전체</button>
+        ${years.map(y => `<button class="chip pick year-pick ${state.yearlyYears.includes(y) ? "on" : ""}" onclick="toggleYearPick('${y}')">${y}</button>`).join("")}
       </div>
-      <button class="nav-btn primary" id="year-start" style="margin-top:12px;">선택 시작</button>
-    </div>
-  `;
-
-  document.querySelectorAll(".year-pick").forEach(btn => {
-    btn.onclick = () => {
-      const y = btn.dataset.year;
-      if (y === "all") {
-        const on = !btn.classList.contains("on");
-        document.querySelectorAll(".year-pick").forEach(b => b.classList.toggle("on", on));
-      } else {
-        btn.classList.toggle("on");
-        const all = document.querySelector('.year-pick[data-year="all"]');
-        const years = [...document.querySelectorAll('.year-pick')].filter(b => b.dataset.year !== "all");
-        const allOn = years.every(b => b.classList.contains("on"));
-        if (all) all.classList.toggle("on", allOn);
-      }
-    };
-  });
-
-  document.getElementById("year-start").onclick = () => {
-    const picks = [...document.querySelectorAll(".year-pick.on")]
-      .map(b => b.dataset.year)
-      .filter(y => y !== "all")
-      .sort((a, b) => a - b);
-    if (!picks.length) {
-      showToast("연도를 하나 이상 선택하세요.");
-      return;
-    }
-    state.yearlyYears = picks;
-    state.yearlyIdx = 0;
-    invalidateList();
-    render();
-  };
-}
-
-function renderYearly(cArea) {
-  if (!state.yearlyYears.length) {
-    renderYearSelection(cArea);
-    updateDashboard();
-    return;
-  }
-
-  const list = getYearlyList();
-  if (list.length === 0) {
-    cArea.innerHTML = `
-      <div class="card">
-        <div class="q-text">해당 연도에 조건에 맞는 문제가 없습니다.</div>
-        <div style="margin-top:8px; color:var(--muted); font-size:0.85rem;">선택 연도: ${state.yearlyYears.join(", ")}</div>
-        <button class="nav-btn primary" onclick="resetYearSelection()" style="margin-top:10px;">연도 다시 선택</button>
+      <div style="margin-top:12px; display:flex; gap:10px;">
+        <input id="yearly-count" type="number" min="1" step="1" value="${state.yearlyCount || 33}"
+          style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);" placeholder="문항 수 (기본 33)">
+        <select id="yearly-time" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
+          <option value="30">30분</option>
+          <option value="40" selected>40분</option>
+          <option value="60">60분</option>
+        </select>
       </div>
-    `;
-    updateDashboard();
-    return;
-  }
-
-  if (state.yearlyIdx >= list.length) state.yearlyIdx = 0;
-  const q = list[state.yearlyIdx];
-  const qid = getQId(q);
-
-  cArea.innerHTML = `
-    <div style="margin:0 0 8px; font-size:0.85rem; color:var(--muted);">선택 연도: ${state.yearlyYears.join(", ")}</div>
-    <div class="nav-btns">
-      <button class="nav-btn" onclick="moveIdx(-1)">◀ 이전</button>
-      <button class="nav-btn primary" onclick="moveIdx(1)">다음 ▶</button>
-    </div>
-    <div class="card">
-      <div class="q-meta">
-        <div>${state.yearlyIdx + 1} / ${list.length} | ${q.year}년 ${q.subj}</div>
-        <div class="meta-right">
-          <span class="meta-link" onclick="resetYearSelection()">연도 변경</span>
-          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
-        </div>
-      </div>
-      <div class="q-text">${q.q}</div>
-      <div class="ans-box" id="ans-box">
-        <strong>정답: ${q.a + 1}번</strong><br>${q.e || ""}
-        <div class="tag-wrap" id="tag-wrap">
-          <div class="tag-title">오답 태그 선택</div>
-          <div class="tag-area" id="tag-area"></div>
-        </div>
-      </div>
-      <div id="options-area">
-        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
-      </div>
+      <div style="margin-top:8px; font-size:0.85rem; color:var(--muted);">선택 연도: ${state.yearlyYears.length ? state.yearlyYears.join(", ") : "없음"}</div>
+      <button class="nav-btn primary" style="margin-top:12px;" onclick="startYearlyExam()">기출 모의 시작</button>
     </div>
   `;
   updateDashboard();
 }
 
-function resetYearSelection() {
-  state.yearlyYears = [];
-  state.yearlyIdx = 0;
-  invalidateList();
-  render();
-}
-
-function checkAns(picked) {
-  const list = getActiveList();
-  const idx = getActiveIdx();
-  const q = list[idx];
-  const qid = getQId(q);
-  const isCorrect = picked === q.a;
-
-  const ansBox = document.getElementById("ans-box");
-  ansBox.style.display = "block";
-  const opts = document.querySelectorAll(".opt");
-  opts[picked].classList.add("selected");
-  opts[q.a].classList.add("correct");
-
-  if (!isCorrect) {
-    opts[picked].classList.add("wrong");
-    saveWrong(qid);
-    showToast("틀렸습니다. 오답노트에 기록됩니다.");
-    const tags = [
-      { t: "헷갈림", c: "t1" },
-      { t: "암기부족", c: "t2" },
-      { t: "실수", c: "t3" }
-    ];
-    const tagWrap = document.getElementById("tag-wrap");
-    tagWrap.style.display = "block";
-    document.getElementById("tag-area").innerHTML = tags.map(x =>
-      `<button class="tag-btn ${x.c}" onclick="setTag('${qid}', '${x.t}')">${x.t}</button>`
-    ).join("");
+function toggleYearPick(y) {
+  const years = getYearList();
+  if (y === "all") {
+    if (state.yearlyYears.length === years.length) state.yearlyYears = [];
+    else state.yearlyYears = years.slice();
   } else {
-    showToast("정답입니다!");
-    const tagWrap = document.getElementById("tag-wrap");
-    tagWrap.style.display = "none";
-    saveSRS(qid, true);
+    if (state.yearlyYears.includes(y)) state.yearlyYears = state.yearlyYears.filter(v => v !== y);
+    else state.yearlyYears.push(y);
   }
-
-  if (!isCorrect) saveSRS(qid, false);
-
-  updateStats(qid, isCorrect);
-  progress[qid] = isCorrect ? "O" : "X";
-  updateStreak();
-  saveAll();
-  invalidateList();
-  updateDashboard();
-
-  ansBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  renderYearlyMode(document.getElementById("content-area"));
 }
 
-function moveIdx(step) {
-  const list = getActiveList();
-  if (!list.length) return;
-  let idx = getActiveIdx() + step;
-  if (idx < 0) idx = list.length - 1;
-  if (idx >= list.length) idx = 0;
-  setActiveIdx(idx);
-  render();
+function parseCount(id, defVal) {
+  const el = document.getElementById(id);
+  if (!el) return defVal;
+  const v = parseInt(el.value, 10);
+  return (!v || v < 1) ? defVal : v;
 }
 
-function toggleAdv(e) {
-  if (e) e.stopPropagation();
-  const p = document.getElementById("adv-panel");
-  p.classList.toggle("show");
-}
-
-function toggleBm(qid) {
-  bookmarks[qid] = !bookmarks[qid];
-  saveAll();
-  render();
-}
-
-function showToast(m) {
-  const t = document.getElementById("toast");
-  t.textContent = m;
-  t.className = "show";
-  setTimeout(() => t.className = "", 1400);
-}
-
-function renderExam(cArea) {
-  if (!exam.active) {
-    cArea.innerHTML = `
-      <div class="card">
-        <div class="q-text">모의고사 설정</div>
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-          <div style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line); background:#fff;">문항 수: 33</div>
-          <select id="exam-time" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
-            <option value="30">30분</option>
-            <option value="40">40분</option>
-            <option value="60">60분</option>
-          </select>
-        </div>
-        <button class="nav-btn primary" onclick="startExam()">모의고사 시작</button>
-      </div>
-    `;
-    updateDashboard();
+function startExam() {
+  let list = getList(true);
+  if (!list.length) {
+    document.getElementById("content-area").innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
     return;
   }
+  let count = parseCount("exam-count", 33);
+  state.examCount = count;
+  count = Math.min(count, list.length);
+  const minutes = parseInt(document.getElementById("exam-time").value, 10);
+  startExamWithList(list, count, minutes, "exam");
+}
 
+function startYearlyExam() {
+  if (!state.yearlyYears.length) {
+    showToast("연도를 하나 이상 선택하세요.");
+    return;
+  }
+  let list = buildYearlyPool(true);
+  if (!list.length) {
+    showToast("조건에 맞는 문제가 없습니다.");
+    return;
+  }
+  let count = parseCount("yearly-count", 33);
+  state.yearlyCount = count;
+  count = Math.min(count, list.length);
+  const minutes = parseInt(document.getElementById("yearly-time").value, 10);
+  startExamWithList(list, count, minutes, "yearly");
+}
+
+function startExamWithList(list, count, minutes, source) {
+  let pool = list.slice();
+  if (state.shuffled) pool = shuffleArr(pool);
+  exam.list = pool.slice(0, count);
+  exam.answers = [];
+  exam.idx = 0;
+  exam.active = true;
+  exam.start = Date.now();
+  exam.duration = minutes * 60;
+  exam.source = source;
+  startExamTimer();
+  renderExamScreen(document.getElementById("content-area"));
+}
+
+function renderExamScreen(cArea) {
   const q = exam.list[exam.idx];
+  const title = exam.source === "yearly" ? "기출 모의" : "모의고사";
+  const yearInfo = exam.source === "yearly" ? `<div style="margin:0 0 8px; font-size:0.85rem; color:var(--muted);">선택 연도: ${state.yearlyYears.join(", ")}</div>` : "";
   cArea.innerHTML = `
+    ${yearInfo}
     <div style="display:flex; gap:8px; margin-bottom:10px;">
       <div class="exam-timer" id="exam-timer" style="flex:1; position:static;">남은 시간: ${formatTime(getExamLeft())}</div>
       <button class="nav-btn" style="flex:0 0 auto; padding:10px 14px;" onclick="stopExam()">종료</button>
     </div>
     <div class="card">
-      <div class="q-meta"><div>${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div></div>
+      <div class="q-meta"><div>${title} | ${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div></div>
       <div class="q-text">${q.q}</div>
       <div>
         ${q.opts.map((opt, i) => `<button class="opt" onclick="pickExam(${i})">${i + 1}. ${opt}</button>`).join("")}
       </div>
     </div>
   `;
-}
-
-function startExam() {
-  const count = 33;
-  const minutes = parseInt(document.getElementById("exam-time").value, 10);
-  let list = getList(true);
-  if (!list.length) {
-    document.getElementById("content-area").innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
-    return;
-  }
-  list = shuffleArr(list);
-  exam.list = list.slice(0, Math.min(count, list.length));
-  exam.answers = [];
-  exam.idx = 0;
-  exam.active = true;
-  exam.start = Date.now();
-  exam.duration = minutes * 60;
-  startExamTimer();
-  renderExam(document.getElementById("content-area"));
 }
 
 function stopExam() {
@@ -1641,7 +1518,7 @@ function pickExam(picked) {
   recordAnswer(qid, isCorrect);
   if (exam.idx < exam.list.length - 1) {
     exam.idx++;
-    renderExam(document.getElementById("content-area"));
+    renderExamScreen(document.getElementById("content-area"));
   } else {
     finishExam("done");
   }
@@ -1716,6 +1593,80 @@ function finishExam(reason) {
     </div>
   `;
   updateDashboard();
+}
+
+function checkAns(picked) {
+  const list = getList(false);
+  const q = list[state.idx];
+  const qid = getQId(q);
+  const isCorrect = picked === q.a;
+
+  const ansBox = document.getElementById("ans-box");
+  ansBox.style.display = "block";
+  const opts = document.querySelectorAll(".opt");
+  opts[picked].classList.add("selected");
+  opts[q.a].classList.add("correct");
+
+  if (!isCorrect) {
+    opts[picked].classList.add("wrong");
+    saveWrong(qid);
+    showToast("틀렸습니다. 오답노트에 기록됩니다.");
+    const tags = [
+      { t: "헷갈림", c: "t1" },
+      { t: "암기부족", c: "t2" },
+      { t: "실수", c: "t3" }
+    ];
+    const tagWrap = document.getElementById("tag-wrap");
+    tagWrap.style.display = "block";
+    document.getElementById("tag-area").innerHTML = tags.map(x =>
+      `<button class="tag-btn ${x.c}" onclick="setTag('${qid}', '${x.t}')">${x.t}</button>`
+    ).join("");
+  } else {
+    showToast("정답입니다!");
+    const tagWrap = document.getElementById("tag-wrap");
+    tagWrap.style.display = "none";
+    saveSRS(qid, true);
+  }
+
+  if (!isCorrect) saveSRS(qid, false);
+
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  updateStreak();
+  saveAll();
+  invalidateList();
+  updateDashboard();
+
+  ansBox.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function moveIdx(step) {
+  const list = getList(false);
+  if (!list.length) return;
+  let idx = state.idx + step;
+  if (idx < 0) idx = list.length - 1;
+  if (idx >= list.length) idx = 0;
+  state.idx = idx;
+  render();
+}
+
+function toggleAdv(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById("adv-panel");
+  p.classList.toggle("show");
+}
+
+function toggleBm(qid) {
+  bookmarks[qid] = !bookmarks[qid];
+  saveAll();
+  render();
+}
+
+function showToast(m) {
+  const t = document.getElementById("toast");
+  t.textContent = m;
+  t.className = "show";
+  setTimeout(() => t.className = "", 1400);
 }
 
 function updateStats(qid, isCorrect) {
@@ -1880,7 +1831,6 @@ window.onload = () => {
       state.subj = btn.dataset.subj;
       updateSubjUI();
       state.idx = 0;
-      state.yearlyIdx = 0;
       invalidateList();
       render();
     };
@@ -1902,7 +1852,6 @@ window.onload = () => {
       state[key] = !state[key];
       btn.classList.toggle("on");
       state.idx = 0;
-      state.yearlyIdx = 0;
       invalidateList();
       render();
     };
@@ -1911,7 +1860,6 @@ window.onload = () => {
   document.getElementById("tag-filter").onchange = e => {
     state.tagFilter = e.target.value;
     state.idx = 0;
-    state.yearlyIdx = 0;
     invalidateList();
     render();
   };
@@ -1919,7 +1867,6 @@ window.onload = () => {
   document.getElementById("search-box").oninput = e => {
     state.search = e.target.value.trim();
     state.idx = 0;
-    state.yearlyIdx = 0;
     invalidateList();
     render();
   };
@@ -1930,7 +1877,6 @@ window.onload = () => {
       btn.classList.add("on");
       state.mode = btn.dataset.mode;
       state.idx = 0;
-      state.yearlyIdx = 0;
       if (state.mode === "yearly") {
         state.freqOnly = false;
         const freqBtn = document.querySelector('[data-filter="freq"]');
