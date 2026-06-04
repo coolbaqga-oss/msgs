@@ -50,7 +50,7 @@
     h1 { font-size: 1.25rem; }
     header .header-actions { width: 100%; justify-content: flex-end; gap: 16px; }
   }
-  
+
   .dashboard {
     display: flex; gap: 5px; margin-bottom: 20px;
     background: var(--card); border: 1px solid var(--line);
@@ -65,7 +65,7 @@
   .dash-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
   .kbd-hint { font-size: 0.75rem; color: var(--muted); margin-top: 12px; text-align: center; line-height: 1.7; }
   .kbd-hint kbd { background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 0.72rem; color: var(--ink); }
-  
+
   .filters {
     display: flex;
     flex-wrap: wrap;
@@ -87,7 +87,7 @@
     color: #fff;
     border-color: var(--burgundy);
   }
-  
+
   .mode-tab {
     flex: 1;
     padding: 10px;
@@ -116,7 +116,7 @@
   }
   .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
   .q-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; word-break: keep-all; }
-  
+
   .options { display: flex; flex-direction: column; gap: 10px; }
   .opt {
     display: block; width: 100%; text-align: left;
@@ -135,7 +135,7 @@
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
   .opt.dim { opacity: 0.5; cursor: not-allowed; }
   .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
-  
+
   .ans-box {
     margin-top: 20px;
     padding: 16px;
@@ -146,7 +146,7 @@
     display: none;
     animation: fadeIn 0.3s;
   }
-  
+
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
   #study-actions .nav-btns { margin-top: 14px; }
   #study-actions:empty { display: none; }
@@ -267,13 +267,6 @@
     <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
   </div>
 
-  <div class="dashboard" id="report-board">
-    <div class="dash-item"><div class="dash-title">최근 30일 풀이</div><div class="dash-score" id="rep-30d">0</div><div class="dash-sub" id="rep-30d-sub"></div></div>
-    <div class="dash-item"><div class="dash-title">7일 복습 예정</div><div class="dash-score" id="rep-7d">0</div><div class="dash-sub" id="rep-7d-sub"></div></div>
-    <div class="dash-item"><div class="dash-title">약점 TOP3</div><div class="dash-score" id="rep-weak">0</div><div class="dash-sub" id="rep-weak-sub"></div></div>
-    <div class="dash-item"><div class="dash-title">모호 문항 제외</div><div class="dash-score" id="rep-ambig">ON</div><div class="dash-sub" id="rep-ambig-sub"></div></div>
-  </div>
-
   <div style="margin-bottom:12px;">
     <input id="search-box" type="text" placeholder="🔍 문제·보기·해설 키워드 검색 (예: 위임목사, 터툴리아누스)" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; box-sizing:border-box;">
   </div>
@@ -291,34 +284,29 @@
     <button class="chip year-f" data-year="2023">2023 기출</button>
     <button class="chip year-f" data-year="2024">2024 기출</button>
     <button class="chip year-f" data-year="2025">2025 기출</button>
-    
+
     <div style="width:100%; height:4px;"></div>
-    
+
     <button class="chip subj-f on" data-subj="all">전체 과목</button>
     <button class="chip subj-f" data-subj="성경">성경</button>
     <button class="chip subj-f" data-subj="교회사">교회사</button>
     <button class="chip subj-f" data-subj="헌법">헌법</button>
-    
+
     <div style="width:100%; height:4px;"></div>
-    
+
     <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
     <button class="chip" data-filter="due" style="border-color:var(--ink); color:var(--ink); font-weight:bold;">📅 오늘 복습 <span id="due-count"></span></button>
     <button class="chip" data-filter="wrong">내가 틀린 문제</button>
     <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
-    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP(3회 이상)</button>
+    <button class="chip" data-filter="wrongnote" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🔥 약점 TOP(3회 이상)</button>
     <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
     <button class="chip" data-filter="bookmark" style="border-color:var(--gold); color:#9a7d00; font-weight:bold;">⭐ 별표 모음 <span id="bm-count"></span></button>
-    <button class="chip" data-filter="ambig">⚠ 모호 문항 포함(모의/연도)</button>
-    <button class="chip" data-filter="search-respect">🔎 검색도 필터 적용</button>
     <select id="tag-filter" class="chip" style="cursor:pointer;">
       <option value="all">🏷 오답 태그: 전체</option>
       <option value="헷갈림">🏷 헷갈림</option>
       <option value="암기부족">🏷 암기부족</option>
       <option value="실수">🏷 실수</option>
     </select>
-    <button class="chip tag-quick" data-tag="헷갈림">헷갈림 집중</button>
-    <button class="chip tag-quick" data-tag="암기부족">암기부족 집중</button>
-    <button class="chip tag-quick" data-tag="실수">실수 집중</button>
   </div>
 
   <div class="filters" style="display:flex; margin-bottom:20px;">
@@ -337,8 +325,8 @@
 // 1. 데이터베이스 영역
 // ==========================================
 const allQuestions = [
-
-// ===================== 2015년도 기출 =====================
+  // (사용자가 제공한 2015~2025 전체 데이터 그대로 유지)
+ // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
   {subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
@@ -1281,13 +1269,13 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:31,q:"군목과 선교목사의 임직식은 노회의 위임을 받아 어디에서 주관하는가?",opts:["파송교회 및 기관단체","노회 임원회","노회선교부(국내선교부)","총회 파송부서","시무 군부대 및 선교처"],a:1,e:"<b>헌법 정치 제33조</b> — 군목과 선교목사의 임직식은 예외적으로 노회의 위임을 받아 노회 임원회가 주관할 수 있다."},
 {subj:"헌법",year:"2025",no:32,q:"총회 출석 회원 3분의 2 이상의 가결로 개정안을 작성, 각 노회 3분의 2 이상의 가결과 투표 총수의 3분의 2 이상의 찬성을 얻어야 개정할 수 있는 헌법은 무엇인가?",opts:["정치","권징","교리","예배와 예식","재판규정"],a:2,e:"<b>헌법 정치 제103조</b> — 교리편은 가장 엄격한 개정 절차(노회 3/2 가결 및 투표 3/2 이상 찬성)를 거친다."},
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."}
-  
+
 ];
 
 // ==========================================
-// ⭐ 빈출 문제 세트
+// ⭐ 빈출 문제 세트 (자동 분석 + 부족 시 수동 보강)
 // ==========================================
-const FREQ_BANK = [
+const MANUAL_FREQ_BANK = [
  // ----- 빈출 헌법 (12) -----
   {subj:"헌법",year:"빈출",no:0,q:"[빈출] 대한예수교장로회 정치 원리에 해당하지 않는 것은?",opts:["양심의 자유","교회의 자유","진리와 행위","종교의 자유","치리권"],a:3,e:"<b>정치 제1장</b> — 6대 원리: 양심의 자유·교회의 자유·진리와 행위·교회의 직원·치리권·권징. <b>'종교의 자유'</b>는 없다. (거의 매년 출제)"},
   {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교인 구분에 관해 옳은 것은?",opts:["유아세례는 세례교인 자녀로 6세 이하면 받는다","아동세례는 7~15세이면 받는다","입교(세례교인) 연령은 15세 이상이다","공동의회 회원권은 15세 이상이다","원입교인은 세례를 받은 자이다"],a:0,e:"<b>정치 제13조[개정2021]</b> — 유아세례 6세 이하 / 아동세례 7~12세 / 입교(세례교인) 13세 이상 / 공동의회 회원권 18세 이상."},
@@ -1330,7 +1318,50 @@ const FREQ_BANK = [
   {subj:"교회사",year:"빈출",no:0,q:"[빈출] 종교개혁의 5대 솔라(Five Solas)가 아닌 것은?",opts:["오직 성경","오직 믿음","오직 성령","오직 은혜","오직 그리스도"],a:2,e:"<b>5대 솔라</b> — 오직 성경·믿음·은혜·그리스도·하나님께 영광. <b>'오직 성령'</b>은 포함되지 않는다."},
   {subj:"교회사",year:"빈출",no:0,q:"[빈출] 네비우스 선교정책의 3대 자립 원칙과 관계가 없는 것은?",opts:["자전(신자 각자가 복음의 선생)","자치(현지 지도자 양성)","자급(재정 자립)","선교사 중심의 소송·치리 해결","조직적인 성경공부(사경회)"],a:3,e:"<b>네비우스 정책</b> — 자전·자치·자급이 핵심. 치리·소송은 현지 교인 스스로 해결케 했으므로 '선교사 중심 해결'은 틀림."}
 ];
-// 빈출 세트를 전체 문제에 합산 (기존 기출 BANK는 그대로 유지)
+
+function stripHtml(s) { return s.replace(/<[^>]*>/g, ''); }
+function normalizeKey(q) {
+  const t = stripHtml(q.q || "").toLowerCase().replace(/[^0-9a-zA-Z가-힣]/g, "");
+  return `${q.subj}|${t}`;
+}
+function buildFreqBank(raw, manual) {
+  const map = new Map();
+  raw.forEach(q => {
+    if (q.year === '빈출') return;
+    const key = normalizeKey(q);
+    if (!map.has(key)) map.set(key, { count: 0, rep: q });
+    const obj = map.get(key);
+    obj.count++;
+    const y = Number(q.year);
+    const ry = Number(obj.rep.year);
+    if (!isNaN(y) && !isNaN(ry) && y > ry) obj.rep = q;
+  });
+
+  let auto = [...map.values()]
+    .filter(v => v.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .map(v => {
+      const r = { ...v.rep };
+      r.year = "빈출";
+      r.no = null;
+      r.freqCount = v.count;
+      return r;
+    });
+
+  const FREQ_MIN = 20;
+  const FREQ_MAX = 60;
+  if (auto.length < FREQ_MIN && manual && manual.length) {
+    const set = new Set(auto.map(q => normalizeKey(q)));
+    manual.forEach(m => {
+      const k = normalizeKey(m);
+      if (!set.has(k)) auto.push(m);
+    });
+  }
+  if (auto.length > FREQ_MAX) auto = auto.slice(0, FREQ_MAX);
+  return auto;
+}
+
+const FREQ_BANK = buildFreqBank(allQuestions, MANUAL_FREQ_BANK);
 FREQ_BANK.forEach(q => allQuestions.push(q));
 
 // ==========================================
@@ -1349,12 +1380,10 @@ let state = {
   bookmarkOnly: false,
   search: "",
   tagFilter: "all",
-  weakOnly: false,
-  searchRespectFilters: false,
-  includeAmbiguousExam: false
+  weakOnly: false
 };
 
-const APP_VERSION = "2026-06-04-02";
+const APP_VERSION = "2026-06-04-03";
 let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
 let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let srs = JSON.parse(localStorage.getItem("srs")) || {};
@@ -1394,14 +1423,8 @@ function getQId(q) {
 function legacyGetQId(q) {
   return `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
 }
-function isAmbiguous(q) {
-  if (q.flag === 'ambiguous') return true;
-  const e = (q.e || "");
-  return /정답 재확인|정답 재확인 권장|확인 권장|복수정답|다툼|오타/.test(e);
-}
 function prepareQuestion(q) {
   if (!q._hay) q._hay = (q.q + ' ' + q.opts.join(' ') + ' ' + (q.e || '')).toLowerCase();
-  if (q.ambig === undefined) q.ambig = isAmbiguous(q);
 }
 function buildIndex() {
   if (indexBuilt) return;
@@ -1497,11 +1520,6 @@ function dueCount() {
   for (const id in srs) { if (srs[id] && srs[id].due && srs[id].due <= t) n++; }
   return n;
 }
-function dueCountOn(dateStr) {
-  let n = 0;
-  for (const id in srs) { if (srs[id] && srs[id].due === dateStr) n++; }
-  return n;
-}
 function updateDueBadge() {
   const el = document.getElementById("due-count");
   if (el) { const n = dueCount(); el.textContent = n > 0 ? `(${n})` : ""; }
@@ -1547,7 +1565,6 @@ function applyGrade(q, qid, knew) {
   localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
   updateDashboard();
   updateDueBadge();
-  updateReport();
 }
 function showToast(msg) {
   const x = document.getElementById("toast");
@@ -1577,11 +1594,6 @@ function getWeakSet() {
   entries.sort((a, b) => b.count - a.count);
   const cut = Math.max(1, Math.ceil(entries.length * 0.2));
   return new Set(entries.slice(0, cut).map(x => x.id));
-}
-function getWeakTop(n=3) {
-  const entries = Object.entries(wrongNotes).map(([id, v]) => ({ id, count: v.count || 0 })).filter(x => x.count > 0);
-  entries.sort((a, b) => b.count - a.count);
-  return entries.slice(0, n);
 }
 
 function getYearPool() {
@@ -1634,49 +1646,6 @@ function updateDashboard() {
   if (progSub) progSub.textContent = `${answeredReal}/${totalReal}`;
   const dueEl = document.getElementById("stat-due");
   if (dueEl) dueEl.textContent = `${dueCount()}`;
-  updateReport();
-}
-function updateReport() {
-  const today = todayStr();
-  let last30 = 0;
-  for (let i = 0; i < 30; i++) {
-    const d = addDays(today, -i);
-    last30 += (studyStats.daily && studyStats.daily[d]) || 0;
-  }
-  const rep30 = document.getElementById("rep-30d");
-  if (rep30) rep30.textContent = `${last30}`;
-  const rep30s = document.getElementById("rep-30d-sub");
-  if (rep30s) rep30s.textContent = `오늘 ${(studyStats.daily && studyStats.daily[today]) || 0}`;
-
-  let due7 = 0;
-  let dueSub = [];
-  for (let i = 0; i < 7; i++) {
-    const d = addDays(today, i);
-    const c = dueCountOn(d);
-    due7 += c;
-    const label = i === 0 ? "오늘" : `+${i}일`;
-    dueSub.push(`${label} ${c}`);
-  }
-  const rep7 = document.getElementById("rep-7d");
-  if (rep7) rep7.textContent = `${due7}`;
-  const rep7s = document.getElementById("rep-7d-sub");
-  if (rep7s) rep7s.textContent = dueSub.join(" · ");
-
-  const weakTop = getWeakTop(3);
-  const repWeak = document.getElementById("rep-weak");
-  if (repWeak) repWeak.textContent = `${weakTop.length}문항`;
-  const repWeakSub = document.getElementById("rep-weak-sub");
-  if (repWeakSub) {
-    repWeakSub.textContent = weakTop.map(w => {
-      const q = QID_MAP[w.id];
-      if (!q) return "";
-      return `${q.year} ${q.subj}${q.no ? " "+q.no+"번" : ""}(${w.count})`;
-    }).filter(Boolean).join(" · ");
-  }
-  const repAmbig = document.getElementById("rep-ambig");
-  if (repAmbig) repAmbig.textContent = state.includeAmbiguousExam ? "OFF" : "ON";
-  const repAmbigSub = document.getElementById("rep-ambig-sub");
-  if (repAmbigSub) repAmbigSub.textContent = state.includeAmbiguousExam ? "모호 문항 포함" : "모호 문항 제외";
 }
 
 function render() {
@@ -1695,7 +1664,7 @@ function render() {
 
   if (state.dueOnly) {
     base = ALL_REAL.slice();
-  } else if (state.search && !state.searchRespectFilters) {
+  } else if (state.search) {
     base = ALL_REAL.slice();
   } else {
     base = getYearPool();
@@ -1717,21 +1686,9 @@ function render() {
     if (state.search) {
       if (q.year === '빈출') return false;
       if (!q._hay.includes(state.search.toLowerCase())) return false;
-      if (state.searchRespectFilters) {
-        if (state.freqOnly && q.year !== '빈출') return false;
-        if (!state.freqOnly && q.year === '빈출') return false;
-        if (state.years.length > 0 && !state.years.includes(q.year)) return false;
-        if (state.subj !== 'all' && q.subj !== state.subj) return false;
-        if (state.wrongOnly && (!progress[qid] || progress[qid] === 'O')) return false;
-        if (state.wrongnoteOnly && (!wrongNotes[qid] || wrongNotes[qid].count < 3)) return false;
-        if (state.weakOnly && !weakSet.has(qid)) return false;
-        if (state.bookmarkOnly && !bookmarks[qid]) return false;
-        if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
-      } else {
-        if (state.subj !== 'all' && q.subj !== state.subj) return false;
-        if (state.bookmarkOnly && !bookmarks[qid]) return false;
-        if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
-      }
+      if (state.subj !== 'all' && q.subj !== state.subj) return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
       return true;
     }
 
@@ -1954,7 +1911,6 @@ function renderYearly() {
     }
 
     let currentList = getYearPool().filter(q => q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
-    if (!state.includeAmbiguousExam) currentList = currentList.filter(q => !q.ambig);
 
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
@@ -2085,7 +2041,6 @@ function startExamMode(isYearly) {
 
   if (isYearly) {
       let currentList = getYearPool().filter(q => q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
-      if (!state.includeAmbiguousExam) currentList = currentList.filter(q => !q.ambig);
       if (state.shuffled) {
           pool = shuffleArray(currentList);
       } else {
@@ -2097,10 +2052,9 @@ function startExamMode(isYearly) {
   } else {
       let currentList = getYearPool().filter(q => {
         if (state.subj !== 'all' && q.subj !== state.subj) return false;
-        if (!state.includeAmbiguousExam && q.ambig) return false;
         return true;
       });
-      
+
       if (state.subj === 'all' && currentList.length >= 33) {
           let bible = shuffleArray(currentList.filter(q => q.subj === '성경')).slice(0,11);
           let history = shuffleArray(currentList.filter(q => q.subj === '교회사')).slice(0,11);
@@ -2110,7 +2064,7 @@ function startExamMode(isYearly) {
           pool = shuffleArray(currentList).slice(0, 33);
       }
   }
-  
+
   examData = { 
       active: true, 
       finished: false, 
@@ -2120,7 +2074,7 @@ function startExamMode(isYearly) {
       timeLeft: 1200, 
       timerId: null 
   };
-  
+
   if (!isYearly) {
       examData.timerId = setInterval(() => {
         if (!examData.active) return;
@@ -2134,7 +2088,7 @@ function startExamMode(isYearly) {
         }
       }, 1000);
   }
-  
+
   render();
 }
 
@@ -2151,7 +2105,7 @@ function markExamAnswer(qIndex, optIndex) {
 
 function submitExamMode() {
   clearInterval(examData.timerId);
-  
+
   examData.list.forEach((q, idx) => {
     if (examData.answers[idx] !== q.a) {
       const qid = getQId(q);
@@ -2161,7 +2115,7 @@ function submitExamMode() {
     }
   });
   localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-  
+
   examData.active = false;
   examData.finished = true;
   updateDashboard();
@@ -2205,10 +2159,8 @@ document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
   if(f === "wrong"){ state.wrongOnly = !state.wrongOnly; c.classList.toggle("on"); }
   if(f === "shuffle"){ state.shuffled = !state.shuffled; c.classList.toggle("on"); }
   if(f === "wrongnote"){ state.wrongnoteOnly = !state.wrongnoteOnly; c.classList.toggle("on"); }
-  if(f === "bookmark"){ state.bookmarkOnly = !state.bookmarkOnly; c.classList.toggle("on"); }
   if(f === "weak"){ state.weakOnly = !state.weakOnly; c.classList.toggle("on"); }
-  if(f === "search-respect"){ state.searchRespectFilters = !state.searchRespectFilters; c.classList.toggle("on"); }
-  if(f === "ambig"){ state.includeAmbiguousExam = !state.includeAmbiguousExam; c.classList.toggle("on"); updateReport(); }
+  if(f === "bookmark"){ state.bookmarkOnly = !state.bookmarkOnly; c.classList.toggle("on"); }
   state.idx = 0; render();
 });
 
@@ -2222,29 +2174,15 @@ document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
     };
   }
   const tf = document.getElementById("tag-filter");
-  if (tf) tf.onchange = () => { state.tagFilter = tf.value; state.idx = 0; updateTagChips(); render(); };
+  if (tf) tf.onchange = () => { state.tagFilter = tf.value; state.idx = 0; render(); };
 })();
-document.querySelectorAll(".tag-quick").forEach(b => b.onclick = () => {
-  const t = b.dataset.tag;
-  state.tagFilter = t;
-  const tf = document.getElementById("tag-filter");
-  if (tf) tf.value = t;
-  updateTagChips();
-  state.idx = 0;
-  render();
-});
-function updateTagChips() {
-  document.querySelectorAll(".tag-quick").forEach(b => {
-    b.classList.toggle("on", b.dataset.tag === state.tagFilter);
-  });
-}
 
 document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
   t.classList.add("on"); 
   state.mode = t.dataset.mode; 
   state.idx = 0; 
-  
+
   if(state.mode === 'study' && examData.active) {
       clearInterval(examData.timerId); examData.active = false;
   }
@@ -2377,7 +2315,6 @@ state.pendingResume = lastQid;
 render();
 updateDueBadge();
 updateBmBadge();
-updateTagChips();
 
 async function checkForUpdate() {
   try {
