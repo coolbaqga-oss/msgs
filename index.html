@@ -51,7 +51,6 @@
     header .header-actions { width: 100%; justify-content: flex-end; gap: 16px; }
   }
   
-  /* 과목별 대시보드 */
   .dashboard {
     display: flex; gap: 5px; margin-bottom: 20px;
     background: var(--card); border: 1px solid var(--line);
@@ -107,7 +106,6 @@
     border-color: var(--ink);
   }
 
-  /* 카드 디자인 */
   .card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -121,6 +119,7 @@
   
   .options { display: flex; flex-direction: column; gap: 10px; }
   .opt {
+    display: block; width: 100%; text-align: left;
     padding: 14px 16px;
     background: #fff;
     border: 1px solid var(--line);
@@ -128,7 +127,9 @@
     cursor: pointer;
     transition: 0.2s;
     font-size: 1.05rem;
+    font-family: inherit;
   }
+  .opt:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
   .opt:hover { border-color: var(--gold); background: var(--paper-2); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
@@ -146,9 +147,7 @@
     animation: fadeIn 0.3s;
   }
   
-  /* 50:50 듀얼 버튼 */
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
-  /* 학습 모드 채점 버튼: 보기와 해설 사이에 위치 */
   #study-actions .nav-btns { margin-top: 14px; }
   #study-actions:empty { display: none; }
   .nav-btn {
@@ -167,7 +166,6 @@
   .nav-btn.primary:hover { background: var(--burgundy); border-color: var(--burgundy); }
   .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* 시험모드 전용 CSS */
   .exam-timer {
     background: var(--burgundy);
     color: white;
@@ -214,7 +212,6 @@
     margin-left: 10px;
   }
 
-  /* 토스트 알림 */
   #toast {
     visibility: hidden;
     min-width: 250px;
@@ -257,14 +254,12 @@
     </div>
   </header>
 
-  <!-- 과목별 정답률 대시보드 -->
   <div class="dashboard">
     <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div><div class="dash-sub" id="cnt-bible">0/0</div></div>
     <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div><div class="dash-sub" id="cnt-history">0/0</div></div>
     <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div><div class="dash-sub" id="cnt-law">0/0</div></div>
   </div>
 
-  <!-- 학습 통계 대시보드 -->
   <div class="dashboard">
     <div class="dash-item"><div class="dash-title">오늘 푼 문제</div><div class="dash-score" id="stat-today">0</div></div>
     <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
@@ -272,12 +267,17 @@
     <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
   </div>
 
-  <!-- 검색 -->
+  <div class="dashboard" id="report-board">
+    <div class="dash-item"><div class="dash-title">최근 30일 풀이</div><div class="dash-score" id="rep-30d">0</div><div class="dash-sub" id="rep-30d-sub"></div></div>
+    <div class="dash-item"><div class="dash-title">7일 복습 예정</div><div class="dash-score" id="rep-7d">0</div><div class="dash-sub" id="rep-7d-sub"></div></div>
+    <div class="dash-item"><div class="dash-title">약점 TOP3</div><div class="dash-score" id="rep-weak">0</div><div class="dash-sub" id="rep-weak-sub"></div></div>
+    <div class="dash-item"><div class="dash-title">모호 문항 제외</div><div class="dash-score" id="rep-ambig">ON</div><div class="dash-sub" id="rep-ambig-sub"></div></div>
+  </div>
+
   <div style="margin-bottom:12px;">
     <input id="search-box" type="text" placeholder="🔍 문제·보기·해설 키워드 검색 (예: 위임목사, 터툴리아누스)" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; box-sizing:border-box;">
   </div>
 
-  <!-- 필터 옵션 -->
   <div class="filters">
     <button class="chip year-f on" data-year="all">전체 연도</button>
     <button class="chip year-f" data-year="2015">2015 기출</button>
@@ -306,27 +306,30 @@
     <button class="chip" data-filter="wrong">내가 틀린 문제</button>
     <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
     <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP(3회 이상)</button>
-    <button class="chip" style="border-color:var(--gold); color:#9a7d00; font-weight:bold;" data-filter="bookmark">⭐ 별표 모음 <span id="bm-count"></span></button>
+    <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
+    <button class="chip" data-filter="bookmark" style="border-color:var(--gold); color:#9a7d00; font-weight:bold;">⭐ 별표 모음 <span id="bm-count"></span></button>
+    <button class="chip" data-filter="ambig">⚠ 모호 문항 포함(모의/연도)</button>
+    <button class="chip" data-filter="search-respect">🔎 검색도 필터 적용</button>
     <select id="tag-filter" class="chip" style="cursor:pointer;">
       <option value="all">🏷 오답 태그: 전체</option>
       <option value="헷갈림">🏷 헷갈림</option>
       <option value="암기부족">🏷 암기부족</option>
       <option value="실수">🏷 실수</option>
     </select>
+    <button class="chip tag-quick" data-tag="헷갈림">헷갈림 집중</button>
+    <button class="chip tag-quick" data-tag="암기부족">암기부족 집중</button>
+    <button class="chip tag-quick" data-tag="실수">실수 집중</button>
   </div>
 
-  <!-- ✨ 카테고리(모드) 3분할 -->
   <div class="filters" style="display:flex; margin-bottom:20px;">
     <button class="mode-tab on" data-mode="study">학습 모드</button>
     <button class="mode-tab" data-mode="yearly">📚 연도별 기출</button>
     <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
   </div>
 
-  <!-- 콘텐츠 렌더링 영역 -->
   <div id="content-area"></div>
 </div>
 
-<!-- 토스트 알림창 -->
 <div id="toast"></div>
 
 <script>
@@ -334,11 +337,8 @@
 // 1. 데이터베이스 영역
 // ==========================================
 const allQuestions = [
-  // 💡 기존 2015년 ~ 2023년 데이터는 용량 제한으로 비워두었습니다. 
-  // 가지고 계신 텍스트 파일이나 이전 답변에서 복사하여 이 곳에 붙여넣어 주세요!
-  // (🚨 붙여넣으실 때 각 객체 마지막에 쉼표(,)가 누락되지 않도록 주의하세요!)
 
- // ===================== 2015년도 기출 =====================
+// ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
   {subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
@@ -1281,15 +1281,14 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:31,q:"군목과 선교목사의 임직식은 노회의 위임을 받아 어디에서 주관하는가?",opts:["파송교회 및 기관단체","노회 임원회","노회선교부(국내선교부)","총회 파송부서","시무 군부대 및 선교처"],a:1,e:"<b>헌법 정치 제33조</b> — 군목과 선교목사의 임직식은 예외적으로 노회의 위임을 받아 노회 임원회가 주관할 수 있다."},
 {subj:"헌법",year:"2025",no:32,q:"총회 출석 회원 3분의 2 이상의 가결로 개정안을 작성, 각 노회 3분의 2 이상의 가결과 투표 총수의 3분의 2 이상의 찬성을 얻어야 개정할 수 있는 헌법은 무엇인가?",opts:["정치","권징","교리","예배와 예식","재판규정"],a:2,e:"<b>헌법 정치 제103조</b> — 교리편은 가장 엄격한 개정 절차(노회 3/2 가결 및 투표 3/2 이상 찬성)를 거친다."},
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."}
-
+  
 ];
 
 // ==========================================
-// ⭐ 빈출 문제 세트 (2015~2025 출제 빈도 분석 기반)
-//    year:"빈출"로 표시 → '빈출 2배수' 필터에서 추출
+// ⭐ 빈출 문제 세트
 // ==========================================
 const FREQ_BANK = [
-  // ----- 빈출 헌법 (12) -----
+ // ----- 빈출 헌법 (12) -----
   {subj:"헌법",year:"빈출",no:0,q:"[빈출] 대한예수교장로회 정치 원리에 해당하지 않는 것은?",opts:["양심의 자유","교회의 자유","진리와 행위","종교의 자유","치리권"],a:3,e:"<b>정치 제1장</b> — 6대 원리: 양심의 자유·교회의 자유·진리와 행위·교회의 직원·치리권·권징. <b>'종교의 자유'</b>는 없다. (거의 매년 출제)"},
   {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교인 구분에 관해 옳은 것은?",opts:["유아세례는 세례교인 자녀로 6세 이하면 받는다","아동세례는 7~15세이면 받는다","입교(세례교인) 연령은 15세 이상이다","공동의회 회원권은 15세 이상이다","원입교인은 세례를 받은 자이다"],a:0,e:"<b>정치 제13조[개정2021]</b> — 유아세례 6세 이하 / 아동세례 7~12세 / 입교(세례교인) 13세 이상 / 공동의회 회원권 18세 이상."},
   {subj:"헌법",year:"빈출",no:0,q:"[빈출] 교인이 신고 없이 떠나 의무를 행치 않으면 (   ) 경과 시 회원권 정지, (   ) 경과 시 실종교인이 된다.",opts:["3개월,6개월","6개월,1년","1년,2년","6개월,2년","1년,1년 6개월"],a:1,e:"<b>정치 제18조</b> — <b>6개월</b> → 회원권 정지, <b>1년</b> → 실종교인."},
@@ -1333,13 +1332,14 @@ const FREQ_BANK = [
 ];
 // 빈출 세트를 전체 문제에 합산 (기존 기출 BANK는 그대로 유지)
 FREQ_BANK.forEach(q => allQuestions.push(q));
+
 // ==========================================
 // 2. 상태 및 로컬 스토리지 관리
 // ==========================================
 let state = {
-  years: [],  // 선택된 연도 배열 (빈 배열 = 전체 연도)
+  years: [],
   subj: 'all',
-  mode: 'study', // 'study', 'yearly', 'exam'
+  mode: 'study',
   idx: 0,
   freqOnly: false,
   wrongOnly: false,
@@ -1348,34 +1348,124 @@ let state = {
   dueOnly: false,
   bookmarkOnly: false,
   search: "",
-  tagFilter: "all"
+  tagFilter: "all",
+  weakOnly: false,
+  searchRespectFilters: false,
+  includeAmbiguousExam: false
 };
 
-const APP_VERSION = "2026-06-04-01";  // 배포할 때마다 이 값을 바꾸면 자동 갱신됨
+const APP_VERSION = "2026-06-04-02";
 let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
 let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
-let srs = JSON.parse(localStorage.getItem("srs")) || {};  // 간격 반복 일정
+let srs = JSON.parse(localStorage.getItem("srs")) || {};
 let studyStats = JSON.parse(localStorage.getItem("studyStats")) || { streak: 0, lastDate: null, daily: {} };
-let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};  // 별표 모음
-let lastQid = localStorage.getItem("lastQid") || null;  // 마지막으로 본 문제(이어보기)
+let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};
+let lastQid = localStorage.getItem("lastQid") || null;
+let repeatQueue = JSON.parse(localStorage.getItem("repeatQueue")) || {};
 let list = [];
 let showAns = false;
 
-// 모의고사/연도별기출 공용 데이터 객체
 let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
 
-const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+const REPEAT_DELAY = 2;
+const SRS_STEPS = [1, 3, 7, 14, 30, 60];
+const SUBJ_ORDER = { "성경": 1, "교회사": 2, "헌법": 3 };
 
-// 연도 복수 선택 헬퍼 (빈 배열 = 전체)
-function yearMatch(q) { return state.years.length === 0 || state.years.includes(q.year); }
-function yearsLabel() { return state.years.length === 0 ? '전체 연도' : state.years.slice().sort().join('·'); }
+let QUESTIONS_BY_YEAR = {};
+let QUESTIONS_BY_SUBJ = {};
+let ALL_REAL = [];
+let FREQ_ONLY = [];
+let QID_MAP = {};
+let indexBuilt = false;
 
-function save() {
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+function getQId(q) {
+  if (q.id) return q.id;
+  const base = `${q.year}|${q.subj}|${q.no ?? ''}|${q.q}`;
+  return `q_${hashStr(base)}`;
+}
+function legacyGetQId(q) {
+  return `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+}
+function isAmbiguous(q) {
+  if (q.flag === 'ambiguous') return true;
+  const e = (q.e || "");
+  return /정답 재확인|정답 재확인 권장|확인 권장|복수정답|다툼|오타/.test(e);
+}
+function prepareQuestion(q) {
+  if (!q._hay) q._hay = (q.q + ' ' + q.opts.join(' ') + ' ' + (q.e || '')).toLowerCase();
+  if (q.ambig === undefined) q.ambig = isAmbiguous(q);
+}
+function buildIndex() {
+  if (indexBuilt) return;
+  allQuestions.forEach(q => {
+    prepareQuestion(q);
+    const qid = getQId(q);
+    QID_MAP[qid] = q;
+    if (!QUESTIONS_BY_YEAR[q.year]) QUESTIONS_BY_YEAR[q.year] = [];
+    QUESTIONS_BY_YEAR[q.year].push(q);
+    if (!QUESTIONS_BY_SUBJ[q.subj]) QUESTIONS_BY_SUBJ[q.subj] = [];
+    QUESTIONS_BY_SUBJ[q.subj].push(q);
+    if (q.year === '빈출') FREQ_ONLY.push(q);
+    else ALL_REAL.push(q);
+  });
+  indexBuilt = true;
+}
+function migrateStorage() {
+  const legacyToNew = {};
+  allQuestions.forEach(q => { legacyToNew[legacyGetQId(q)] = getQId(q); });
+  const migrateObj = (obj) => {
+    const n = {};
+    for (const k in obj) {
+      const nk = legacyToNew[k] || k;
+      if (!n[nk]) n[nk] = obj[k];
+    }
+    return n;
+  };
+  progress = migrateObj(progress);
+  wrongNotes = migrateObj(wrongNotes);
+  srs = migrateObj(srs);
+  bookmarks = migrateObj(bookmarks);
+  if (lastQid && legacyToNew[lastQid]) lastQid = legacyToNew[lastQid];
   localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
+  localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
+  localStorage.setItem("srs", JSON.stringify(srs));
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+  if (lastQid) localStorage.setItem("lastQid", lastQid);
+}
+function saveRepeatQueue() {
+  localStorage.setItem("repeatQueue", JSON.stringify(repeatQueue));
+}
+function queueRepeat(qid) {
+  repeatQueue[qid] = REPEAT_DELAY;
+  saveRepeatQueue();
+}
+function tickRepeat() {
+  for (const id in repeatQueue) {
+    if (repeatQueue[id] > 0) repeatQueue[id]--;
+  }
+  saveRepeatQueue();
+}
+function injectRepeats(baseList) {
+  if (state.dueOnly || state.search) return baseList;
+  const ready = Object.keys(repeatQueue).filter(id => repeatQueue[id] <= 0);
+  if (ready.length === 0) return baseList;
+  const insertAt = Math.min(state.idx + 1, baseList.length);
+  const insertQs = ready.map(id => QID_MAP[id]).filter(Boolean);
+  const newList = baseList.slice();
+  newList.splice(insertAt, 0, ...insertQs);
+  ready.forEach(id => delete repeatQueue[id]);
+  saveRepeatQueue();
+  return newList;
 }
 
-// ===== 간격 반복(Spaced Repetition) =====
-const SRS_STEPS = [1, 3, 7, 14, 30, 60]; // 알겠음 연속 시 복습 간격(일)
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -1386,7 +1476,6 @@ function addDays(dateStr, n) {
   dt.setDate(dt.getDate() + n);
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
-// 카드 채점 → 다음 복습일 계산. knew=true(알겠음)면 간격 증가, false(모르겠음)면 오늘로 리셋
 function scheduleCard(qid, knew) {
   let s = srs[qid] || { box: 0, interval: 0, due: null, last: null };
   if (knew) {
@@ -1394,7 +1483,7 @@ function scheduleCard(qid, knew) {
     s.interval = SRS_STEPS[Math.min(s.box - 1, SRS_STEPS.length - 1)];
   } else {
     s.box = 0;
-    s.interval = 0; // 오늘 다시 복습 대상
+    s.interval = 0;
   }
   s.last = todayStr();
   s.due = addDays(todayStr(), s.interval);
@@ -1402,11 +1491,15 @@ function scheduleCard(qid, knew) {
   localStorage.setItem("srs", JSON.stringify(srs));
   return s;
 }
-// 오늘 복습할(예정일 도래) 카드 수
 function dueCount() {
   const t = todayStr();
   let n = 0;
   for (const id in srs) { if (srs[id] && srs[id].due && srs[id].due <= t) n++; }
+  return n;
+}
+function dueCountOn(dateStr) {
+  let n = 0;
+  for (const id in srs) { if (srs[id] && srs[id].due === dateStr) n++; }
   return n;
 }
 function updateDueBadge() {
@@ -1417,7 +1510,14 @@ function updateBmBadge() {
   const el = document.getElementById("bm-count");
   if (el) { const n = Object.keys(bookmarks).length; el.textContent = n > 0 ? `(${n})` : ""; }
 }
-// 오늘 푼 문제 수 + 연속 학습일(스트릭) 갱신
+function trimDaily(maxDays = 120) {
+  const keys = Object.keys(studyStats.daily || {}).sort();
+  if (keys.length <= maxDays) return;
+  const keep = new Set(keys.slice(keys.length - maxDays));
+  const d = {};
+  keys.forEach(k => { if (keep.has(k)) d[k] = studyStats.daily[k]; });
+  studyStats.daily = d;
+}
 function bumpStudyStats() {
   const t = todayStr();
   if (!studyStats.daily) studyStats.daily = {};
@@ -1427,9 +1527,9 @@ function bumpStudyStats() {
     studyStats.streak = (studyStats.lastDate === yesterday) ? (studyStats.streak || 0) + 1 : 1;
     studyStats.lastDate = t;
   }
+  trimDaily();
   localStorage.setItem("studyStats", JSON.stringify(studyStats));
 }
-// 채점 공통 처리: 진도/오답노트/간격반복 갱신
 function applyGrade(q, qid, knew) {
   progress[qid] = knew ? 'O' : 'X';
   const info = scheduleCard(qid, knew);
@@ -1439,111 +1539,67 @@ function applyGrade(q, qid, knew) {
     wrongNotes[qid].count++;
     wrongNotes[qid].last = todayStr();
     localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-    if (!state.dueOnly) list.push(q); // 같은 세션 안에서 다시 출제(복습 모드 제외)
+    queueRepeat(qid);
     showToast("✗ 오답 기록 — 곧 다시 출제됩니다.");
   } else {
     showToast(`✓ 알겠음 — ${info.interval}일 후 복습 예정`);
   }
-  save();
+  localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
   updateDashboard();
   updateDueBadge();
+  updateReport();
+}
+function showToast(msg) {
+  const x = document.getElementById("toast");
+  x.innerHTML = msg;
+  x.className = "show";
+  setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+}
+function scrollToQuestion() {
+  const el = document.querySelector('#content-area .nav-btns') || document.querySelector('.card');
+  if (el) {
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 16;
+    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
+  }
 }
 
-// ==========================================
-// 3. UI 렌더링 및 필터링 로직
-// ==========================================
-function render() {
-  // 모드별 분기
-  if (state.mode === 'yearly') return renderYearly();
-  if (state.mode === 'exam') return renderExam();
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function getWeakSet() {
+  const entries = Object.entries(wrongNotes).map(([id, v]) => ({ id, count: v.count || 0 })).filter(x => x.count > 0);
+  if (entries.length === 0) return new Set();
+  entries.sort((a, b) => b.count - a.count);
+  const cut = Math.max(1, Math.ceil(entries.length * 0.2));
+  return new Set(entries.slice(0, cut).map(x => x.id));
+}
+function getWeakTop(n=3) {
+  const entries = Object.entries(wrongNotes).map(([id, v]) => ({ id, count: v.count || 0 })).filter(x => x.count > 0);
+  entries.sort((a, b) => b.count - a.count);
+  return entries.slice(0, n);
+}
 
-  // --- 이하 학습 모드(study) 로직 ---
-  const cArea = document.getElementById("content-area");
-  cArea.innerHTML = "";
-  showAns = false;
-
-  // 필터링 적용
-  list = allQuestions.filter(q => {
-    const qid = getQId(q);
-
-    // 🔍 검색: 활성 시 연도/빈출/복습 제한을 건너뛰고 전체 기출에서 찾음(과목·별표·태그는 적용)
-    if (state.search) {
-      if (q.year === '빈출') return false;
-      const hay = (q.q + ' ' + q.opts.join(' ') + ' ' + q.e).toLowerCase();
-      if (!hay.includes(state.search.toLowerCase())) return false;
-      if (state.subj !== 'all' && q.subj !== state.subj) return false;
-      if (state.bookmarkOnly && !bookmarks[qid]) return false;
-      if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
-      return true;
-    }
-
-    // ⭐ 별표 모음
-    if (state.bookmarkOnly && !bookmarks[qid]) return false;
-    // 🏷 오답 태그 필터
-    if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
-
-    // 📅 오늘 복습 모드: 예정일이 도래한 카드만 (과목 필터만 함께 적용)
-    if (state.dueOnly) {
-      const s = srs[qid];
-      if (!s || !s.due || s.due > todayStr()) return false;
-      if (state.subj !== 'all' && q.subj !== state.subj) return false;
-      return true;
-    }
-    if (!state.freqOnly) {
-      if (q.year === '빈출') return false;                       // 빈출은 빈출 모드에서만
-      if (!yearMatch(q)) return false;
-    } else {
-      if (q.year !== '빈출') return false;                       // 빈출 모드: 빈출만
-    }
-    if (state.subj !== 'all' && q.subj !== state.subj) return false;
-    
-    if (state.wrongOnly) {
-      const rec = progress[qid];
-      if (!rec || rec === 'O') return false;
-    }
-    // 약점 오답 필터 (3회 이상 틀린 문제만)
-    if (state.wrongnoteOnly) {
-      if (!wrongNotes[qid] || wrongNotes[qid].count < 3) return false;
-    }
-    return true;
+function getYearPool() {
+  if (state.freqOnly) return FREQ_ONLY.slice();
+  if (state.years.length === 0) return ALL_REAL.slice();
+  let out = [];
+  state.years.forEach(y => {
+    if (QUESTIONS_BY_YEAR[y]) out = out.concat(QUESTIONS_BY_YEAR[y]);
   });
-
-  // 빈출 2배수: 빈출 모드일 때 각 문제를 2번씩 풀도록 복제
-  if (state.freqOnly && !state.dueOnly) {
-    list = [...list, ...list];
-  }
-  // 셔플 적용 (학습 모드)
-  if (state.shuffled) {
-    list = list.sort(() => Math.random() - 0.5);
-  }
-
-  updateDashboard();
-
-  if (list.length === 0) {
-    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
-    return;
-  }
-  
-  // 이어보기: 복원/재접속 시 마지막으로 본 문제로 이동
-  if (state.pendingResume) {
-    const i = list.findIndex(q => getQId(q) === state.pendingResume);
-    if (i >= 0) state.idx = i;
-    state.pendingResume = null;
-  }
-
-  if (state.idx >= list.length) state.idx = 0;
-  if (state.idx < 0) state.idx = list.length - 1;
-
-  renderStudy(cArea);
+  return out;
 }
+function yearsLabel() { return state.years.length === 0 ? '전체 연도' : state.years.slice().sort().join('·'); }
 
-// 과목별 정답률 계산
 function updateDashboard() {
   let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
   let answeredReal = 0, totalReal = 0;
 
-  allQuestions.forEach(q => {
-    if (q.year === '빈출') return; // 진척도/정답률 집계는 실제 기출 기준
+  ALL_REAL.forEach(q => {
     totalReal++;
     const qid = getQId(q);
     if (progress[qid] === 'O' || progress[qid] === 'X') {
@@ -1567,7 +1623,6 @@ function updateDashboard() {
     if (cnt) cnt.textContent = `${stats[subj].c}/${stats[subj].t} 정답`;
   });
 
-  // 둘째 줄: 학습 통계
   const today = todayStr();
   const todayEl = document.getElementById("stat-today");
   if (todayEl) todayEl.textContent = `${(studyStats.daily && studyStats.daily[today]) || 0}`;
@@ -1579,21 +1634,150 @@ function updateDashboard() {
   if (progSub) progSub.textContent = `${answeredReal}/${totalReal}`;
   const dueEl = document.getElementById("stat-due");
   if (dueEl) dueEl.textContent = `${dueCount()}`;
+  updateReport();
 }
-
-function showToast(msg) {
-  const x = document.getElementById("toast");
-  x.innerHTML = msg;
-  x.className = "show";
-  setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
-}
-
-function scrollToQuestion() {
-  const el = document.querySelector('#content-area .nav-btns') || document.querySelector('.card');
-  if (el) {
-    const y = el.getBoundingClientRect().top + window.pageYOffset - 16;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
+function updateReport() {
+  const today = todayStr();
+  let last30 = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = addDays(today, -i);
+    last30 += (studyStats.daily && studyStats.daily[d]) || 0;
   }
+  const rep30 = document.getElementById("rep-30d");
+  if (rep30) rep30.textContent = `${last30}`;
+  const rep30s = document.getElementById("rep-30d-sub");
+  if (rep30s) rep30s.textContent = `오늘 ${(studyStats.daily && studyStats.daily[today]) || 0}`;
+
+  let due7 = 0;
+  let dueSub = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, i);
+    const c = dueCountOn(d);
+    due7 += c;
+    const label = i === 0 ? "오늘" : `+${i}일`;
+    dueSub.push(`${label} ${c}`);
+  }
+  const rep7 = document.getElementById("rep-7d");
+  if (rep7) rep7.textContent = `${due7}`;
+  const rep7s = document.getElementById("rep-7d-sub");
+  if (rep7s) rep7s.textContent = dueSub.join(" · ");
+
+  const weakTop = getWeakTop(3);
+  const repWeak = document.getElementById("rep-weak");
+  if (repWeak) repWeak.textContent = `${weakTop.length}문항`;
+  const repWeakSub = document.getElementById("rep-weak-sub");
+  if (repWeakSub) {
+    repWeakSub.textContent = weakTop.map(w => {
+      const q = QID_MAP[w.id];
+      if (!q) return "";
+      return `${q.year} ${q.subj}${q.no ? " "+q.no+"번" : ""}(${w.count})`;
+    }).filter(Boolean).join(" · ");
+  }
+  const repAmbig = document.getElementById("rep-ambig");
+  if (repAmbig) repAmbig.textContent = state.includeAmbiguousExam ? "OFF" : "ON";
+  const repAmbigSub = document.getElementById("rep-ambig-sub");
+  if (repAmbigSub) repAmbigSub.textContent = state.includeAmbiguousExam ? "모호 문항 포함" : "모호 문항 제외";
+}
+
+function render() {
+  if (state.mode === 'yearly') return renderYearly();
+  if (state.mode === 'exam') return renderExam();
+
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = "";
+  cArea.onclick = null;
+  showAns = false;
+
+  buildIndex();
+
+  let base = [];
+  const weakSet = getWeakSet();
+
+  if (state.dueOnly) {
+    base = ALL_REAL.slice();
+  } else if (state.search && !state.searchRespectFilters) {
+    base = ALL_REAL.slice();
+  } else {
+    base = getYearPool();
+  }
+
+  list = base.filter(q => {
+    const qid = getQId(q);
+
+    if (state.dueOnly) {
+      const s = srs[qid];
+      if (!s || !s.due || s.due > todayStr()) return false;
+      if (state.subj !== 'all' && q.subj !== state.subj) return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+      if (state.weakOnly && !weakSet.has(qid)) return false;
+      return true;
+    }
+
+    if (state.search) {
+      if (q.year === '빈출') return false;
+      if (!q._hay.includes(state.search.toLowerCase())) return false;
+      if (state.searchRespectFilters) {
+        if (state.freqOnly && q.year !== '빈출') return false;
+        if (!state.freqOnly && q.year === '빈출') return false;
+        if (state.years.length > 0 && !state.years.includes(q.year)) return false;
+        if (state.subj !== 'all' && q.subj !== state.subj) return false;
+        if (state.wrongOnly && (!progress[qid] || progress[qid] === 'O')) return false;
+        if (state.wrongnoteOnly && (!wrongNotes[qid] || wrongNotes[qid].count < 3)) return false;
+        if (state.weakOnly && !weakSet.has(qid)) return false;
+        if (state.bookmarkOnly && !bookmarks[qid]) return false;
+        if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+      } else {
+        if (state.subj !== 'all' && q.subj !== state.subj) return false;
+        if (state.bookmarkOnly && !bookmarks[qid]) return false;
+        if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+      }
+      return true;
+    }
+
+    if (state.freqOnly) {
+      if (q.year !== '빈출') return false;
+    } else {
+      if (q.year === '빈출') return false;
+      if (state.years.length > 0 && !state.years.includes(q.year)) return false;
+    }
+    if (state.subj !== 'all' && q.subj !== state.subj) return false;
+
+    if (state.wrongOnly) {
+      const rec = progress[qid];
+      if (!rec || rec === 'O') return false;
+    }
+    if (state.wrongnoteOnly) {
+      if (!wrongNotes[qid] || wrongNotes[qid].count < 3) return false;
+    }
+    if (state.weakOnly && !weakSet.has(qid)) return false;
+    if (state.bookmarkOnly && !bookmarks[qid]) return false;
+    if (state.tagFilter !== 'all' && (!wrongNotes[qid] || wrongNotes[qid].tag !== state.tagFilter)) return false;
+    return true;
+  });
+
+  if (state.freqOnly && !state.dueOnly) list = list.concat(list);
+  if (state.shuffled) list = shuffleArray(list);
+
+  list = injectRepeats(list);
+
+  updateDashboard();
+
+  if (list.length === 0) {
+    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
+    return;
+  }
+
+  if (state.pendingResume) {
+    const i = list.findIndex(q => getQId(q) === state.pendingResume);
+    if (i >= 0) state.idx = i;
+    state.pendingResume = null;
+  }
+
+  if (state.idx >= list.length) state.idx = 0;
+  if (state.idx < 0) state.idx = list.length - 1;
+
+  renderStudy(cArea);
 }
 
 // ==========================================
@@ -1605,11 +1789,9 @@ function renderStudy(cArea) {
   const rec = progress[qid];
   let graded = false;
 
-  // 이어보기용: 마지막으로 본 문제 저장
   lastQid = qid;
   localStorage.setItem("lastQid", qid);
 
-  // 현재 카드의 복습 예정 정보
   let schedInfo = "";
   if (srs[qid] && srs[qid].due) {
     schedInfo = srs[qid].due <= todayStr()
@@ -1619,8 +1801,8 @@ function renderStudy(cArea) {
 
   let html = `
     <div class="nav-btns" style="margin-top:0; margin-bottom:14px;">
-      <button class="nav-btn" id="prev-btn">◀ 이전</button>
-      <button class="nav-btn primary" id="next-btn">다음 ▶</button>
+      <button class="nav-btn" id="prev-btn" type="button">◀ 이전</button>
+      <button class="nav-btn primary" id="next-btn" type="button">다음 ▶</button>
     </div>
     <div class="card">
       <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}${schedInfo}<span id="bm-star" title="별표 저장/해제" style="float:right; cursor:pointer; font-size:1.2rem; color:${bookmarks[qid] ? 'var(--gold)' : 'var(--muted)'};">${bookmarks[qid] ? '★' : '☆'}</span></div>
@@ -1628,7 +1810,7 @@ function renderStudy(cArea) {
       <div class="options">
   `;
   q.opts.forEach((opt, i) => {
-    html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`;
+    html += `<button class="opt" id="opt-${i}" type="button">${i + 1}. ${opt}</button>`;
   });
   html += `
       </div>
@@ -1644,19 +1826,16 @@ function renderStudy(cArea) {
   `;
   cArea.innerHTML = html;
 
-  // 이전 마킹 표시
   if (rec === 'O') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--green)">[맞힘]</span>`;
   if (rec === 'X') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--red)">[틀림]</span>`;
 
   const actions = document.getElementById("study-actions");
 
-  // 상단 이전/다음 (항상 노출)
   function goPrev() { state.idx--; render(); scrollToQuestion(); }
-  function goNext() { state.idx++; render(); scrollToQuestion(); }
+  function goNext() { tickRepeat(); state.idx++; render(); scrollToQuestion(); }
   document.getElementById("prev-btn").onclick = goPrev;
   document.getElementById("next-btn").onclick = goNext;
 
-  // ⭐ 별표 토글
   const star = document.getElementById("bm-star");
   if (star) star.onclick = () => {
     if (bookmarks[qid]) delete bookmarks[qid]; else bookmarks[qid] = true;
@@ -1670,7 +1849,6 @@ function renderStudy(cArea) {
     showAns = true;
     document.getElementById(`opt-${q.a}`).classList.add("correct");
     if (picked !== undefined && picked !== q.a) document.getElementById(`opt-${picked}`).classList.add("wrong");
-    // 오답지별 해설(데이터에 q.oe가 있을 때만 표시)
     if (q.oe) {
       q.opts.forEach((opt, i) => {
         if (i !== q.a && q.oe[i]) {
@@ -1682,7 +1860,6 @@ function renderStudy(cArea) {
     document.getElementById("ans-box").style.display = "block";
   }
 
-  // 오답 태그 버튼 와이어링 (태그 선택 시 다음으로 이동)
   function wireTags() {
     document.querySelectorAll('#tag-row .tag-btn').forEach(b => b.onclick = () => {
       const t = b.dataset.tag;
@@ -1693,7 +1870,6 @@ function renderStudy(cArea) {
     });
   }
 
-  // 알겠음/확실함/찍었음 → 채점하고 즉시 다음 문제로
   function gradeAndAdvance(knew) {
     if (graded) return;
     graded = true;
@@ -1702,7 +1878,6 @@ function renderStudy(cArea) {
     goNext();
   }
 
-  // 오답 보기를 골랐을 때 → 모르겠음 채점 + 태그만 표시(이동은 상단 다음으로)
   function gradeWrongWithTags() {
     if (graded) return;
     graded = true;
@@ -1715,7 +1890,6 @@ function renderStudy(cArea) {
     wireTags();
   }
 
-  // 보기 클릭: 맞으면 확실함/찍었음 확인, 틀리면 모르겠음 + 태그
   q.opts.forEach((opt, i) => {
     document.getElementById(`opt-${i}`).onclick = () => {
       if (showAns) return;
@@ -1724,8 +1898,8 @@ function renderStudy(cArea) {
         actions.innerHTML = `
           <div class="kbd-hint" style="margin:0 0 4px; color:var(--green);">정답입니다! 확실히 아셨나요?</div>
           <div class="nav-btns">
-            <button class="nav-btn" id="sure-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 확실함</button>
-            <button class="nav-btn" id="guess-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🤔 찍었음</button>
+            <button class="nav-btn" id="sure-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;" type="button">✓ 확실함</button>
+            <button class="nav-btn" id="guess-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" type="button">🤔 찍었음</button>
           </div>`;
         document.getElementById("sure-btn").onclick = () => gradeAndAdvance(true);
         document.getElementById("guess-btn").onclick = () => gradeAndAdvance(false);
@@ -1735,25 +1909,23 @@ function renderStudy(cArea) {
     };
   });
 
-  // 정답 보기(답이 안 떠올라 확인) = 채점 보류 → 알겠음/모르겠음 자가평가
   function revealOnly() {
     if (showAns) return;
     revealUI();
     actions.innerHTML = `
       <div class="nav-btns">
-        <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
-        <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
+        <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" type="button">✗ 모르겠음</button>
+        <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;" type="button">✓ 알겠음</button>
       </div>`;
     document.getElementById("know-btn").onclick = () => gradeAndAdvance(true);
     document.getElementById("dunno-btn").onclick = () => gradeAndAdvance(false);
   }
 
-  // 초기 버튼: 모르겠음 / 알겠음(바로 자가평가) + 정답 보기
   actions.innerHTML = `
     <div class="nav-btns">
-      <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">✗ 모르겠음</button>
-      <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;">✓ 알겠음</button>
-      <button class="nav-btn" id="reveal-btn">정답 보기</button>
+      <button class="nav-btn" id="dunno-btn" style="background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" type="button">✗ 모르겠음</button>
+      <button class="nav-btn" id="know-btn" style="background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:bold;" type="button">✓ 알겠음</button>
+      <button class="nav-btn" id="reveal-btn" type="button">정답 보기</button>
     </div>`;
   document.getElementById("know-btn").onclick = () => gradeAndAdvance(true);
   document.getElementById("dunno-btn").onclick = () => gradeAndAdvance(false);
@@ -1768,6 +1940,7 @@ function renderStudy(cArea) {
 function renderYearly() {
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = "";
+  cArea.onclick = null;
 
   if (!examData.active && !examData.finished) {
     if (state.years.length === 0) {
@@ -1780,8 +1953,9 @@ function renderYearly() {
         return;
     }
 
-    let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
-    
+    let currentList = getYearPool().filter(q => q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
+    if (!state.includeAmbiguousExam) currentList = currentList.filter(q => !q.ambig);
+
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
         <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${yearsLabel()} 기출 풀기</h2>
@@ -1792,15 +1966,16 @@ function renderYearly() {
     return;
   }
 
-  drawExamUI(cArea, true); // true = yearly mode
+  drawExamUI(cArea, true);
 }
 
 // ==========================================
-// [실전 모의고사] 렌더링 (랜덤 33문제)
+// [실전 모의고사] 렌더링
 // ==========================================
 function renderExam() {
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = "";
+  cArea.onclick = null;
 
   if (!examData.active && !examData.finished) {
     let subjText = state.subj === 'all' ? '전체 과목 믹스' : state.subj;
@@ -1814,10 +1989,9 @@ function renderExam() {
     return;
   }
 
-  drawExamUI(cArea, false); // false = random exam mode
+  drawExamUI(cArea, false);
 }
 
-// 공통 시험/모의고사 UI 그리기 함수
 function drawExamUI(cArea, isYearly) {
   if (examData.finished) {
     let score = 0;
@@ -1857,30 +2031,25 @@ function drawExamUI(cArea, isYearly) {
     return;
   }
 
-  // 문제 푸는 화면 (타이머 유무)
   let timerHtml = "";
   if (!isYearly) {
-      const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
-      const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
-      timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
+      timerHtml = `<div class="exam-timer" id="exam-timer"></div>`;
   } else {
-      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${yearsLabel()} 기출 풀이 (총 ${examData.list.length}문제)</div>`;
+      timerHtml = `<div class="exam-timer" id="exam-timer" style="background:var(--ink);">📚 ${yearsLabel()} 기출 풀이 (총 ${examData.list.length}문제)</div>`;
   }
   
   let html = timerHtml;
   
   examData.list.forEach((q, qIndex) => {
     html += `
-      <div class="card" style="margin-bottom:20px; padding:20px;">
+      <div class="card exam-q" data-qindex="${qIndex}" style="margin-bottom:20px; padding:20px;">
         <div class="q-meta">${qIndex + 1}번. (${q.year} ${q.subj} ${q.no ? q.no+'번' : ''})</div>
         <div class="q-text" style="font-size:1.1rem;">${q.q}</div>
         <div class="options">
           ${q.opts.map((opt, i) => `
-            <div class="opt" 
-                 onclick="markExamAnswer(${qIndex}, ${i})" 
-                 style="cursor:pointer; padding:10px; border:1px solid var(--line); margin-bottom:5px; border-radius:4px; ${examData.answers[qIndex] === i ? 'background:var(--burgundy-soft); color:white; border-color:var(--burgundy);' : ''}">
+            <button class="opt exam-opt ${examData.answers[qIndex] === i ? 'selected' : ''}" data-qindex="${qIndex}" data-opt="${i}" type="button" aria-pressed="${examData.answers[qIndex] === i ? 'true' : 'false'}">
               ${i + 1}. ${opt}
-            </div>
+            </button>
           `).join('')}
         </div>
       </div>`;
@@ -1888,46 +2057,57 @@ function drawExamUI(cArea, isYearly) {
 
   html += `<button class="exam-submit-btn" onclick="submitExamMode()">답안 제출 및 채점하기</button>`;
   cArea.innerHTML = html;
+  bindExamClicks();
+  if (!isYearly) updateExamTimer();
 }
 
-// 시험 시작 컨트롤러
+function bindExamClicks() {
+  const cArea = document.getElementById("content-area");
+  cArea.onclick = (e) => {
+    const btn = e.target.closest('.exam-opt');
+    if (!btn) return;
+    const qIndex = parseInt(btn.dataset.qindex, 10);
+    const optIndex = parseInt(btn.dataset.opt, 10);
+    markExamAnswer(qIndex, optIndex);
+  };
+}
+
+function updateExamTimer() {
+  const el = document.getElementById("exam-timer");
+  if (!el || examData.isYearly) return;
+  const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
+  const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
+  el.textContent = `남은 시간 - ${min}:${sec}`;
+}
+
 function startExamMode(isYearly) {
   let pool = [];
 
   if (isYearly) {
-      let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
+      let currentList = getYearPool().filter(q => q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
+      if (!state.includeAmbiguousExam) currentList = currentList.filter(q => !q.ambig);
       if (state.shuffled) {
-          // 🔀 랜덤 섞기가 켜져 있으면 무작위 순서로
-          pool = currentList.sort(() => Math.random() - 0.5);
+          pool = shuffleArray(currentList);
       } else {
-          // 기본: 기출 번호(과목 → 번호) 순서대로 정렬
-          const subjOrder = {"성경":1, "교회사":2, "헌법":3};
           pool = currentList.sort((a, b) => {
-              if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
+              if(SUBJ_ORDER[a.subj] !== SUBJ_ORDER[b.subj]) return SUBJ_ORDER[a.subj] - SUBJ_ORDER[b.subj];
               return (a.no || 0) - (b.no || 0);
           });
       }
   } else {
-      // 랜덤 모의고사: 33문제 추출
-      let currentList = allQuestions.filter(q => {
-        if (!state.freqOnly) {
-          if (q.year === '빈출') return false;
-          if (!yearMatch(q)) return false;
-        } else {
-          if (q.year !== '빈출') return false;
-        }
+      let currentList = getYearPool().filter(q => {
         if (state.subj !== 'all' && q.subj !== state.subj) return false;
+        if (!state.includeAmbiguousExam && q.ambig) return false;
         return true;
       });
       
-      // '전체 과목'일 경우 각 과목별로 11문제씩 공평하게 뽑아 섞음
       if (state.subj === 'all' && currentList.length >= 33) {
-          let bible = currentList.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
-          let history = currentList.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
-          let law = currentList.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
-          pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
+          let bible = shuffleArray(currentList.filter(q => q.subj === '성경')).slice(0,11);
+          let history = shuffleArray(currentList.filter(q => q.subj === '교회사')).slice(0,11);
+          let law = shuffleArray(currentList.filter(q => q.subj === '헌법')).slice(0,11);
+          pool = shuffleArray([...bible, ...history, ...law]);
       } else {
-          pool = [...currentList].sort(()=>Math.random()-0.5).slice(0, 33);
+          pool = shuffleArray(currentList).slice(0, 33);
       }
   }
   
@@ -1943,13 +2123,14 @@ function startExamMode(isYearly) {
   
   if (!isYearly) {
       examData.timerId = setInterval(() => {
+        if (!examData.active) return;
         examData.timeLeft--;
         if (examData.timeLeft <= 0) {
           clearInterval(examData.timerId);
           alert("시간이 종료되었습니다. 자동 채점합니다.");
           submitExamMode();
         } else {
-          render(); // 타이머 갱신
+          updateExamTimer();
         }
       }, 1000);
   }
@@ -1959,19 +2140,24 @@ function startExamMode(isYearly) {
 
 function markExamAnswer(qIndex, optIndex) {
   examData.answers[qIndex] = optIndex;
-  render(); 
+  const box = document.querySelector(`.exam-q[data-qindex="${qIndex}"]`);
+  if (!box) return;
+  box.querySelectorAll('.exam-opt').forEach(btn => {
+    const isSel = parseInt(btn.dataset.opt,10) === optIndex;
+    btn.classList.toggle('selected', isSel);
+    btn.setAttribute('aria-pressed', isSel ? 'true' : 'false');
+  });
 }
 
 function submitExamMode() {
   clearInterval(examData.timerId);
   
-  // 틀린 문제 오답노트 자동 등록
   examData.list.forEach((q, idx) => {
     if (examData.answers[idx] !== q.a) {
       const qid = getQId(q);
       if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
       wrongNotes[qid].count++;
-      wrongNotes[qid].last = new Date().toISOString().split('T')[0];
+      wrongNotes[qid].last = todayStr();
     }
   });
   localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
@@ -1994,16 +2180,13 @@ document.querySelectorAll(".year-f").forEach(c => c.onclick = () => {
   const y = c.dataset.year;
   const allChip = document.querySelector('.year-f[data-year="all"]');
   if (y === 'all') {
-    // 전체 연도: 선택 초기화
     state.years = [];
     document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
     allChip.classList.add("on");
   } else {
-    // 개별 연도 토글
     const i = state.years.indexOf(y);
     if (i >= 0) { state.years.splice(i, 1); c.classList.remove("on"); }
     else { state.years.push(y); c.classList.add("on"); }
-    // '전체 연도' 칩은 선택이 하나도 없을 때만 활성
     if (state.years.length === 0) allChip.classList.add("on");
     else allChip.classList.remove("on");
   }
@@ -2023,10 +2206,12 @@ document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
   if(f === "shuffle"){ state.shuffled = !state.shuffled; c.classList.toggle("on"); }
   if(f === "wrongnote"){ state.wrongnoteOnly = !state.wrongnoteOnly; c.classList.toggle("on"); }
   if(f === "bookmark"){ state.bookmarkOnly = !state.bookmarkOnly; c.classList.toggle("on"); }
+  if(f === "weak"){ state.weakOnly = !state.weakOnly; c.classList.toggle("on"); }
+  if(f === "search-respect"){ state.searchRespectFilters = !state.searchRespectFilters; c.classList.toggle("on"); }
+  if(f === "ambig"){ state.includeAmbiguousExam = !state.includeAmbiguousExam; c.classList.toggle("on"); updateReport(); }
   state.idx = 0; render();
 });
 
-// 🔍 검색 입력
 (function(){
   const box = document.getElementById("search-box");
   if (box) {
@@ -2036,10 +2221,24 @@ document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
       t = setTimeout(() => { state.search = box.value.trim(); state.idx = 0; render(); }, 200);
     };
   }
-  // 🏷 오답 태그 필터
   const tf = document.getElementById("tag-filter");
-  if (tf) tf.onchange = () => { state.tagFilter = tf.value; state.idx = 0; render(); };
+  if (tf) tf.onchange = () => { state.tagFilter = tf.value; state.idx = 0; updateTagChips(); render(); };
 })();
+document.querySelectorAll(".tag-quick").forEach(b => b.onclick = () => {
+  const t = b.dataset.tag;
+  state.tagFilter = t;
+  const tf = document.getElementById("tag-filter");
+  if (tf) tf.value = t;
+  updateTagChips();
+  state.idx = 0;
+  render();
+});
+function updateTagChips() {
+  document.querySelectorAll(".tag-quick").forEach(b => {
+    b.classList.toggle("on", b.dataset.tag === state.tagFilter);
+  });
+}
+
 document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
   t.classList.add("on"); 
@@ -2053,14 +2252,12 @@ document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
 });
 
 document.getElementById("refresh").onclick = async () => {
-  // 홈 화면 앱(PWA) 캐시 때문에 갱신이 안 되는 경우까지 대비해 강제 새로고침
   try {
     if (window.caches && caches.keys) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
   } catch (e) {}
-  // 캐시 우회용 쿼리스트링을 붙여 강제 재요청
   const url = location.origin + location.pathname + "?v=" + Date.now();
   location.replace(url);
 };
@@ -2071,23 +2268,24 @@ document.getElementById("reset").onclick = () => {
   srs = {}; localStorage.removeItem("srs");
   studyStats = { streak: 0, lastDate: null, daily: {} }; localStorage.removeItem("studyStats");
   bookmarks = {}; localStorage.removeItem("bookmarks");
+  repeatQueue = {}; localStorage.removeItem("repeatQueue");
   lastQid = null; localStorage.removeItem("lastQid");
   state.idx = 0; state.pendingResume = null; render(); updateBmBadge();
   alert("학습 기록, 오답노트, 복습 일정, 통계, 별표가 모두 초기화되었습니다.");
 };
 
-// ===== 진도 백업(내보내기) =====
 document.getElementById("backup").onclick = () => {
   const data = {
     type: "moksagosi-backup",
-    version: 2,
+    version: 3,
     savedAt: new Date().toISOString(),
     progress: progress,
     wrongNotes: wrongNotes,
     srs: srs,
     studyStats: studyStats,
     bookmarks: bookmarks,
-    lastQid: lastQid
+    lastQid: lastQid,
+    repeatQueue: repeatQueue
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -2102,7 +2300,6 @@ document.getElementById("backup").onclick = () => {
   showToast("진도와 오답노트를 파일로 저장했습니다.");
 };
 
-// ===== 진도 복원(불러오기) =====
 document.getElementById("restore").onclick = () => {
   document.getElementById("restore-file").click();
 };
@@ -2129,22 +2326,24 @@ document.getElementById("restore-file").onchange = (ev) => {
       srs = data.srs || {};
       studyStats = data.studyStats || { streak: 0, lastDate: null, daily: {} };
       bookmarks = data.bookmarks || {};
+      repeatQueue = data.repeatQueue || {};
       lastQid = data.lastQid || null;
       localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
       localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
       localStorage.setItem("srs", JSON.stringify(srs));
       localStorage.setItem("studyStats", JSON.stringify(studyStats));
       localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+      localStorage.setItem("repeatQueue", JSON.stringify(repeatQueue));
       if (lastQid) localStorage.setItem("lastQid", lastQid); else localStorage.removeItem("lastQid");
       state.idx = 0;
-      state.pendingResume = lastQid;  // 복원 후 마지막 본 문제로 이어서 시작
+      state.pendingResume = lastQid;
       render();
       updateBmBadge();
       alert(lastQid ? "복원 완료! 마지막으로 보던 문제부터 이어집니다." : "진도와 오답노트를 복원했습니다.");
     } catch (err) {
       alert("파일을 읽는 중 오류가 발생했습니다. 백업 파일이 손상되었을 수 있습니다.");
     } finally {
-      ev.target.value = ""; // 같은 파일 다시 선택 가능하도록 초기화
+      ev.target.value = "";
     }
   };
   reader.readAsText(file);
@@ -2153,13 +2352,11 @@ document.getElementById("restore-file").onchange = (ev) => {
 document.addEventListener("keydown", e => {
   if (state.mode !== 'study') return;
   const k = e.key;
-  // 보기 선택 1~5
   if (k >= "1" && k <= "5") {
     const btn = document.getElementById(`opt-${parseInt(k) - 1}`);
     if (btn) btn.click();
     return;
   }
-  // Space: 정답 보기 → (이미 봤으면) 다음
   if (k === " " || k === "Spacebar") {
     e.preventDefault();
     const rv = document.getElementById("reveal-btn");
@@ -2167,20 +2364,21 @@ document.addEventListener("keydown", e => {
     if (rv) rv.click(); else if (nx) nx.click();
     return;
   }
-  // O: 확실함/알겠음 / X: 찍었음/모르겠음
   if (k === "o" || k === "O") { const b = document.getElementById("know-btn") || document.getElementById("sure-btn"); if (b) b.click(); return; }
   if (k === "x" || k === "X") { const b = document.getElementById("dunno-btn") || document.getElementById("guess-btn"); if (b) b.click(); return; }
-  // 이동
   if (k === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
   if (k === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
 });
 
+buildIndex();
+migrateStorage();
+trimDaily();
 state.pendingResume = lastQid;
 render();
 updateDueBadge();
 updateBmBadge();
+updateTagChips();
 
-// ===== 자동 갱신: 서버 최신 버전과 비교해 새 버전이면 조용히 재로딩 =====
 async function checkForUpdate() {
   try {
     const res = await fetch(location.pathname + "?_chk=" + Date.now(), { cache: "no-store" });
@@ -2189,7 +2387,6 @@ async function checkForUpdate() {
     const m = text.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
     if (!m) return;
     const latest = m[1];
-    // 더 새 버전이고, 이번 세션에서 아직 그 버전으로 새로고침한 적 없을 때만
     if (latest !== APP_VERSION && sessionStorage.getItem("updReloaded") !== latest) {
       sessionStorage.setItem("updReloaded", latest);
       try {
@@ -2203,7 +2400,6 @@ async function checkForUpdate() {
   } catch (e) {}
 }
 checkForUpdate();
-// 앱을 다시 포그라운드로 가져올 때도 한 번 더 확인(홈 화면 앱 대응)
 document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
 </script>
 </body>
