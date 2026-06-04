@@ -1351,6 +1351,7 @@ let state = {
   tagFilter: "all"
 };
 
+const APP_VERSION = "2026-06-04-01";  // 배포할 때마다 이 값을 바꾸면 자동 갱신됨
 let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
 let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let srs = JSON.parse(localStorage.getItem("srs")) || {};  // 간격 반복 일정
@@ -2178,6 +2179,32 @@ state.pendingResume = lastQid;
 render();
 updateDueBadge();
 updateBmBadge();
+
+// ===== 자동 갱신: 서버 최신 버전과 비교해 새 버전이면 조용히 재로딩 =====
+async function checkForUpdate() {
+  try {
+    const res = await fetch(location.pathname + "?_chk=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const text = await res.text();
+    const m = text.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
+    if (!m) return;
+    const latest = m[1];
+    // 더 새 버전이고, 이번 세션에서 아직 그 버전으로 새로고침한 적 없을 때만
+    if (latest !== APP_VERSION && sessionStorage.getItem("updReloaded") !== latest) {
+      sessionStorage.setItem("updReloaded", latest);
+      try {
+        if (window.caches && caches.keys) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+      } catch (e) {}
+      location.replace(location.origin + location.pathname + "?v=" + Date.now());
+    }
+  } catch (e) {}
+}
+checkForUpdate();
+// 앱을 다시 포그라운드로 가져올 때도 한 번 더 확인(홈 화면 앱 대응)
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
 </script>
 </body>
 </html>
