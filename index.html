@@ -29,6 +29,7 @@
   .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px 80px; }
   header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
   h1 { font-size: 1.4rem; color: var(--burgundy); }
+
   .dashboard { display: flex; gap: 5px; margin-bottom: 15px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: var(--shadow); }
   .dash-item { flex: 1; text-align: center; border-right: 1px solid var(--line); }
   .dash-item:last-child { border-right: none; }
@@ -44,7 +45,7 @@
   }
   .chip.on { background: var(--burgundy); color: #fff; border-color: var(--burgundy); }
 
-  .adv-wrap { margin-left: auto; position: relative; }
+  .adv-wrap { position: relative; }
   .adv-toggle { background: var(--paper-2); border: 1px dashed var(--line); color: var(--muted); }
   #adv-panel {
     display: none; position: absolute; right: 0; top: 42px; z-index: 10;
@@ -63,8 +64,11 @@
   .mode-tab.on { background: var(--ink); color: #fff; }
 
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
-  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 8px; }
-  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; word-break: keep-all; }
+  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .meta-right { display: flex; align-items: center; gap: 10px; }
+  .meta-link { font-size: 0.8rem; color: var(--muted); text-decoration: underline; cursor: pointer; }
+  .star { cursor: pointer; }
+  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; word-break: keep-all; }
   .opt {
     display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
     background: #fff; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 1rem;
@@ -73,14 +77,22 @@
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
 
-  .ans-box { margin-top: 15px; padding: 16px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; }
+  .ans-box { margin: 10px 0 12px; padding: 14px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; border-radius: 8px; }
+  .tag-wrap { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .tag-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+  .tag-area { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+  .tag-btn.t1 { background: #fff3c4; border-color: #e2c36a; }
+  .tag-btn.t2 { background: #dff0ff; border-color: #7ab4e4; }
+  .tag-btn.t3 { background: #ffe0e0; border-color: #e38b8b; }
+
   .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; }
   .nav-btn { flex: 1; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid var(--line); background: var(--card); }
   .nav-btn.primary { background: var(--ink); color: #fff; }
 
   .exam-timer { background: var(--burgundy); color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; }
-  #toast { visibility: hidden; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 12px 24px; border-radius: 30px; z-index: 1000; }
-  #toast.show { visibility: visible; animation: fadeInOut 2.5s; }
+  #toast { visibility: hidden; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 10px 20px; border-radius: 30px; z-index: 1000; pointer-events: none; }
+  #toast.show { visibility: visible; animation: fadeInOut 1.8s; }
   @keyframes fadeInOut { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
 </style>
 </head>
@@ -116,6 +128,12 @@
       <button class="chip subj-f" data-subj="교회사">교회사</button>
       <button class="chip subj-f" data-subj="헌법">헌법</button>
       <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
+    </div>
+    <input id="search-box" type="text" placeholder="🔍 문제 키워드 검색...">
+    <div class="filters">
+      <button class="chip" data-filter="due">📅 오늘 복습</button>
+      <button class="chip" data-filter="wrong">❌ 오답만</button>
+      <button class="chip" data-filter="bookmark">⭐ 별표</button>
       <div class="adv-wrap">
         <button class="chip adv-toggle" onclick="toggleAdv(event)">⚙️ 고급</button>
         <div id="adv-panel">
@@ -133,12 +151,6 @@
         </div>
       </div>
     </div>
-    <input id="search-box" type="text" placeholder="🔍 문제 키워드 검색...">
-    <div class="filters">
-      <button class="chip" data-filter="due">📅 오늘 복습</button>
-      <button class="chip" data-filter="wrong">❌ 오답만</button>
-      <button class="chip" data-filter="bookmark">⭐ 별표</button>
-    </div>
   </div>
 
   <div class="mode-tabs">
@@ -154,7 +166,7 @@
 <script>
 const allQuestions = [
   // 여기에 2015~2025 전체 문제를 붙여넣기
- // ===================== 2015년도 기출 =====================
+   // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
   {subj:"성경",year:"2015",no:3,q:"사사와 한 일이 맞지 않는 것은?",opts:["기드온 — 300명 용사","아비멜렉 — 맷돌 위짝에 맞아 죽음","입다 — 기생의 아들","드보라 — 시스라를 죽임"],a:3,e:"시스라를 죽인 이는 <b>야엘</b>(장막 말뚝, 삿4:21). 드보라는 바락과 함께한 사사."},
@@ -1100,7 +1112,6 @@ const allQuestions = [
 function keyText(t) {
   return (t || "").toLowerCase().replace(/\s+/g, "").replace(/[^\w가-힣]/g, "").slice(0, 80);
 }
-
 function getFreqQs(list) {
   const map = new Map();
   list.forEach(q => {
@@ -1113,13 +1124,13 @@ function getFreqQs(list) {
     .sort((a, b) => b.count - a.count)
     .map(v => ({ ...v.data, year: "빈출" }));
 }
-
 const baseQuestions = allQuestions.slice();
 const freqPool = getFreqQs(baseQuestions);
 freqPool.forEach(q => allQuestions.push(q));
 
 let state = {
   years: [], subj: "all", mode: "study", idx: 0,
+  yearlyYear: "", yearlyIdx: 0,
   freqOnly: false, wrongOnly: false, shuffled: false,
   bookmarkOnly: false, search: "", tagFilter: "all",
   wrongnoteOnly: false, weakOnly: false, dueOnly: false
@@ -1135,6 +1146,7 @@ let streakInfo = JSON.parse(localStorage.getItem("mok_streak")) || { last: "", s
 let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null };
 
 let listCache = { key: "", list: [] };
+let yearlyCache = { key: "", list: [] };
 
 function normalize(s) { return (s || "").toLowerCase().trim(); }
 function formatDate(d) { return d.toISOString().split("T")[0]; }
@@ -1177,7 +1189,10 @@ function saveAll() {
   localStorage.setItem("mok_streak", JSON.stringify(streakInfo));
 }
 
-function invalidateList() { listCache.key = ""; }
+function invalidateList() {
+  listCache.key = "";
+  yearlyCache.key = "";
+}
 
 function getTopWrongIds(n) {
   const entries = Object.entries(wrongNotes)
@@ -1257,9 +1272,86 @@ function getList(forExam) {
   return listCache.list;
 }
 
+function getYearList() {
+  return [...new Set(allQuestions.filter(q => q.year !== "빈출").map(q => q.year))].sort();
+}
+
+function buildYearlyList() {
+  if (!state.yearlyYear) return [];
+  const search = normalize(state.search);
+  let temp = allQuestions.filter(q => q.year === state.yearlyYear);
+  if (state.subj !== "all") temp = temp.filter(q => q.subj === state.subj);
+
+  if (search) {
+    temp = temp.filter(q => {
+      const blob = (q.q + " " + (q.opts || []).join(" ") + " " + (q.e || "")).toLowerCase();
+      return blob.includes(search);
+    });
+  }
+
+  const filtered = temp.filter(q => {
+    const qid = getQId(q);
+    if (state.dueOnly && !isDue(qid)) return false;
+    if (state.wrongOnly && progress[qid] !== "X") return false;
+    if (state.bookmarkOnly && !bookmarks[qid]) return false;
+    if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
+    return true;
+  });
+
+  let out = filtered;
+  if (state.wrongnoteOnly) {
+    const set = getTopWrongIds(3);
+    out = out.filter(q => set.has(getQId(q)));
+  }
+  if (state.weakOnly) {
+    const set = getWeakIds(out);
+    out = out.filter(q => set.has(getQId(q)));
+  }
+  return out;
+}
+
+function getYearlyList() {
+  const key = JSON.stringify({
+    yearlyYear: state.yearlyYear,
+    subj: state.subj,
+    shuffled: state.shuffled,
+    search: state.search,
+    tagFilter: state.tagFilter,
+    wrongnoteOnly: state.wrongnoteOnly,
+    weakOnly: state.weakOnly,
+    dueOnly: state.dueOnly,
+    wrongOnly: state.wrongOnly,
+    bookmarkOnly: state.bookmarkOnly
+  });
+  if (yearlyCache.key !== key) {
+    let list = buildYearlyList();
+    if (state.shuffled) list = shuffleArr(list);
+    yearlyCache = { key, list };
+  }
+  return yearlyCache.list;
+}
+
+function getActiveList() {
+  return state.mode === "yearly" ? getYearlyList() : getList(false);
+}
+function getActiveIdx() {
+  return state.mode === "yearly" ? state.yearlyIdx : state.idx;
+}
+function setActiveIdx(v) {
+  if (state.mode === "yearly") state.yearlyIdx = v;
+  else state.idx = v;
+}
+
+function syncFilterVisibility() {
+  const yearWrap = document.getElementById("year-chips");
+  if (yearWrap) yearWrap.style.display = state.mode === "yearly" ? "none" : "flex";
+}
+
 function render() {
+  syncFilterVisibility();
   const cArea = document.getElementById("content-area");
   if (state.mode === "exam") return renderExam(cArea);
+  if (state.mode === "yearly") return renderYearly(cArea);
   return renderStudy(cArea);
 }
 
@@ -1281,30 +1373,111 @@ function renderStudy(cArea) {
     </div>
     <div class="card">
       <div class="q-meta">
-        ${state.idx + 1} / ${list.length} | ${q.year}년 ${q.subj}
-        <span onclick="toggleBm('${qid}')" style="float:right; cursor:pointer; color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+        <div>${state.idx + 1} / ${list.length} | ${q.year}년 ${q.subj}</div>
+        <div class="meta-right">
+          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+        </div>
       </div>
       <div class="q-text">${q.q}</div>
-      <div id="options-area">
-        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
-      </div>
       <div class="ans-box" id="ans-box">
         <strong>정답: ${q.a + 1}번</strong><br>${q.e || ""}
-        <div class="nav-btns" style="margin-top:15px;" id="tag-area"></div>
+        <div class="tag-wrap" id="tag-wrap">
+          <div class="tag-title">오답 태그 선택</div>
+          <div class="tag-area" id="tag-area"></div>
+        </div>
+      </div>
+      <div id="options-area">
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
       </div>
     </div>
   `;
   updateDashboard();
 }
 
-function checkAns(picked) {
-  const list = getList(false);
-  const q = list[state.idx];
-  const qid = getQId(q);
-  const ansBox = document.getElementById("ans-box");
-  if (ansBox.style.display === "block") return;
+function renderYearly(cArea) {
+  if (!state.yearlyYear) {
+    const years = getYearList();
+    cArea.innerHTML = `
+      <div class="card">
+        <div class="q-text">연도 선택</div>
+        <div class="filters" style="margin-top:10px;">
+          ${years.map(y => `<button class="chip year-pick" data-year="${y}">${y}년</button>`).join("")}
+        </div>
+      </div>
+    `;
+    document.querySelectorAll(".year-pick").forEach(btn => {
+      btn.onclick = () => {
+        state.yearlyYear = btn.dataset.year;
+        state.yearlyIdx = 0;
+        invalidateList();
+        render();
+      };
+    });
+    updateDashboard();
+    return;
+  }
 
+  const list = getYearlyList();
+  if (list.length === 0) {
+    cArea.innerHTML = `
+      <div class="card">
+        <div class="q-text">해당 연도에 조건에 맞는 문제가 없습니다.</div>
+        <button class="nav-btn primary" onclick="backToYearList()" style="margin-top:10px;">연도 다시 선택</button>
+      </div>
+    `;
+    updateDashboard();
+    return;
+  }
+
+  if (state.yearlyIdx >= list.length) state.yearlyIdx = 0;
+  const q = list[state.yearlyIdx];
+  const qid = getQId(q);
+
+  cArea.innerHTML = `
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="moveIdx(-1)">◀ 이전</button>
+      <button class="nav-btn primary" onclick="moveIdx(1)">다음 ▶</button>
+    </div>
+    <div class="card">
+      <div class="q-meta">
+        <div>${state.yearlyIdx + 1} / ${list.length} | ${q.year}년 ${q.subj}</div>
+        <div class="meta-right">
+          <span class="meta-link" onclick="backToYearList()">연도 선택</span>
+          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+        </div>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="ans-box" id="ans-box">
+        <strong>정답: ${q.a + 1}번</strong><br>${q.e || ""}
+        <div class="tag-wrap" id="tag-wrap">
+          <div class="tag-title">오답 태그 선택</div>
+          <div class="tag-area" id="tag-area"></div>
+        </div>
+      </div>
+      <div id="options-area">
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function backToYearList() {
+  state.yearlyYear = "";
+  state.yearlyIdx = 0;
+  invalidateList();
+  render();
+}
+
+function checkAns(picked) {
+  const list = getActiveList();
+  const idx = getActiveIdx();
+  const q = list[idx];
+  const qid = getQId(q);
   const isCorrect = picked === q.a;
+
+  const ansBox = document.getElementById("ans-box");
+  ansBox.style.display = "block";
   const opts = document.querySelectorAll(".opt");
   opts[picked].classList.add("selected");
   opts[q.a].classList.add("correct");
@@ -1312,38 +1485,63 @@ function checkAns(picked) {
   if (!isCorrect) {
     opts[picked].classList.add("wrong");
     saveWrong(qid);
-    saveSRS(qid, false);
     showToast("틀렸습니다. 오답노트에 기록됩니다.");
+    const tags = [
+      { t: "헷갈림", c: "t1" },
+      { t: "암기부족", c: "t2" },
+      { t: "실수", c: "t3" }
+    ];
+    const tagWrap = document.getElementById("tag-wrap");
+    tagWrap.style.display = "block";
+    document.getElementById("tag-area").innerHTML = tags.map(x =>
+      `<button class="tag-btn ${x.c}" onclick="setTag('${qid}', '${x.t}')">${x.t}</button>`
+    ).join("");
   } else {
-    saveSRS(qid, true);
     showToast("정답입니다!");
+    const tagWrap = document.getElementById("tag-wrap");
+    tagWrap.style.display = "none";
+    saveSRS(qid, true);
   }
+
+  if (!isCorrect) saveSRS(qid, false);
 
   updateStats(qid, isCorrect);
   progress[qid] = isCorrect ? "O" : "X";
   updateStreak();
   saveAll();
-
-  ansBox.style.display = "block";
-  if (!isCorrect) {
-    const tags = ["헷갈림", "암기부족", "실수"];
-    document.getElementById("tag-area").innerHTML = tags.map(t =>
-      `<button class="chip" onclick="setTag('${qid}', '${t}')">${t}</button>`
-    ).join("");
-  } else {
-    document.getElementById("tag-area").innerHTML = "";
-  }
   invalidateList();
   updateDashboard();
+
+  ansBox.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function moveIdx(step) {
-  const list = getList(false);
+  const list = getActiveList();
   if (!list.length) return;
-  state.idx += step;
-  if (state.idx < 0) state.idx = list.length - 1;
-  if (state.idx >= list.length) state.idx = 0;
+  let idx = getActiveIdx() + step;
+  if (idx < 0) idx = list.length - 1;
+  if (idx >= list.length) idx = 0;
+  setActiveIdx(idx);
   render();
+}
+
+function toggleAdv(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById("adv-panel");
+  p.classList.toggle("show");
+}
+
+function toggleBm(qid) {
+  bookmarks[qid] = !bookmarks[qid];
+  saveAll();
+  render();
+}
+
+function showToast(m) {
+  const t = document.getElementById("toast");
+  t.textContent = m;
+  t.className = "show";
+  setTimeout(() => t.className = "", 1400);
 }
 
 function renderExam(cArea) {
@@ -1374,7 +1572,7 @@ function renderExam(cArea) {
   cArea.innerHTML = `
     <div class="exam-timer" id="exam-timer">남은 시간: ${formatTime(getExamLeft())}</div>
     <div class="card">
-      <div class="q-meta">${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div>
+      <div class="q-meta"><div>${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div></div>
       <div class="q-text">${q.q}</div>
       <div>
         ${q.opts.map((opt, i) => `<button class="opt" onclick="pickExam(${i})">${i + 1}. ${opt}</button>`).join("")}
@@ -1550,25 +1748,6 @@ function saveWrong(qid) {
   wrongNotes[qid].count += 1;
 }
 
-function toggleBm(qid) {
-  bookmarks[qid] = !bookmarks[qid];
-  saveAll();
-  render();
-}
-
-function toggleAdv(e) {
-  if (e) e.stopPropagation();
-  const p = document.getElementById("adv-panel");
-  p.classList.toggle("show");
-}
-
-function showToast(m) {
-  const t = document.getElementById("toast");
-  t.textContent = m;
-  t.className = "show";
-  setTimeout(() => t.className = "", 2000);
-}
-
 function backupProgress() {
   const data = { progress, wrongNotes, srs, bookmarks, stats, streakInfo, savedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
@@ -1624,7 +1803,7 @@ function resetData() {
 
 function renderYearChips() {
   const wrap = document.getElementById("year-chips");
-  const years = [...new Set(allQuestions.filter(q => q.year !== "빈출").map(q => q.year))].sort();
+  const years = getYearList();
   wrap.innerHTML = `<button class="chip year-f on" data-year="all">전체 연도</button>` +
     years.map(y => `<button class="chip year-f" data-year="${y}">${y}</button>`).join("");
 }
@@ -1666,6 +1845,7 @@ window.onload = () => {
       state.subj = btn.dataset.subj;
       updateSubjUI();
       state.idx = 0;
+      state.yearlyIdx = 0;
       invalidateList();
       render();
     };
@@ -1687,6 +1867,7 @@ window.onload = () => {
       state[key] = !state[key];
       btn.classList.toggle("on");
       state.idx = 0;
+      state.yearlyIdx = 0;
       invalidateList();
       render();
     };
@@ -1695,6 +1876,7 @@ window.onload = () => {
   document.getElementById("tag-filter").onchange = e => {
     state.tagFilter = e.target.value;
     state.idx = 0;
+    state.yearlyIdx = 0;
     invalidateList();
     render();
   };
@@ -1702,6 +1884,7 @@ window.onload = () => {
   document.getElementById("search-box").oninput = e => {
     state.search = e.target.value.trim();
     state.idx = 0;
+    state.yearlyIdx = 0;
     invalidateList();
     render();
   };
@@ -1712,6 +1895,12 @@ window.onload = () => {
       btn.classList.add("on");
       state.mode = btn.dataset.mode;
       state.idx = 0;
+      state.yearlyIdx = 0;
+      if (state.mode === "yearly") {
+        state.freqOnly = false;
+        const freqBtn = document.querySelector('[data-filter="freq"]');
+        if (freqBtn) freqBtn.classList.remove("on");
+      }
       render();
     };
   });
