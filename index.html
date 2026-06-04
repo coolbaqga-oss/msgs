@@ -22,333 +22,138 @@
     --shadow: 0 1px 2px rgba(40,30,15,.06), 0 8px 24px rgba(40,30,15,.07);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
   body {
     font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    line-height: 1.65;
-    letter-spacing: -0.01em;
+    background: var(--paper); color: var(--ink); line-height: 1.65;
   }
-  .app-container {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 20px;
-    padding-bottom: 80px;
-  }
-  header {
-    border-bottom: 2px solid var(--ink);
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px; white-space: nowrap; }
-  @media (max-width: 600px) {
-    header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    h1 { font-size: 1.25rem; }
-    header .header-actions { width: 100%; justify-content: flex-end; gap: 16px; }
-  }
-
-  .dashboard {
-    display: flex; gap: 5px; margin-bottom: 20px;
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 8px; padding: 10px; box-shadow: var(--shadow);
-  }
-  .dash-item {
-    flex: 1; text-align: center; border-right: 1px solid var(--line);
-  }
+  .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px 80px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
+  h1 { font-size: 1.4rem; color: var(--burgundy); }
+  .dashboard { display: flex; gap: 5px; margin-bottom: 15px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: var(--shadow); }
+  .dash-item { flex: 1; text-align: center; border-right: 1px solid var(--line); }
   .dash-item:last-child { border-right: none; }
-  .dash-title { font-size: 0.75rem; color: var(--muted); }
-  .dash-score { font-size: 1.1rem; font-weight: bold; color: var(--burgundy); }
-  .dash-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-  .kbd-hint { font-size: 0.75rem; color: var(--muted); margin-top: 12px; text-align: center; line-height: 1.7; }
-  .kbd-hint kbd { background: var(--paper-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 0.72rem; color: var(--ink); }
+  .dash-title { font-size: 0.72rem; color: var(--muted); }
+  .dash-score { font-size: 1.05rem; font-weight: bold; color: var(--burgundy); }
+  .dash-sub { font-size: 0.65rem; color: var(--muted); }
 
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .filters-row { margin-bottom: 12px; }
-  .filters-row .filters { margin-bottom: 0; }
+  .filters-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .chip {
-    padding: 6px 12px;
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    font-size: 0.9rem;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 6px 12px; background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 20px; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: 0.2s;
   }
-  .chip.on {
-    background: var(--burgundy);
-    color: #fff;
-    border-color: var(--burgundy);
+  .chip.on { background: var(--burgundy); color: #fff; border-color: var(--burgundy); }
+
+  .adv-wrap { margin-left: auto; position: relative; }
+  .adv-toggle { background: var(--paper-2); border: 1px dashed var(--line); color: var(--muted); }
+  #adv-panel {
+    display: none; position: absolute; right: 0; top: 42px; z-index: 10;
+    background: var(--paper-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+    box-shadow: var(--shadow); min-width: 240px; gap: 10px; flex-direction: column;
+  }
+  #adv-panel.show { display: flex; }
+  @media (max-width: 480px) {
+    #adv-panel { left: 0; right: 0; width: 100%; }
   }
 
-  details.adv { width: 100%; }
-  details.adv summary { list-style: none; }
-  details.adv summary::-webkit-details-marker { display: none; }
-  details.adv summary { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  details.adv[open] summary { background: var(--ink); color: #fff; border-color: var(--ink); }
-  details.adv .adv-body { margin-top: 10px; }
+  #search-box { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.95rem; }
 
-  .mode-tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    cursor: pointer;
-    font-weight: bold;
-    color: var(--muted);
-  }
-  .mode-tab:first-child { border-radius: 8px 0 0 8px; }
-  .mode-tab:last-child { border-radius: 0 8px 8px 0; }
-  .mode-tab.on {
-    background: var(--ink);
-    color: #fff;
-    border-color: var(--ink);
-  }
+  .mode-tabs { display: flex; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+  .mode-tab { flex: 1; padding: 12px; text-align: center; background: var(--paper-2); cursor: pointer; font-weight: bold; border: none; color: var(--muted); }
+  .mode-tab.on { background: var(--ink); color: #fff; }
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-  }
-  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
-  .q-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; word-break: keep-all; }
-
-  .options { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 8px; }
+  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 20px; word-break: keep-all; }
   .opt {
-    display: block; width: 100%; text-align: left;
-    padding: 14px 16px;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 1.05rem;
-    font-family: inherit;
+    display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 1rem;
   }
-  .opt:focus { outline: 2px solid var(--gold); outline-offset: 2px; }
-  .opt:hover { border-color: var(--gold); background: var(--paper-2); }
+  .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
-  .opt.dim { opacity: 0.5; cursor: not-allowed; }
-  .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
 
-  .ans-box {
-    margin-top: 20px;
-    padding: 16px;
-    background: var(--paper-2);
-    border-left: 4px solid var(--gold);
-    border-radius: 0 8px 8px 0;
-    font-size: 0.95rem;
-    display: none;
-    animation: fadeIn 0.3s;
-  }
+  .ans-box { margin-top: 15px; padding: 16px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; }
+  .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; }
+  .nav-btn { flex: 1; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid var(--line); background: var(--card); }
+  .nav-btn.primary { background: var(--ink); color: #fff; }
 
-  .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
-  #study-actions .nav-btns { margin-top: 14px; }
-  #study-actions:empty { display: none; }
-  .nav-btn {
-    flex: 1;
-    padding: 14px;
-    background: var(--card);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-size: 1.05rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .nav-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .nav-btn.primary:hover { background: var(--burgundy); border-color: var(--burgundy); }
-  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .exam-timer {
-    background: var(--burgundy);
-    color: white;
-    padding: 10px;
-    text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    position: sticky;
-    top: 10px;
-    z-index: 100;
-    box-shadow: var(--shadow);
-  }
-  .exam-submit-btn {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-top: 30px;
-    margin-bottom: 40px;
-    cursor: pointer;
-  }
-  .exam-result-box {
-    background: var(--card);
-    border: 2px solid var(--burgundy);
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .wrong-badge {
-    display: inline-block;
-    background: var(--red-soft);
-    color: var(--red);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-left: 10px;
-  }
-
-  #toast {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: var(--burgundy);
-    color: #fff;
-    text-align: center;
-    border-radius: 8px;
-    padding: 16px;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 0.95rem;
-    box-shadow: var(--shadow);
-  }
-  #toast.show {
-    visibility: visible;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  }
-  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-  @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  .exam-timer { background: var(--burgundy); color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; }
+  #toast { visibility: hidden; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 12px 24px; border-radius: 30px; z-index: 1000; }
+  #toast.show { visibility: visible; animation: fadeInOut 2.5s; }
+  @keyframes fadeInOut { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
 </style>
 </head>
 <body>
 
 <div class="app-container">
   <header>
-    <div>
-      <div class="kicker">올해 모두 붙어버리자!</div>
-      <h1>목사고시 기출문제(2015-2025)</h1>
-    </div>
-    <div class="header-actions" style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
-      <button id="refresh" title="새로고침" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">🔄 새로고침</button>
-      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬇ 진도 백업</button>
-      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬆ 진도 복원</button>
-      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; white-space:nowrap;">기록 초기화</button>
-      <input type="file" id="restore-file" accept="application/json,.json" style="display:none;">
+    <div><h1>목사고시 기출(2015-2025)</h1></div>
+    <div style="display:flex; gap:10px; font-size:0.75rem;">
+      <button onclick="backupProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">백업</button>
+      <button onclick="restoreProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">복원</button>
+      <button onclick="resetData()" style="background:none; border:none; color:var(--red); text-decoration:underline; cursor:pointer;">초기화</button>
+      <input type="file" id="restore-file" style="display:none;" onchange="handleRestore(event)">
     </div>
   </header>
 
   <div class="dashboard">
-    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div><div class="dash-sub" id="cnt-bible">0/0</div></div>
-    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div><div class="dash-sub" id="cnt-history">0/0</div></div>
-    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div><div class="dash-sub" id="cnt-law">0/0</div></div>
+    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
+    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
+    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
   </div>
-
   <div class="dashboard">
-    <div class="dash-item"><div class="dash-title">오늘 푼 문제</div><div class="dash-score" id="stat-today">0</div></div>
     <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
-    <div class="dash-item"><div class="dash-title">전체 진척도</div><div class="dash-score" id="stat-progress">0%</div><div class="dash-sub" id="stat-progress-sub">0/0</div></div>
+    <div class="dash-item"><div class="dash-title">전체 진도</div><div class="dash-score" id="stat-progress">0%</div></div>
     <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
   </div>
 
-  <div class="filters-row">
-    <div class="filters">
-      <button class="chip year-f on" data-year="all">전체 연도</button>
-      <button class="chip year-f" data-year="2015">2015 기출</button>
-      <button class="chip year-f" data-year="2016">2016 기출</button>
-      <button class="chip year-f" data-year="2017">2017 기출</button>
-      <button class="chip year-f" data-year="2018">2018 기출</button>
-      <button class="chip year-f" data-year="2019">2019 기출</button>
-      <button class="chip year-f" data-year="2020">2020 기출</button>
-      <button class="chip year-f" data-year="2021">2021 기출</button>
-      <button class="chip year-f" data-year="2022">2022 기출</button>
-      <button class="chip year-f" data-year="2023">2023 기출</button>
-      <button class="chip year-f" data-year="2024">2024 기출</button>
-      <button class="chip year-f" data-year="2025">2025 기출</button>
-    </div>
-  </div>
-
-  <div class="filters-row">
+  <div class="filters-group">
+    <div class="filters" id="year-chips"></div>
     <div class="filters">
       <button class="chip subj-f on" data-subj="all">전체 과목</button>
       <button class="chip subj-f" data-subj="성경">성경</button>
       <button class="chip subj-f" data-subj="교회사">교회사</button>
       <button class="chip subj-f" data-subj="헌법">헌법</button>
-    </div>
-  </div>
-
-  <div class="filters-row">
-    <input id="search-box" type="text" placeholder="🔍 문제·보기·해설 키워드 검색 (예: 위임목사, 터툴리아누스)" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; box-sizing:border-box;">
-  </div>
-
-  <div class="filters-row">
-    <div class="filters">
-      <button class="chip" data-filter="due" style="border-color:var(--ink); color:var(--ink); font-weight:bold;">📅 오늘 복습 <span id="due-count"></span></button>
-      <button class="chip" data-filter="wrong">내가 틀린 문제</button>
       <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
-      <button class="chip" data-filter="bookmark" style="border-color:var(--gold); color:#9a7d00; font-weight:bold;">⭐ 별표 모음 <span id="bm-count"></span></button>
+      <div class="adv-wrap">
+        <button class="chip adv-toggle" onclick="toggleAdv(event)">⚙️ 고급</button>
+        <div id="adv-panel">
+          <div class="filters">
+            <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
+            <button class="chip" data-filter="wrongnote">🔥 오답 TOP3</button>
+            <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
+          </div>
+          <select id="tag-filter" style="padding:8px; border-radius:6px; border:1px solid var(--line);">
+            <option value="all">🏷 모든 오답 태그</option>
+            <option value="헷갈림">헷갈림</option>
+            <option value="암기부족">암기부족</option>
+            <option value="실수">실수</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <input id="search-box" type="text" placeholder="🔍 문제 키워드 검색...">
+    <div class="filters">
+      <button class="chip" data-filter="due">📅 오늘 복습</button>
+      <button class="chip" data-filter="wrong">❌ 오답만</button>
+      <button class="chip" data-filter="bookmark">⭐ 별표</button>
     </div>
   </div>
 
-  <div class="filters-row">
-    <details id="adv-filters" class="adv">
-      <summary class="chip adv-summary">⚙️ 고급 필터</summary>
-      <div class="filters adv-body">
-        <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
-        <button class="chip" data-filter="wrongnote" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;">🔥 약점 TOP(3회 이상)</button>
-        <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
-        <select id="tag-filter" class="chip" style="cursor:pointer;">
-          <option value="all">🏷 오답 태그: 전체</option>
-          <option value="헷갈림">🏷 헷갈림</option>
-          <option value="암기부족">🏷 암기부족</option>
-          <option value="실수">🏷 실수</option>
-        </select>
-      </div>
-    </details>
-  </div>
-
-  <div class="filters" style="display:flex; margin-bottom:20px;">
-    <button class="mode-tab on" data-mode="study">학습 모드</button>
-    <button class="mode-tab" data-mode="yearly">📚 연도별 기출</button>
-    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
+  <div class="mode-tabs">
+    <button class="mode-tab on" data-mode="study">학습</button>
+    <button class="mode-tab" data-mode="yearly">기출</button>
+    <button class="mode-tab" style="color:var(--red);" data-mode="exam">모의</button>
   </div>
 
   <div id="content-area"></div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ==========================================
-// 1. 데이터베이스 영역
-// ==========================================
 const allQuestions = [
-  
+  // 여기에 2015~2025 전체 문제를 붙여넣기
  // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
@@ -979,9 +784,6 @@ const allQuestions = [
 {subj:"헌법",year:"2022",no:32,q:"목사의 청빙에 관한 다음 설명 중 옳은 것은?",opts:["담임목사의 청빙은 당회의 결의와 공동의회 출석회원 과반수의 찬성을 얻어야 한다","노회의 폐회 중에는 위임(담임목사) 청빙에 한하여 노회 정치부의 결의를 거쳐 임원회가 승인할 수 있다","담임목사 연임 청원의 경우 제직 전원이 만장일치로 찬성하면 제직회를 본인이 인도할 수 있다","목사 청빙 승인은 노회 소집 통지서가 발송된 후에는 임원회와 정치부에서 할 수 있다","목사의 청빙 시 당회의 결의와 제직회 또는 공동의회 출석회원 만장일치의 찬성을 얻으면 모든 청빙 절차가 마무리된다"],a:1,e:"<b>정치 제29조</b> — 노회 폐회 중에는 목사 청빙을 <b>노회 정치부를 경유하여 임원회의 허락(승인)</b>으로 처리할 수 있다. (담임목사 청빙은 공동의회가 아니라 당회/제직회 관할임)"},
 {subj:"헌법",year:"2022",no:33,q:"다음 중 공동의회의 필수 결의사항이 아닌 것은?",opts:["당회가 제시한 사항","예산 및 결산","직원선거","교회의 중요한 부동산 매각","상회가 지시한 사항"],a:3,e:"<b>정치 제90조, 제91조</b> — 예산 및 결산, 직원 선거, 당회/상회 지시 사항은 공동의회 결의 사항이나, <b>부동산 매매(매각)</b>는 제직회의 결의 사항이다."},
 
-
-
-
 // ===================== 2023 기출문제 =====================
 // 성경
 {subj:"성경",year:"2023",no:1,q:"괄호 안에 알맞은 말은 무엇인가?<br>“이는 멜기세덱이 아브라함을 만날 때에 레위는 이미 자기 조상의 (     )에 있었음이라”(히 7:10)",opts:["허리","무덤","족보","반열","기업"],a:0,e:"<b>히브리서 7:10</b> — 이는 멜기세덱이 아브라함을 만날 때에 레위는 이미 자기 조상의 <b>허리</b>에 있었음이라."},
@@ -1295,269 +1097,51 @@ const allQuestions = [
 
 ];
 
-// ==========================================
-// ⭐ 빈출 문제 세트 (자동 분석 + 부족 시 수동 보강)
-// ==========================================
-const MANUAL_FREQ_BANK = [
-  // (기존 FREQ_BANK 그대로 유지 또는 비워도 됨)
-];
-
-function stripHtml(s) { return s.replace(/<[^>]*>/g, ''); }
-function normalizeKey(q) {
-  const t = stripHtml(q.q || "").toLowerCase().replace(/[^0-9a-zA-Z가-힣]/g, "");
-  return `${q.subj}|${t}`;
+function keyText(t) {
+  return (t || "").toLowerCase().replace(/\s+/g, "").replace(/[^\w가-힣]/g, "").slice(0, 80);
 }
-function buildFreqBank(raw, manual) {
-  const map = new Map();
-  raw.forEach(q => {
-    if (q.year === '빈출') return;
-    const key = normalizeKey(q);
-    if (!map.has(key)) map.set(key, { count: 0, rep: q });
-    const obj = map.get(key);
-    obj.count++;
-    const y = Number(q.year);
-    const ry = Number(obj.rep.year);
-    if (!isNaN(y) && !isNaN(ry) && y > ry) obj.rep = q;
-  });
 
-  let auto = [...map.values()]
+function getFreqQs(list) {
+  const map = new Map();
+  list.forEach(q => {
+    const key = keyText(q.q) + "_" + q.subj;
+    if (!map.has(key)) map.set(key, { count: 0, data: q });
+    map.get(key).count++;
+  });
+  return [...map.values()]
     .filter(v => v.count >= 2)
     .sort((a, b) => b.count - a.count)
-    .map(v => {
-      const r = { ...v.rep };
-      r.year = "빈출";
-      r.no = null;
-      r.freqCount = v.count;
-      return r;
-    });
-
-  const FREQ_MIN = 20;
-  const FREQ_MAX = 60;
-  if (auto.length < FREQ_MIN && manual && manual.length) {
-    const set = new Set(auto.map(q => normalizeKey(q)));
-    manual.forEach(m => {
-      const k = normalizeKey(m);
-      if (!set.has(k)) auto.push(m);
-    });
-  }
-  if (auto.length > FREQ_MAX) auto = auto.slice(0, FREQ_MAX);
-  return auto;
+    .map(v => ({ ...v.data, year: "빈출" }));
 }
-const FREQ_BANK = buildFreqBank(allQuestions, MANUAL_FREQ_BANK);
-FREQ_BANK.forEach(q => allQuestions.push(q));
 
-// ==========================================
-// 2. 상태 및 로컬 스토리지 관리
-// ==========================================
+const baseQuestions = allQuestions.slice();
+const freqPool = getFreqQs(baseQuestions);
+freqPool.forEach(q => allQuestions.push(q));
+
 let state = {
-  years: [],
-  subj: 'all',
-  mode: 'study',
-  idx: 0,
-  freqOnly: false,
-  wrongOnly: false,
-  shuffled: false,
-  wrongnoteOnly: false,
-  dueOnly: false,
-  bookmarkOnly: false,
-  search: "",
-  tagFilter: "all",
-  weakOnly: false
+  years: [], subj: "all", mode: "study", idx: 0,
+  freqOnly: false, wrongOnly: false, shuffled: false,
+  bookmarkOnly: false, search: "", tagFilter: "all",
+  wrongnoteOnly: false, weakOnly: false, dueOnly: false
 };
 
-const APP_VERSION = "2026-06-04-04";
-let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
-let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
-let srs = JSON.parse(localStorage.getItem("srs")) || {};
-let studyStats = JSON.parse(localStorage.getItem("studyStats")) || { streak: 0, lastDate: null, daily: {} };
-let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};
-let lastQid = localStorage.getItem("lastQid") || null;
-let repeatQueue = JSON.parse(localStorage.getItem("repeatQueue")) || {};
-let list = [];
-let showAns = false;
+let progress = JSON.parse(localStorage.getItem("mok_prog")) || {};
+let wrongNotes = JSON.parse(localStorage.getItem("mok_wrong")) || {};
+let srs = JSON.parse(localStorage.getItem("mok_srs")) || {};
+let bookmarks = JSON.parse(localStorage.getItem("mok_bm")) || {};
+let stats = JSON.parse(localStorage.getItem("mok_stats")) || {};
+let streakInfo = JSON.parse(localStorage.getItem("mok_streak")) || { last: "", streak: 0 };
 
-let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null };
 
-const REPEAT_DELAY = 2;
-const SRS_STEPS = [1, 3, 7, 14, 30, 60];
-const SUBJ_ORDER = { "성경": 1, "교회사": 2, "헌법": 3 };
+let listCache = { key: "", list: [] };
 
-let QUESTIONS_BY_YEAR = {};
-let QUESTIONS_BY_SUBJ = {};
-let ALL_REAL = [];
-let FREQ_ONLY = [];
-let QID_MAP = {};
-let indexBuilt = false;
+function normalize(s) { return (s || "").toLowerCase().trim(); }
+function formatDate(d) { return d.toISOString().split("T")[0]; }
+function todayStr() { return formatDate(new Date()); }
+function addDays(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d; }
 
-function hashStr(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(36);
-}
-function getQId(q) {
-  if (q.id) return q.id;
-  const base = `${q.year}|${q.subj}|${q.no ?? ''}|${q.q}`;
-  return `q_${hashStr(base)}`;
-}
-function legacyGetQId(q) {
-  return `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
-}
-function prepareQuestion(q) {
-  if (!q._hay) q._hay = (q.q + ' ' + q.opts.join(' ') + ' ' + (q.e || '')).toLowerCase();
-}
-function buildIndex() {
-  if (indexBuilt) return;
-  allQuestions.forEach(q => {
-    prepareQuestion(q);
-    const qid = getQId(q);
-    QID_MAP[qid] = q;
-    if (!QUESTIONS_BY_YEAR[q.year]) QUESTIONS_BY_YEAR[q.year] = [];
-    QUESTIONS_BY_YEAR[q.year].push(q);
-    if (!QUESTIONS_BY_SUBJ[q.subj]) QUESTIONS_BY_SUBJ[q.subj] = [];
-    QUESTIONS_BY_SUBJ[q.subj].push(q);
-    if (q.year === '빈출') FREQ_ONLY.push(q);
-    else ALL_REAL.push(q);
-  });
-  indexBuilt = true;
-}
-function migrateStorage() {
-  const legacyToNew = {};
-  allQuestions.forEach(q => { legacyToNew[legacyGetQId(q)] = getQId(q); });
-  const migrateObj = (obj) => {
-    const n = {};
-    for (const k in obj) {
-      const nk = legacyToNew[k] || k;
-      if (!n[nk]) n[nk] = obj[k];
-    }
-    return n;
-  };
-  progress = migrateObj(progress);
-  wrongNotes = migrateObj(wrongNotes);
-  srs = migrateObj(srs);
-  bookmarks = migrateObj(bookmarks);
-  if (lastQid && legacyToNew[lastQid]) lastQid = legacyToNew[lastQid];
-  localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
-  localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-  localStorage.setItem("srs", JSON.stringify(srs));
-  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-  if (lastQid) localStorage.setItem("lastQid", lastQid);
-}
-function saveRepeatQueue() { localStorage.setItem("repeatQueue", JSON.stringify(repeatQueue)); }
-function queueRepeat(qid) { repeatQueue[qid] = REPEAT_DELAY; saveRepeatQueue(); }
-function tickRepeat() { for (const id in repeatQueue) if (repeatQueue[id] > 0) repeatQueue[id]--; saveRepeatQueue(); }
-function injectRepeats(baseList) {
-  if (state.dueOnly || state.search) return baseList;
-  const ready = Object.keys(repeatQueue).filter(id => repeatQueue[id] <= 0);
-  if (ready.length === 0) return baseList;
-  const insertAt = Math.min(state.idx + 1, baseList.length);
-  const insertQs = ready.map(id => QID_MAP[id]).filter(Boolean);
-  const newList = baseList.slice();
-  newList.splice(insertAt, 0, ...insertQs);
-  ready.forEach(id => delete repeatQueue[id]);
-  saveRepeatQueue();
-  return newList;
-}
-function syncAdvOpen() {
-  const adv = document.getElementById("adv-filters");
-  if (!adv) return;
-  const active = state.freqOnly || state.wrongnoteOnly || state.weakOnly || state.tagFilter !== 'all';
-  if (active) adv.open = true;
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function addDays(dateStr, n) {
-  const [y,m,d] = dateStr.split('-').map(Number);
-  const dt = new Date(y, m-1, d);
-  dt.setDate(dt.getDate() + n);
-  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-}
-function scheduleCard(qid, knew) {
-  let s = srs[qid] || { box: 0, interval: 0, due: null, last: null };
-  if (knew) {
-    s.box = (s.box || 0) + 1;
-    s.interval = SRS_STEPS[Math.min(s.box - 1, SRS_STEPS.length - 1)];
-  } else {
-    s.box = 0;
-    s.interval = 0;
-  }
-  s.last = todayStr();
-  s.due = addDays(todayStr(), s.interval);
-  srs[qid] = s;
-  localStorage.setItem("srs", JSON.stringify(srs));
-  return s;
-}
-function dueCount() {
-  const t = todayStr();
-  let n = 0;
-  for (const id in srs) { if (srs[id] && srs[id].due && srs[id].due <= t) n++; }
-  return n;
-}
-function updateDueBadge() {
-  const el = document.getElementById("due-count");
-  if (el) { const n = dueCount(); el.textContent = n > 0 ? `(${n})` : ""; }
-}
-function updateBmBadge() {
-  const el = document.getElementById("bm-count");
-  if (el) { const n = Object.keys(bookmarks).length; el.textContent = n > 0 ? `(${n})` : ""; }
-}
-function trimDaily(maxDays = 120) {
-  const keys = Object.keys(studyStats.daily || {}).sort();
-  if (keys.length <= maxDays) return;
-  const keep = new Set(keys.slice(keys.length - maxDays));
-  const d = {};
-  keys.forEach(k => { if (keep.has(k)) d[k] = studyStats.daily[k]; });
-  studyStats.daily = d;
-}
-function bumpStudyStats() {
-  const t = todayStr();
-  if (!studyStats.daily) studyStats.daily = {};
-  studyStats.daily[t] = (studyStats.daily[t] || 0) + 1;
-  if (studyStats.lastDate !== t) {
-    const yesterday = addDays(t, -1);
-    studyStats.streak = (studyStats.lastDate === yesterday) ? (studyStats.streak || 0) + 1 : 1;
-    studyStats.lastDate = t;
-  }
-  trimDaily();
-  localStorage.setItem("studyStats", JSON.stringify(studyStats));
-}
-function applyGrade(q, qid, knew) {
-  progress[qid] = knew ? 'O' : 'X';
-  const info = scheduleCard(qid, knew);
-  bumpStudyStats();
-  if (!knew) {
-    if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
-    wrongNotes[qid].count++;
-    wrongNotes[qid].last = todayStr();
-    localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-    queueRepeat(qid);
-    showToast("✗ 오답 기록 — 곧 다시 출제됩니다.");
-  } else {
-    showToast(`✓ 알겠음 — ${info.interval}일 후 복습 예정`);
-  }
-  localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
-  updateDashboard();
-  updateDueBadge();
-}
-function showToast(msg) {
-  const x = document.getElementById("toast");
-  x.innerHTML = msg;
-  x.className = "show";
-  setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
-}
-function scrollToQuestion() {
-  const el = document.querySelector('#content-area .nav-btns') || document.querySelector('.card');
-  if (el) {
-    const y = el.getBoundingClientRect().top + window.pageYOffset - 16;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
-  }
-}
-function shuffleArray(arr) {
+function shuffleArr(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -1565,64 +1149,584 @@ function shuffleArray(arr) {
   }
   return a;
 }
-function getWeakSet() {
-  const entries = Object.entries(wrongNotes).map(([id, v]) => ({ id, count: v.count || 0 })).filter(x => x.count > 0);
-  if (entries.length === 0) return new Set();
-  entries.sort((a, b) => b.count - a.count);
-  const cut = Math.max(1, Math.ceil(entries.length * 0.2));
-  return new Set(entries.slice(0, cut).map(x => x.id));
+
+function getQId(q) {
+  const head = (q.q || "").replace(/\s+/g, "").slice(0, 20);
+  return `${q.year}-${q.subj}-${q.no || head}`;
 }
-function getYearPool() {
-  if (state.freqOnly) return FREQ_ONLY.slice();
-  if (state.years.length === 0) return ALL_REAL.slice();
-  let out = [];
-  state.years.forEach(y => { if (QUESTIONS_BY_YEAR[y]) out = out.concat(QUESTIONS_BY_YEAR[y]); });
-  return out;
+
+function getAttempt(qid) {
+  if (stats[qid]) return stats[qid];
+  if (progress[qid] === "O") return { c: 1, t: 1 };
+  if (progress[qid] === "X") return { c: 0, t: 1 };
+  return { c: 0, t: 0 };
 }
-function yearsLabel() { return state.years.length === 0 ? '전체 연도' : state.years.slice().sort().join('·'); }
+
+function isDue(qid) {
+  const s = srs[qid];
+  if (!s || !s.due) return false;
+  return s.due <= todayStr();
+}
+
+function saveAll() {
+  localStorage.setItem("mok_prog", JSON.stringify(progress));
+  localStorage.setItem("mok_wrong", JSON.stringify(wrongNotes));
+  localStorage.setItem("mok_srs", JSON.stringify(srs));
+  localStorage.setItem("mok_bm", JSON.stringify(bookmarks));
+  localStorage.setItem("mok_stats", JSON.stringify(stats));
+  localStorage.setItem("mok_streak", JSON.stringify(streakInfo));
+}
+
+function invalidateList() { listCache.key = ""; }
+
+function getTopWrongIds(n) {
+  const entries = Object.entries(wrongNotes)
+    .map(([qid, v]) => ({ qid, count: v.count || 0 }))
+    .filter(x => x.count > 0)
+    .sort((a, b) => b.count - a.count);
+  return new Set(entries.slice(0, n).map(x => x.qid));
+}
+
+function getWeakIds(list) {
+  if (!list.length) return new Set();
+  const arr = list.map(q => {
+    const qid = getQId(q);
+    const st = getAttempt(qid);
+    const acc = st.t ? st.c / st.t : 0;
+    return { qid, acc };
+  }).sort((a, b) => a.acc - b.acc);
+  const n = Math.max(1, Math.ceil(arr.length * 0.2));
+  return new Set(arr.slice(0, n).map(x => x.qid));
+}
+
+function buildList(forExam) {
+  const search = normalize(state.search);
+  let temp = allQuestions.filter(q => {
+    if (!q || !q.q) return false;
+    const isFreq = q.year === "빈출";
+    if (state.freqOnly) {
+      if (!isFreq) return false;
+    } else if (isFreq) return false;
+
+    const yMatch = state.years.length === 0 || state.years.includes(q.year);
+    const sMatch = state.subj === "all" || q.subj === state.subj;
+    if (!yMatch || !sMatch) return false;
+
+    if (search) {
+      const blob = (q.q + " " + (q.opts || []).join(" ") + " " + (q.e || "")).toLowerCase();
+      if (!blob.includes(search)) return false;
+    }
+
+    if (!forExam) {
+      const qid = getQId(q);
+      if (state.dueOnly && !isDue(qid)) return false;
+      if (state.wrongOnly && progress[qid] !== "X") return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
+    }
+    return true;
+  });
+
+  if (!forExam) {
+    if (state.wrongnoteOnly) {
+      const set = getTopWrongIds(3);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
+    if (state.weakOnly) {
+      const set = getWeakIds(temp);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
+  }
+  return temp;
+}
+
+function getList(forExam) {
+  const key = JSON.stringify({
+    years: state.years.slice().sort(),
+    subj: state.subj, freqOnly: state.freqOnly, wrongOnly: state.wrongOnly,
+    shuffled: state.shuffled, bookmarkOnly: state.bookmarkOnly,
+    search: state.search, tagFilter: state.tagFilter,
+    wrongnoteOnly: state.wrongnoteOnly, weakOnly: state.weakOnly, dueOnly: state.dueOnly,
+    forExam
+  });
+  if (listCache.key !== key) {
+    let list = buildList(forExam);
+    if (state.shuffled) list = shuffleArr(list);
+    listCache = { key, list };
+  }
+  return listCache.list;
+}
+
+function render() {
+  const cArea = document.getElementById("content-area");
+  if (state.mode === "exam") return renderExam(cArea);
+  return renderStudy(cArea);
+}
+
+function renderStudy(cArea) {
+  const list = getList(false);
+  if (list.length === 0) {
+    cArea.innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
+    updateDashboard();
+    return;
+  }
+  if (state.idx >= list.length) state.idx = 0;
+  const q = list[state.idx];
+  const qid = getQId(q);
+
+  cArea.innerHTML = `
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="moveIdx(-1)">◀ 이전</button>
+      <button class="nav-btn primary" onclick="moveIdx(1)">다음 ▶</button>
+    </div>
+    <div class="card">
+      <div class="q-meta">
+        ${state.idx + 1} / ${list.length} | ${q.year}년 ${q.subj}
+        <span onclick="toggleBm('${qid}')" style="float:right; cursor:pointer; color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div id="options-area">
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
+      </div>
+      <div class="ans-box" id="ans-box">
+        <strong>정답: ${q.a + 1}번</strong><br>${q.e || ""}
+        <div class="nav-btns" style="margin-top:15px;" id="tag-area"></div>
+      </div>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function checkAns(picked) {
+  const list = getList(false);
+  const q = list[state.idx];
+  const qid = getQId(q);
+  const ansBox = document.getElementById("ans-box");
+  if (ansBox.style.display === "block") return;
+
+  const isCorrect = picked === q.a;
+  const opts = document.querySelectorAll(".opt");
+  opts[picked].classList.add("selected");
+  opts[q.a].classList.add("correct");
+
+  if (!isCorrect) {
+    opts[picked].classList.add("wrong");
+    saveWrong(qid);
+    saveSRS(qid, false);
+    showToast("틀렸습니다. 오답노트에 기록됩니다.");
+  } else {
+    saveSRS(qid, true);
+    showToast("정답입니다!");
+  }
+
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  updateStreak();
+  saveAll();
+
+  ansBox.style.display = "block";
+  if (!isCorrect) {
+    const tags = ["헷갈림", "암기부족", "실수"];
+    document.getElementById("tag-area").innerHTML = tags.map(t =>
+      `<button class="chip" onclick="setTag('${qid}', '${t}')">${t}</button>`
+    ).join("");
+  } else {
+    document.getElementById("tag-area").innerHTML = "";
+  }
+  invalidateList();
+  updateDashboard();
+}
+
+function moveIdx(step) {
+  const list = getList(false);
+  if (!list.length) return;
+  state.idx += step;
+  if (state.idx < 0) state.idx = list.length - 1;
+  if (state.idx >= list.length) state.idx = 0;
+  render();
+}
+
+function renderExam(cArea) {
+  if (!exam.active) {
+    cArea.innerHTML = `
+      <div class="card">
+        <div class="q-text">모의고사 설정</div>
+        <div style="display:flex; gap:10px; margin-bottom:10px;">
+          <select id="exam-count" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
+            <option value="20">20문항</option>
+            <option value="30">30문항</option>
+            <option value="50">50문항</option>
+          </select>
+          <select id="exam-time" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
+            <option value="30">30분</option>
+            <option value="40">40분</option>
+            <option value="60">60분</option>
+          </select>
+        </div>
+        <button class="nav-btn primary" onclick="startExam()">모의고사 시작</button>
+      </div>
+    `;
+    updateDashboard();
+    return;
+  }
+
+  const q = exam.list[exam.idx];
+  cArea.innerHTML = `
+    <div class="exam-timer" id="exam-timer">남은 시간: ${formatTime(getExamLeft())}</div>
+    <div class="card">
+      <div class="q-meta">${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div>
+      <div class="q-text">${q.q}</div>
+      <div>
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="pickExam(${i})">${i + 1}. ${opt}</button>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function startExam() {
+  const count = parseInt(document.getElementById("exam-count").value, 10);
+  const minutes = parseInt(document.getElementById("exam-time").value, 10);
+  let list = getList(true);
+  if (!list.length) {
+    document.getElementById("content-area").innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
+    return;
+  }
+  list = shuffleArr(list);
+  exam.list = list.slice(0, Math.min(count, list.length));
+  exam.answers = [];
+  exam.idx = 0;
+  exam.active = true;
+  exam.start = Date.now();
+  exam.duration = minutes * 60;
+  startExamTimer();
+  renderExam(document.getElementById("content-area"));
+}
+
+function pickExam(picked) {
+  const q = exam.list[exam.idx];
+  const qid = getQId(q);
+  const isCorrect = picked === q.a;
+  exam.answers[exam.idx] = picked;
+  recordAnswer(qid, isCorrect);
+  if (exam.idx < exam.list.length - 1) {
+    exam.idx++;
+    renderExam(document.getElementById("content-area"));
+  } else {
+    finishExam(false);
+  }
+}
+
+function recordAnswer(qid, isCorrect) {
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  if (!isCorrect) saveWrong(qid);
+  saveSRS(qid, isCorrect);
+  updateStreak();
+  saveAll();
+  invalidateList();
+}
+
+function startExamTimer() {
+  clearInterval(exam.timerId);
+  exam.timerId = setInterval(() => {
+    if (!exam.active) return;
+    const left = getExamLeft();
+    const el = document.getElementById("exam-timer");
+    if (el) el.textContent = "남은 시간: " + formatTime(left);
+    if (left <= 0) finishExam(true);
+  }, 500);
+}
+
+function getExamLeft() {
+  const elapsed = Math.floor((Date.now() - exam.start) / 1000);
+  return Math.max(0, exam.duration - elapsed);
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function finishExam(timeOver) {
+  clearInterval(exam.timerId);
+  exam.active = false;
+
+  const total = exam.list.length;
+  let correct = 0;
+  const wrongItems = [];
+  exam.list.forEach((q, i) => {
+    const picked = exam.answers[i];
+    if (picked === q.a) correct++;
+    else wrongItems.push({ q, picked });
+  });
+
+  const score = total ? Math.round((correct / total) * 100) : 0;
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = `
+    <div class="card">
+      <div class="q-text">${timeOver ? "시간 종료" : "모의고사 완료"}</div>
+      <div style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">점수: ${score}점 (${correct}/${total})</div>
+      ${wrongItems.length ? `
+        <div style="margin-top:10px;">
+          ${wrongItems.map(w => `
+            <div style="padding:10px; border-top:1px dashed var(--line);">
+              <div style="color:var(--gold); font-weight:bold;">오답: ${w.q.year}년 ${w.q.subj}</div>
+              <div>${w.q.q}</div>
+              <div style="margin-top:6px;">정답: ${w.q.a + 1}번 / 선택: ${w.picked !== undefined ? w.picked + 1 : "미응답"}</div>
+              <div style="margin-top:6px; color:var(--muted);">${w.q.e || ""}</div>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div>오답이 없습니다.</div>`}
+      <button class="nav-btn primary" style="margin-top:15px;" onclick="render()">다시 돌아가기</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function updateStats(qid, isCorrect) {
+  if (!stats[qid]) stats[qid] = { c: 0, t: 0 };
+  stats[qid].t += 1;
+  if (isCorrect) stats[qid].c += 1;
+}
+
+function updateStreak() {
+  const today = todayStr();
+  if (streakInfo.last === today) return;
+  const yesterday = formatDate(addDays(new Date(), -1));
+  if (streakInfo.last === yesterday) streakInfo.streak += 1;
+  else streakInfo.streak = 1;
+  streakInfo.last = today;
+}
 
 function updateDashboard() {
-  let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
-  let answeredReal = 0, totalReal = 0;
+  const base = allQuestions.filter(q => q.year !== "빈출");
+  const bySubj = { "성경": { c: 0, t: 0 }, "교회사": { c: 0, t: 0 }, "헌법": { c: 0, t: 0 } };
+  let total = 0, answered = 0;
 
-  ALL_REAL.forEach(q => {
-    totalReal++;
+  base.forEach(q => {
     const qid = getQId(q);
-    if (progress[qid] === 'O' || progress[qid] === 'X') {
-      answeredReal++;
-      if (stats[q.subj]) {
-          stats[q.subj].t++;
-          if (progress[qid] === 'O') stats[q.subj].c++;
-      }
+    const st = getAttempt(qid);
+    if (st.t > 0) answered++;
+    total++;
+    if (bySubj[q.subj]) {
+      bySubj[q.subj].c += st.c;
+      bySubj[q.subj].t += st.t;
     }
   });
 
-  const map = { '성경': 'bible', '교회사': 'history', '헌법': 'law' };
-  ['성경', '교회사', '헌법'].forEach(subj => {
-    const key = map[subj];
-    const el = document.getElementById(`score-${key}`);
-    if (el) {
-      const percent = stats[subj].t === 0 ? 0 : Math.round((stats[subj].c / stats[subj].t) * 100);
-      el.textContent = `${percent}%`;
-    }
-    const cnt = document.getElementById(`cnt-${key}`);
-    if (cnt) cnt.textContent = `${stats[subj].c}/${stats[subj].t} 정답`;
-  });
+  const progressPct = total ? Math.round((answered / total) * 100) : 0;
+  const dueCount = Object.keys(srs).filter(qid => isDue(qid)).length;
 
-  const today = todayStr();
-  const todayEl = document.getElementById("stat-today");
-  if (todayEl) todayEl.textContent = `${(studyStats.daily && studyStats.daily[today]) || 0}`;
-  const streakEl = document.getElementById("stat-streak");
-  if (streakEl) streakEl.textContent = `${studyStats.streak || 0}일`;
-  const progEl = document.getElementById("stat-progress");
-  if (progEl) progEl.textContent = totalReal === 0 ? '0%' : `${Math.round((answeredReal / totalReal) * 100)}%`;
-  const progSub = document.getElementById("stat-progress-sub");
-  if (progSub) progSub.textContent = `${answeredReal}/${totalReal}`;
-  const dueEl = document.getElementById("stat-due");
-  if (dueEl) dueEl.textContent = `${dueCount()}`;
+  const acc = obj => obj.t ? Math.round((obj.c / obj.t) * 100) : 0;
+  document.getElementById("score-bible").textContent = acc(bySubj["성경"]) + "%";
+  document.getElementById("score-history").textContent = acc(bySubj["교회사"]) + "%";
+  document.getElementById("score-law").textContent = acc(bySubj["헌법"]) + "%";
+  document.getElementById("stat-progress").textContent = progressPct + "%";
+  document.getElementById("stat-streak").textContent = (streakInfo.streak || 0) + "일";
+  document.getElementById("stat-due").textContent = dueCount;
 }
 
-// (이하 JS 로직은 기존 유지)
+function saveSRS(qid, success) {
+  const today = new Date();
+  const prev = srs[qid] || { interval: 0 };
+  let interval = success ? (prev.interval ? Math.min(prev.interval * 2, 60) : 1) : 1;
+  let due = success ? addDays(today, interval) : today;
+  srs[qid] = { due: formatDate(due), interval };
+}
+
+function setTag(qid, tag) {
+  if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0 };
+  wrongNotes[qid].tag = tag;
+  saveAll();
+  invalidateList();
+  showToast(`'${tag}' 태그가 설정되었습니다.`);
+  render();
+}
+
+function saveWrong(qid) {
+  if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0 };
+  wrongNotes[qid].count += 1;
+}
+
+function toggleBm(qid) {
+  bookmarks[qid] = !bookmarks[qid];
+  saveAll();
+  render();
+}
+
+function toggleAdv(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById("adv-panel");
+  p.classList.toggle("show");
+}
+
+function showToast(m) {
+  const t = document.getElementById("toast");
+  t.textContent = m;
+  t.className = "show";
+  setTimeout(() => t.className = "", 2000);
+}
+
+function backupProgress() {
+  const data = { progress, wrongNotes, srs, bookmarks, stats, streakInfo, savedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mok_backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("백업 파일이 저장되었습니다.");
+}
+
+function restoreProgress() {
+  document.getElementById("restore-file").click();
+}
+
+function handleRestore(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      progress = data.progress || {};
+      wrongNotes = data.wrongNotes || {};
+      srs = data.srs || {};
+      bookmarks = data.bookmarks || {};
+      stats = data.stats || {};
+      streakInfo = data.streakInfo || { last: "", streak: 0 };
+      saveAll();
+      invalidateList();
+      render();
+      showToast("복원이 완료되었습니다.");
+    } catch {
+      showToast("복원 실패: 파일을 확인하세요.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (!confirm("모든 기록을 초기화하시겠습니까?")) return;
+  progress = {};
+  wrongNotes = {};
+  srs = {};
+  bookmarks = {};
+  stats = {};
+  streakInfo = { last: "", streak: 0 };
+  saveAll();
+  invalidateList();
+  render();
+  showToast("초기화 완료");
+}
+
+function renderYearChips() {
+  const wrap = document.getElementById("year-chips");
+  const years = [...new Set(allQuestions.filter(q => q.year !== "빈출").map(q => q.year))].sort();
+  wrap.innerHTML = `<button class="chip year-f on" data-year="all">전체 연도</button>` +
+    years.map(y => `<button class="chip year-f" data-year="${y}">${y}</button>`).join("");
+}
+
+function updateYearUI() {
+  document.querySelectorAll(".year-f").forEach(b => {
+    const y = b.dataset.year;
+    if (y === "all") b.classList.toggle("on", state.years.length === 0);
+    else b.classList.toggle("on", state.years.includes(y));
+  });
+}
+
+function updateSubjUI() {
+  document.querySelectorAll(".subj-f").forEach(b => {
+    b.classList.toggle("on", b.dataset.subj === state.subj);
+  });
+}
+
+window.onload = () => {
+  renderYearChips();
+
+  document.querySelectorAll(".year-f").forEach(btn => {
+    btn.onclick = () => {
+      const y = btn.dataset.year;
+      if (y === "all") state.years = [];
+      else {
+        if (state.years.includes(y)) state.years = state.years.filter(v => v !== y);
+        else state.years.push(y);
+      }
+      updateYearUI();
+      state.idx = 0;
+      invalidateList();
+      render();
+    };
+  });
+
+  document.querySelectorAll(".subj-f").forEach(btn => {
+    btn.onclick = () => {
+      state.subj = btn.dataset.subj;
+      updateSubjUI();
+      state.idx = 0;
+      invalidateList();
+      render();
+    };
+  });
+
+  const filterMap = {
+    due: "dueOnly",
+    wrong: "wrongOnly",
+    shuffle: "shuffled",
+    bookmark: "bookmarkOnly",
+    freq: "freqOnly",
+    wrongnote: "wrongnoteOnly",
+    weak: "weakOnly"
+  };
+
+  document.querySelectorAll(".chip[data-filter]").forEach(btn => {
+    btn.onclick = () => {
+      const key = filterMap[btn.dataset.filter];
+      state[key] = !state[key];
+      btn.classList.toggle("on");
+      state.idx = 0;
+      invalidateList();
+      render();
+    };
+  });
+
+  document.getElementById("tag-filter").onchange = e => {
+    state.tagFilter = e.target.value;
+    state.idx = 0;
+    invalidateList();
+    render();
+  };
+
+  document.getElementById("search-box").oninput = e => {
+    state.search = e.target.value.trim();
+    state.idx = 0;
+    invalidateList();
+    render();
+  };
+
+  document.querySelectorAll(".mode-tab").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".mode-tab").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      state.mode = btn.dataset.mode;
+      state.idx = 0;
+      render();
+    };
+  });
+
+  document.addEventListener("click", e => {
+    const wrap = document.querySelector(".adv-wrap");
+    const panel = document.getElementById("adv-panel");
+    if (wrap && panel && !wrap.contains(e.target)) panel.classList.remove("show");
+  });
+
+  updateYearUI();
+  updateSubjUI();
+  render();
+  updateDashboard();
+};
 </script>
 </body>
 </html>
