@@ -1331,7 +1331,7 @@ FREQ_BANK.forEach(q => allQuestions.push(q));
 // 2. 상태 및 로컬 스토리지 관리
 // ==========================================
 let state = {
-  year: 'all', 
+  years: [],  // 선택된 연도 배열 (빈 배열 = 전체 연도)
   subj: 'all',
   mode: 'study', // 'study', 'yearly', 'exam'
   idx: 0,
@@ -1358,6 +1358,10 @@ let showAns = false;
 let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
 
 const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+
+// 연도 복수 선택 헬퍼 (빈 배열 = 전체)
+function yearMatch(q) { return state.years.length === 0 || state.years.includes(q.year); }
+function yearsLabel() { return state.years.length === 0 ? '전체 연도' : state.years.slice().sort().join('·'); }
 
 function save() {
   localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
@@ -1480,7 +1484,7 @@ function render() {
     }
     if (!state.freqOnly) {
       if (q.year === '빈출') return false;                       // 빈출은 빈출 모드에서만
-      if (state.year !== 'all' && q.year !== state.year) return false;
+      if (!yearMatch(q)) return false;
     } else {
       if (q.year !== '빈출') return false;                       // 빈출 모드: 빈출만
     }
@@ -1759,21 +1763,21 @@ function renderYearly() {
   cArea.innerHTML = "";
 
   if (!examData.active && !examData.finished) {
-    if (state.year === 'all') {
+    if (state.years.length === 0) {
         cArea.innerHTML = `
         <div class="card" style="text-align:center; padding:40px 20px;">
             <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 연도별 기출 풀기</h2>
-            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.</p>
-            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2025 기출 / 전체 과목)</p>
+            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.<br>연도는 여러 개를 동시에 선택할 수 있습니다.</p>
+            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2020·2021·2022 / 헌법)</p>
         </div>`;
         return;
     }
 
-    let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
+    let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
     
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
-        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${state.year}년도 기출 풀기</h2>
+        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${yearsLabel()} 기출 풀기</h2>
         <p>선택하신 [<b>${state.subj === 'all' ? '전체 과목' : state.subj}</b>] 총 <b>${currentList.length}문제</b>를<br>실제 시험지 번호 순서대로 풀어봅니다.</p>
         <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(본 모드는 제한 시간이 없습니다.)</p>
         <button onclick="startExamMode(true)" style="margin-top:30px; padding:12px 24px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">기출 풀기 시작</button>
@@ -1815,7 +1819,7 @@ function drawExamUI(cArea, isYearly) {
 
     let html = `
       <div class="exam-result-box">
-        <h2>${isYearly ? state.year+'년 기출 결과' : '모의고사 결과'}</h2>
+        <h2>${isYearly ? yearsLabel()+' 기출 결과' : '모의고사 결과'}</h2>
         <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
         <p>${examData.list.length}문제 중 ${score}문제 정답</p>
         <button onclick="resetExamMode()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">종료하고 돌아가기</button>
@@ -1853,7 +1857,7 @@ function drawExamUI(cArea, isYearly) {
       const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
       timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
   } else {
-      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${state.year}년 기출 풀이 (총 ${examData.list.length}문제)</div>`;
+      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${yearsLabel()} 기출 풀이 (총 ${examData.list.length}문제)</div>`;
   }
   
   let html = timerHtml;
@@ -1886,7 +1890,7 @@ function startExamMode(isYearly) {
   if (isYearly) {
       // 연도별: 선택 연도/과목에 맞춰 기출 번호(no) 순서대로 정렬
       const subjOrder = {"성경":1, "교회사":2, "헌법":3};
-      let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
+      let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
       pool = currentList.sort((a, b) => {
           if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
           return (a.no || 0) - (b.no || 0);
@@ -1896,7 +1900,7 @@ function startExamMode(isYearly) {
       let currentList = allQuestions.filter(q => {
         if (!state.freqOnly) {
           if (q.year === '빈출') return false;
-          if (state.year !== 'all' && q.year !== state.year) return false;
+          if (!yearMatch(q)) return false;
         } else {
           if (q.year !== '빈출') return false;
         }
@@ -1975,8 +1979,23 @@ function resetExamMode() {
 // 5. 이벤트 리스너 연결
 // ==========================================
 document.querySelectorAll(".year-f").forEach(c => c.onclick = () => {
-  document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
-  c.classList.add("on"); state.year = c.dataset.year; state.idx = 0; render();
+  const y = c.dataset.year;
+  const allChip = document.querySelector('.year-f[data-year="all"]');
+  if (y === 'all') {
+    // 전체 연도: 선택 초기화
+    state.years = [];
+    document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
+    allChip.classList.add("on");
+  } else {
+    // 개별 연도 토글
+    const i = state.years.indexOf(y);
+    if (i >= 0) { state.years.splice(i, 1); c.classList.remove("on"); }
+    else { state.years.push(y); c.classList.add("on"); }
+    // '전체 연도' 칩은 선택이 하나도 없을 때만 활성
+    if (state.years.length === 0) allChip.classList.add("on");
+    else allChip.classList.remove("on");
+  }
+  state.idx = 0; render();
 });
 
 document.querySelectorAll(".subj-f").forEach(c => c.onclick = () => {
