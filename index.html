@@ -93,7 +93,7 @@
 
   .exam-timer { background: var(--burgundy); color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; }
   .no-timer { background: var(--paper-2); color: var(--muted); border: 1px dashed var(--line); }
-  #toast { visibility: hidden; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 10px 20px; border-radius: 30px; z-index: 1000; pointer-events: none; }
+  #toast { visibility: hidden; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 10px 20px; border-radius: 30px; z-index: 1000; pointer-events: none; white-space: nowrap; }
   #toast.show { visibility: visible; animation: fadeInOut 1.8s; }
   #toast.ok  { background: var(--green); }   /* 정답 - 초록 */
   #toast.bad { background: var(--red); }      /* 오답 - 빨강 */
@@ -1610,7 +1610,7 @@ function checkAns(picked) {
   if (!isCorrect) {
     opts[picked].classList.add("wrong");
     saveWrong(qid);
-    showToast("오답! 오답노트에 기록됩니다.", "bad");
+    showToast("틀렸습니다! 오답노트에 기록합니다.", "bad");
     const tags = [
       { t: "헷갈림", c: "t1" },
       { t: "암기부족", c: "t2" },
