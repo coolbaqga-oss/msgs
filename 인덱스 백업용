@@ -44,7 +44,12 @@
     justify-content: space-between;
     align-items: flex-end;
   }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px;}
+  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px; white-space: nowrap; }
+  @media (max-width: 600px) {
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    h1 { font-size: 1.25rem; }
+    header .header-actions { width: 100%; justify-content: flex-end; gap: 16px; }
+  }
   
   /* 과목별 대시보드 */
   .dashboard {
@@ -143,17 +148,9 @@
   
   /* 50:50 듀얼 버튼 */
   .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
-  /* 학습 모드 하단 고정 액션 바 */
-  .study-sticky {
-    position: sticky; bottom: 0; z-index: 50;
-    background: var(--card);
-    border-top: 1px solid var(--line);
-    padding: 10px 0 12px;
-    margin-top: 16px;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
-  }
-  .study-sticky .nav-btns { margin-top: 0; }
-  .study-sticky .nav-btns + .nav-btns { margin-top: 8px; }
+  /* 학습 모드 채점 버튼: 보기와 해설 사이에 위치 */
+  #study-actions .nav-btns { margin-top: 14px; }
+  #study-actions:empty { display: none; }
   .nav-btn {
     flex: 1;
     padding: 14px;
@@ -251,10 +248,11 @@
       <div class="kicker">올해 모두 붙어버리자!</div>
       <h1>목사고시 기출문제(2015-2025)</h1>
     </div>
-    <div style="display:flex; gap:14px; align-items:center;">
-      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬇ 진도 백업</button>
-      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer;">⬆ 진도 복원</button>
-      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
+    <div class="header-actions" style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+      <button id="refresh" title="새로고침" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">🔄 새로고침</button>
+      <button id="backup" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬇ 진도 백업</button>
+      <button id="restore" style="background:transparent; border:none; color:var(--ink); text-decoration:underline; cursor:pointer; white-space:nowrap;">⬆ 진도 복원</button>
+      <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer; white-space:nowrap;">기록 초기화</button>
       <input type="file" id="restore-file" accept="application/json,.json" style="display:none;">
     </div>
   </header>
@@ -1339,7 +1337,7 @@ FREQ_BANK.forEach(q => allQuestions.push(q));
 // 2. 상태 및 로컬 스토리지 관리
 // ==========================================
 let state = {
-  year: 'all', 
+  years: [],  // 선택된 연도 배열 (빈 배열 = 전체 연도)
   subj: 'all',
   mode: 'study', // 'study', 'yearly', 'exam'
   idx: 0,
@@ -1353,11 +1351,13 @@ let state = {
   tagFilter: "all"
 };
 
+const APP_VERSION = "2026-06-04-01";  // 배포할 때마다 이 값을 바꾸면 자동 갱신됨
 let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
 let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
 let srs = JSON.parse(localStorage.getItem("srs")) || {};  // 간격 반복 일정
 let studyStats = JSON.parse(localStorage.getItem("studyStats")) || { streak: 0, lastDate: null, daily: {} };
 let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || {};  // 별표 모음
+let lastQid = localStorage.getItem("lastQid") || null;  // 마지막으로 본 문제(이어보기)
 let list = [];
 let showAns = false;
 
@@ -1365,6 +1365,10 @@ let showAns = false;
 let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
 
 const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+
+// 연도 복수 선택 헬퍼 (빈 배열 = 전체)
+function yearMatch(q) { return state.years.length === 0 || state.years.includes(q.year); }
+function yearsLabel() { return state.years.length === 0 ? '전체 연도' : state.years.slice().sort().join('·'); }
 
 function save() {
   localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
@@ -1487,7 +1491,7 @@ function render() {
     }
     if (!state.freqOnly) {
       if (q.year === '빈출') return false;                       // 빈출은 빈출 모드에서만
-      if (state.year !== 'all' && q.year !== state.year) return false;
+      if (!yearMatch(q)) return false;
     } else {
       if (q.year !== '빈출') return false;                       // 빈출 모드: 빈출만
     }
@@ -1520,6 +1524,13 @@ function render() {
     return;
   }
   
+  // 이어보기: 복원/재접속 시 마지막으로 본 문제로 이동
+  if (state.pendingResume) {
+    const i = list.findIndex(q => getQId(q) === state.pendingResume);
+    if (i >= 0) state.idx = i;
+    state.pendingResume = null;
+  }
+
   if (state.idx >= list.length) state.idx = 0;
   if (state.idx < 0) state.idx = list.length - 1;
 
@@ -1594,6 +1605,10 @@ function renderStudy(cArea) {
   const rec = progress[qid];
   let graded = false;
 
+  // 이어보기용: 마지막으로 본 문제 저장
+  lastQid = qid;
+  localStorage.setItem("lastQid", qid);
+
   // 현재 카드의 복습 예정 정보
   let schedInfo = "";
   if (srs[qid] && srs[qid].due) {
@@ -1617,12 +1632,12 @@ function renderStudy(cArea) {
   });
   html += `
       </div>
+      <div id="study-actions"></div>
       <div class="ans-box" id="ans-box">
         <strong>정답: ${q.a + 1}번</strong><br><br>
         ${q.e}
       </div>
     </div>
-    <div id="study-actions"></div>
     <div class="kbd-hint">
       ⌨ <kbd>1</kbd>~<kbd>5</kbd> 보기 &nbsp;·&nbsp; <kbd>Space</kbd> 정답 보기 &nbsp;·&nbsp; <kbd>O</kbd> 확실함 &nbsp;·&nbsp; <kbd>X</kbd> 모르겠음/찍음 &nbsp;·&nbsp; <kbd>←</kbd><kbd>→</kbd> 이동
     </div>
@@ -1755,21 +1770,21 @@ function renderYearly() {
   cArea.innerHTML = "";
 
   if (!examData.active && !examData.finished) {
-    if (state.year === 'all') {
+    if (state.years.length === 0) {
         cArea.innerHTML = `
         <div class="card" style="text-align:center; padding:40px 20px;">
             <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 연도별 기출 풀기</h2>
-            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.</p>
-            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2025 기출 / 전체 과목)</p>
+            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.<br>연도는 여러 개를 동시에 선택할 수 있습니다.</p>
+            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2020·2021·2022 / 헌법)</p>
         </div>`;
         return;
     }
 
-    let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
+    let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
     
     cArea.innerHTML = `
       <div class="card" style="text-align:center; padding:40px 20px;">
-        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${state.year}년도 기출 풀기</h2>
+        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${yearsLabel()} 기출 풀기</h2>
         <p>선택하신 [<b>${state.subj === 'all' ? '전체 과목' : state.subj}</b>] 총 <b>${currentList.length}문제</b>를<br>실제 시험지 번호 순서대로 풀어봅니다.</p>
         <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(본 모드는 제한 시간이 없습니다.)</p>
         <button onclick="startExamMode(true)" style="margin-top:30px; padding:12px 24px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">기출 풀기 시작</button>
@@ -1811,7 +1826,7 @@ function drawExamUI(cArea, isYearly) {
 
     let html = `
       <div class="exam-result-box">
-        <h2>${isYearly ? state.year+'년 기출 결과' : '모의고사 결과'}</h2>
+        <h2>${isYearly ? yearsLabel()+' 기출 결과' : '모의고사 결과'}</h2>
         <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
         <p>${examData.list.length}문제 중 ${score}문제 정답</p>
         <button onclick="resetExamMode()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">종료하고 돌아가기</button>
@@ -1849,7 +1864,7 @@ function drawExamUI(cArea, isYearly) {
       const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
       timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
   } else {
-      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${state.year}년 기출 풀이 (총 ${examData.list.length}문제)</div>`;
+      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${yearsLabel()} 기출 풀이 (총 ${examData.list.length}문제)</div>`;
   }
   
   let html = timerHtml;
@@ -1880,19 +1895,24 @@ function startExamMode(isYearly) {
   let pool = [];
 
   if (isYearly) {
-      // 연도별: 선택 연도/과목에 맞춰 기출 번호(no) 순서대로 정렬
-      const subjOrder = {"성경":1, "교회사":2, "헌법":3};
-      let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
-      pool = currentList.sort((a, b) => {
-          if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
-          return (a.no || 0) - (b.no || 0);
-      });
+      let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
+      if (state.shuffled) {
+          // 🔀 랜덤 섞기가 켜져 있으면 무작위 순서로
+          pool = currentList.sort(() => Math.random() - 0.5);
+      } else {
+          // 기본: 기출 번호(과목 → 번호) 순서대로 정렬
+          const subjOrder = {"성경":1, "교회사":2, "헌법":3};
+          pool = currentList.sort((a, b) => {
+              if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
+              return (a.no || 0) - (b.no || 0);
+          });
+      }
   } else {
       // 랜덤 모의고사: 33문제 추출
       let currentList = allQuestions.filter(q => {
         if (!state.freqOnly) {
           if (q.year === '빈출') return false;
-          if (state.year !== 'all' && q.year !== state.year) return false;
+          if (!yearMatch(q)) return false;
         } else {
           if (q.year !== '빈출') return false;
         }
@@ -1971,8 +1991,23 @@ function resetExamMode() {
 // 5. 이벤트 리스너 연결
 // ==========================================
 document.querySelectorAll(".year-f").forEach(c => c.onclick = () => {
-  document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
-  c.classList.add("on"); state.year = c.dataset.year; state.idx = 0; render();
+  const y = c.dataset.year;
+  const allChip = document.querySelector('.year-f[data-year="all"]');
+  if (y === 'all') {
+    // 전체 연도: 선택 초기화
+    state.years = [];
+    document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
+    allChip.classList.add("on");
+  } else {
+    // 개별 연도 토글
+    const i = state.years.indexOf(y);
+    if (i >= 0) { state.years.splice(i, 1); c.classList.remove("on"); }
+    else { state.years.push(y); c.classList.add("on"); }
+    // '전체 연도' 칩은 선택이 하나도 없을 때만 활성
+    if (state.years.length === 0) allChip.classList.add("on");
+    else allChip.classList.remove("on");
+  }
+  state.idx = 0; render();
 });
 
 document.querySelectorAll(".subj-f").forEach(c => c.onclick = () => {
@@ -2017,13 +2052,27 @@ document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
   render();
 });
 
+document.getElementById("refresh").onclick = async () => {
+  // 홈 화면 앱(PWA) 캐시 때문에 갱신이 안 되는 경우까지 대비해 강제 새로고침
+  try {
+    if (window.caches && caches.keys) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) {}
+  // 캐시 우회용 쿼리스트링을 붙여 강제 재요청
+  const url = location.origin + location.pathname + "?v=" + Date.now();
+  location.replace(url);
+};
+
 document.getElementById("reset").onclick = () => {
   progress = {}; localStorage.removeItem("moksagosi_prog");
   wrongNotes = {}; localStorage.removeItem("wrongNotes");
   srs = {}; localStorage.removeItem("srs");
   studyStats = { streak: 0, lastDate: null, daily: {} }; localStorage.removeItem("studyStats");
   bookmarks = {}; localStorage.removeItem("bookmarks");
-  state.idx = 0; render(); updateBmBadge();
+  lastQid = null; localStorage.removeItem("lastQid");
+  state.idx = 0; state.pendingResume = null; render(); updateBmBadge();
   alert("학습 기록, 오답노트, 복습 일정, 통계, 별표가 모두 초기화되었습니다.");
 };
 
@@ -2037,7 +2086,8 @@ document.getElementById("backup").onclick = () => {
     wrongNotes: wrongNotes,
     srs: srs,
     studyStats: studyStats,
-    bookmarks: bookmarks
+    bookmarks: bookmarks,
+    lastQid: lastQid
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -2079,15 +2129,18 @@ document.getElementById("restore-file").onchange = (ev) => {
       srs = data.srs || {};
       studyStats = data.studyStats || { streak: 0, lastDate: null, daily: {} };
       bookmarks = data.bookmarks || {};
+      lastQid = data.lastQid || null;
       localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
       localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
       localStorage.setItem("srs", JSON.stringify(srs));
       localStorage.setItem("studyStats", JSON.stringify(studyStats));
       localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+      if (lastQid) localStorage.setItem("lastQid", lastQid); else localStorage.removeItem("lastQid");
       state.idx = 0;
+      state.pendingResume = lastQid;  // 복원 후 마지막 본 문제로 이어서 시작
       render();
       updateBmBadge();
-      alert("진도와 오답노트를 복원했습니다.");
+      alert(lastQid ? "복원 완료! 마지막으로 보던 문제부터 이어집니다." : "진도와 오답노트를 복원했습니다.");
     } catch (err) {
       alert("파일을 읽는 중 오류가 발생했습니다. 백업 파일이 손상되었을 수 있습니다.");
     } finally {
@@ -2122,9 +2175,36 @@ document.addEventListener("keydown", e => {
   if (k === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
 });
 
+state.pendingResume = lastQid;
 render();
 updateDueBadge();
 updateBmBadge();
+
+// ===== 자동 갱신: 서버 최신 버전과 비교해 새 버전이면 조용히 재로딩 =====
+async function checkForUpdate() {
+  try {
+    const res = await fetch(location.pathname + "?_chk=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const text = await res.text();
+    const m = text.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
+    if (!m) return;
+    const latest = m[1];
+    // 더 새 버전이고, 이번 세션에서 아직 그 버전으로 새로고침한 적 없을 때만
+    if (latest !== APP_VERSION && sessionStorage.getItem("updReloaded") !== latest) {
+      sessionStorage.setItem("updReloaded", latest);
+      try {
+        if (window.caches && caches.keys) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+      } catch (e) {}
+      location.replace(location.origin + location.pathname + "?v=" + Date.now());
+    }
+  } catch (e) {}
+}
+checkForUpdate();
+// 앱을 다시 포그라운드로 가져올 때도 한 번 더 확인(홈 화면 앱 대응)
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
 </script>
 </body>
 </html>
