@@ -1888,13 +1888,18 @@ function startExamMode(isYearly) {
   let pool = [];
 
   if (isYearly) {
-      // 연도별: 선택 연도/과목에 맞춰 기출 번호(no) 순서대로 정렬
-      const subjOrder = {"성경":1, "교회사":2, "헌법":3};
       let currentList = allQuestions.filter(q => yearMatch(q) && q.year !== '빈출' && (state.subj === 'all' || q.subj === state.subj));
-      pool = currentList.sort((a, b) => {
-          if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
-          return (a.no || 0) - (b.no || 0);
-      });
+      if (state.shuffled) {
+          // 🔀 랜덤 섞기가 켜져 있으면 무작위 순서로
+          pool = currentList.sort(() => Math.random() - 0.5);
+      } else {
+          // 기본: 기출 번호(과목 → 번호) 순서대로 정렬
+          const subjOrder = {"성경":1, "교회사":2, "헌법":3};
+          pool = currentList.sort((a, b) => {
+              if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
+              return (a.no || 0) - (b.no || 0);
+          });
+      }
   } else {
       // 랜덤 모의고사: 33문제 추출
       let currentList = allQuestions.filter(q => {
