@@ -1139,7 +1139,9 @@ let state = {
   examCount: 33,
   freqOnly: false, wrongOnly: false, shuffled: false,
   bookmarkOnly: false, search: "", tagFilter: "all",
-  wrongnoteOnly: false, weakOnly: false, dueOnly: false
+  wrongnoteOnly: false, weakOnly: false, dueOnly: false,
+  lastQid: localStorage.getItem("mok_last") || null,  // 이어풀기: 마지막으로 본 문제
+  pendingResume: false  // 필터/모드 전환 시 마지막 문제로 복귀 시도
 };
 
 let progress = JSON.parse(localStorage.getItem("mok_prog")) || {};
@@ -1346,9 +1348,17 @@ function renderStudy(cArea) {
     updateDashboard();
     return;
   }
-  if (state.idx >= list.length) state.idx = 0;
+  if (state.pendingResume) {
+    const ri = list.findIndex(item => getQId(item) === state.lastQid);
+    state.idx = ri >= 0 ? ri : 0;
+    state.pendingResume = false;
+  } else if (state.idx >= list.length) {
+    state.idx = 0;
+  }
   const q = list[state.idx];
   const qid = getQId(q);
+  state.lastQid = qid;
+  localStorage.setItem("mok_last", qid);
 
   cArea.innerHTML = `
     <div class="nav-btns">
@@ -1643,11 +1653,49 @@ function checkAns(picked) {
 function moveIdx(step) {
   const list = getList(false);
   if (!list.length) return;
+  // 마지막 문제에서 '다음'을 누르면 1번으로 돌지 않고 완료 카드 표시
+  if (step > 0 && state.idx >= list.length - 1) {
+    renderComplete(document.getElementById("content-area"));
+    return;
+  }
   let idx = state.idx + step;
-  if (idx < 0) idx = list.length - 1;
-  if (idx >= list.length) idx = 0;
+  if (idx < 0) idx = 0;
+  if (idx >= list.length) idx = list.length - 1;
   state.idx = idx;
+  state.lastQid = getQId(list[idx]);
+  localStorage.setItem("mok_last", state.lastQid);
   render();
+}
+
+// 학습 완료 카드
+function renderComplete(cArea) {
+  cArea.innerHTML = `
+    <div class="card" style="text-align:center; padding:40px 24px;">
+      <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--green);">✓</div>
+      <div style="font-size:1.3rem;font-weight:bold;margin-bottom:6px;">학습 완료!</div>
+      <div style="color:var(--muted);margin-bottom:24px;line-height:1.6;">선택하신 범위의 마지막 문제까지<br>모두 푸셨습니다.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:280px;margin:0 auto;">
+        <button class="nav-btn primary" onclick="restartStudy()">처음부터 다시</button>
+        <button class="nav-btn" onclick="retryWrong()">틀린 것만 다시 풀기</button>
+        <button class="nav-btn" style="color:var(--muted);" onclick="endStudy()">학습 종료</button>
+      </div>
+    </div>`;
+  updateDashboard();
+}
+function restartStudy() { state.idx = 0; state.pendingResume = false; render(); }
+function endStudy() { state.idx = 0; state.pendingResume = false; render(); }
+function retryWrong() {
+  state.wrongOnly = true; invalidateList();
+  const list = getList(false);
+  if (!list.length) {
+    state.wrongOnly = false; invalidateList();
+    showToast("틀린 문제가 없습니다.");
+    state.idx = 0; state.pendingResume = false; render();
+    return;
+  }
+  const b = document.querySelector('.chip[data-filter="wrong"]');
+  if (b) b.classList.add("on");
+  state.idx = 0; state.pendingResume = false; render();
 }
 
 function toggleAdv(e) {
@@ -1726,7 +1774,7 @@ function setTag(qid, tag) {
   saveAll();
   invalidateList();
   showToast(`'${tag}' 태그가 설정되었습니다.`);
-  render();
+  moveIdx(1);
 }
 
 function saveWrong(qid) {
@@ -1824,7 +1872,7 @@ window.onload = () => {
         else state.years.push(y);
       }
       updateYearUI();
-      state.idx = 0;
+      state.pendingResume = true;
       invalidateList();
       render();
     };
@@ -1834,7 +1882,7 @@ window.onload = () => {
     btn.onclick = () => {
       state.subj = btn.dataset.subj;
       updateSubjUI();
-      state.idx = 0;
+      state.pendingResume = true;
       invalidateList();
       render();
     };
@@ -1855,7 +1903,7 @@ window.onload = () => {
       const key = filterMap[btn.dataset.filter];
       state[key] = !state[key];
       btn.classList.toggle("on");
-      state.idx = 0;
+      state.pendingResume = true;
       invalidateList();
       render();
     };
@@ -1863,14 +1911,14 @@ window.onload = () => {
 
   document.getElementById("tag-filter").onchange = e => {
     state.tagFilter = e.target.value;
-    state.idx = 0;
+    state.pendingResume = true;
     invalidateList();
     render();
   };
 
   document.getElementById("search-box").oninput = e => {
     state.search = e.target.value.trim();
-    state.idx = 0;
+    state.pendingResume = true;
     invalidateList();
     render();
   };
@@ -1880,7 +1928,7 @@ window.onload = () => {
       document.querySelectorAll(".mode-tab").forEach(b => b.classList.remove("on"));
       btn.classList.add("on");
       state.mode = btn.dataset.mode;
-      state.idx = 0;
+      state.pendingResume = true;
       if (state.mode === "yearly") {
         state.freqOnly = false;
         const freqBtn = document.querySelector('[data-filter="freq"]');
@@ -1898,6 +1946,7 @@ window.onload = () => {
 
   updateYearUI();
   updateSubjUI();
+  state.pendingResume = true;  // 앱 재진입 시 마지막 본 문제로 복귀
   render();
   updateDashboard();
 };
