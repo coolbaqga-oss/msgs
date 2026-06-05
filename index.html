@@ -98,6 +98,29 @@
   #toast.ok  { background: var(--green); }   /* 정답 - 초록 */
   #toast.bad { background: var(--red); }      /* 오답 - 빨강 */
   @keyframes fadeInOut { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
+
+  /* 업데이트 내역 */
+  .ver-btn { background:none; border:none; cursor:pointer; color:var(--muted); text-decoration:underline; position:relative; font-size:0.75rem; white-space:nowrap; }
+  .ver-dot { position:absolute; top:-3px; right:-7px; width:7px; height:7px; border-radius:50%; background:var(--red); display:none; }
+  .ver-dot.show { display:block; }
+  .cl-overlay { display:none; position:fixed; inset:0; background:rgba(20,15,8,.45); z-index:2000; align-items:center; justify-content:center; padding:18px; }
+  .cl-overlay.show { display:flex; }
+  .cl-box { background:var(--card); border-radius:14px; max-width:430px; width:100%; max-height:80vh; overflow:auto; box-shadow:var(--shadow); }
+  .cl-head { display:flex; justify-content:space-between; align-items:center; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:bold; color:var(--burgundy); position:sticky; top:0; background:var(--card); }
+  .cl-head button { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--muted); line-height:1; }
+  .cl-entry { padding:14px 18px; border-bottom:1px solid var(--line); }
+  .cl-entry:last-child { border-bottom:none; }
+  .cl-ver { font-weight:bold; color:var(--burgundy); font-size:0.95rem; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
+  .cl-date { font-size:0.72rem; color:var(--muted); font-weight:normal; }
+  .cl-new { font-size:0.68rem; background:var(--red); color:#fff; border-radius:10px; padding:1px 7px; font-weight:bold; }
+  .cl-entry.seen { opacity:.55; }
+  .cl-entry.seen .cl-ver { color:var(--muted); }
+  .cl-note { font-size:0.9rem; margin:3px 0; padding-left:13px; position:relative; }
+  .cl-note::before { content:"·"; position:absolute; left:3px; }
+  .cl-banner { display:none; background:var(--burgundy); color:#fff; padding:10px 14px; border-radius:8px; margin-bottom:14px; align-items:center; justify-content:space-between; gap:10px; font-size:0.9rem; }
+  .cl-banner.show { display:flex; }
+  .cl-banner .cl-see { background:#fff; color:var(--burgundy); border:none; border-radius:6px; padding:5px 11px; font-weight:bold; cursor:pointer; font-size:0.83rem; white-space:nowrap; }
+  .cl-banner .cl-x { background:none; border:none; color:#fff; font-size:1.05rem; cursor:pointer; padding:0 2px; line-height:1; }
 </style>
 </head>
 <body>
@@ -106,6 +129,7 @@
   <header>
     <div><h1>목사고시 기출(2015-2025)</h1></div>
     <div style="display:flex; gap:10px; font-size:0.75rem;">
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()">v260605<span class="ver-dot" id="ver-dot"></span></button>
       <button onclick="refreshApp()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:var(--gold);">새로고침</button>
       <button onclick="backupProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">백업</button>
       <button onclick="restoreProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">복원</button>
@@ -113,6 +137,14 @@
       <input type="file" id="restore-file" style="display:none;" onchange="handleRestore(event)">
     </div>
   </header>
+
+  <div class="cl-banner" id="cl-banner">
+    <span>✨ 업데이트되었습니다!</span>
+    <span style="display:flex; gap:6px; align-items:center;">
+      <button class="cl-see" onclick="openChangelog()">변경사항 보기</button>
+      <button class="cl-x" onclick="dismissBanner()">✕</button>
+    </span>
+  </div>
 
   <div class="dashboard">
     <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
@@ -168,7 +200,77 @@
 </div>
 <div id="toast"></div>
 
+<div class="cl-overlay" id="changelog-modal" onclick="closeChangelogBg(event)">
+  <div class="cl-box">
+    <div class="cl-head"><span>📋 업데이트 내역</span><button onclick="closeChangelog()" aria-label="닫기">✕</button></div>
+    <div id="cl-body"></div>
+  </div>
+</div>
+
 <script>
+/* ===== 업데이트 내역 (수정 시: APP_VERSION 갱신 + CHANGELOG 맨 위에 한 덩어리 추가) ===== */
+const APP_VERSION = "260605";
+const CHANGELOG = [
+  { v: "260605", date: "2026.06.05", notes: [
+    "학습 완료 카드 추가 — 마지막 문제까지 풀면 표시됩니다",
+    "이어풀기 — 복습·별표 등을 봤다가 돌아와도 보던 문제로 복귀",
+    "오답 태그(헷갈림·암기부족·실수)를 누르면 자동으로 다음 문제로 넘어갑니다"
+  ]},
+  { v: "260604", date: "2026.06.04", notes: [
+    "연도 복수 선택 — 여러 해를 한 번에 골라 풀 수 있습니다",
+    "기출 모드 랜덤 섞기 추가",
+    "모바일 헤더 정렬 정리"
+  ]}
+];
+
+function verNum(v) { return parseFloat(String(v || "0").replace("-", ".")) || 0; }
+function getSeenVer() { return localStorage.getItem("mok_seenver") || ""; }
+function unseenEntries() {
+  const seen = verNum(getSeenVer());
+  return CHANGELOG.filter(e => verNum(e.v) > seen);
+}
+function hasUnseen() { return unseenEntries().length > 0; }
+
+function updateVerBadge() {
+  const dot = document.getElementById("ver-dot");
+  if (dot) dot.classList.toggle("show", hasUnseen());
+}
+
+function renderChangelog() {
+  const seen = verNum(getSeenVer());
+  const body = document.getElementById("cl-body");
+  body.innerHTML = CHANGELOG.map(e => {
+    const isNew = verNum(e.v) > seen;
+    const badge = isNew ? '<span class="cl-new">🆕 NEW</span>' : "";
+    const notes = e.notes.map(n => `<div class="cl-note">${n}</div>`).join("");
+    return `<div class="cl-entry${isNew ? "" : " seen"}">
+      <div class="cl-ver">v${e.v} <span class="cl-date">${e.date}</span> ${badge}</div>
+      ${notes}
+    </div>`;
+  }).join("");
+}
+
+function openChangelog() {
+  renderChangelog();                          // 🆕 강조는 '연 시점'의 seen 기준으로 먼저 렌더
+  localStorage.setItem("mok_seenver", APP_VERSION);  // 그 다음 '봤음' 처리
+  document.getElementById("changelog-modal").classList.add("show");
+  dismissBanner();
+  updateVerBadge();
+}
+function closeChangelog() { document.getElementById("changelog-modal").classList.remove("show"); }
+function closeChangelogBg(e) { if (e.target.id === "changelog-modal") closeChangelog(); }
+
+function dismissBanner() {
+  const b = document.getElementById("cl-banner");
+  if (b) b.classList.remove("show");
+}
+function showUpdateBannerIfNeeded() {
+  if (hasUnseen()) {
+    const b = document.getElementById("cl-banner");
+    if (b) b.classList.add("show");
+  }
+}
+
 const allQuestions = [
   // 여기에 2015~2025 전체 문제를 붙여넣기
  // ===================== 2015년도 기출 =====================
@@ -1949,6 +2051,8 @@ window.onload = () => {
   state.pendingResume = true;  // 앱 재진입 시 마지막 본 문제로 복귀
   render();
   updateDashboard();
+  updateVerBadge();             // 헤더 버전 옆 🆕 점
+  showUpdateBannerIfNeeded();   // 새 버전이면 상단 배너 1회
 };
 </script>
 </body>
