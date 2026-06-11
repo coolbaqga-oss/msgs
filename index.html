@@ -86,21 +86,18 @@
 
   .ans-box { margin: 10px 0 12px; padding: 14px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; border-radius: 8px; }
 
-  /* 듀오링고식 하단 피드백 바 */
-  .fb-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
-    padding: 16px 20px calc(18px + env(safe-area-inset-bottom, 0px));
-    transform: translateY(115%); transition: transform .22s ease; box-shadow: 0 -6px 20px rgba(40,30,15,.10); }
-  .fb-bar.show { transform: translateY(0); }
-  .fb-bar.ok  { background: var(--green-soft); border-top: 2px solid var(--green); }
-  .fb-bar.bad { background: var(--red-soft);   border-top: 2px solid var(--red); }
-  .fb-inner { max-width: 640px; margin: 0 auto; }
-  .fb-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+  /* 듀오링고식 피드백 패널 (보기 바로 아래, 인라인) */
+  .fb-panel { margin-top: 14px; padding: 16px; border-radius: 12px; animation: fbPop .18s ease; }
+  @keyframes fbPop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .fb-panel.ok  { background: var(--green-soft); border: 1px solid var(--green); }
+  .fb-panel.bad { background: var(--red-soft);   border: 1px solid var(--red); }
+  .fb-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
   .fb-icon { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-  .fb-bar.ok  .fb-icon { background: var(--green); }
-  .fb-bar.bad .fb-icon { background: var(--red); }
+  .fb-panel.ok  .fb-icon { background: var(--green); }
+  .fb-panel.bad .fb-icon { background: var(--red); }
   .fb-title { font-size: 1rem; font-weight: bold; }
-  .fb-bar.ok  .fb-title { color: var(--green); }
-  .fb-bar.bad .fb-title { color: var(--red); }
+  .fb-panel.ok  .fb-title { color: var(--green); }
+  .fb-panel.bad .fb-title { color: var(--red); }
   .fb-exp { font-size: 0.88rem; line-height: 1.6; margin-bottom: 12px; color: var(--ink);
     background: rgba(255,255,255,.72); border-radius: 8px; padding: 10px 12px; }
   .fb-exp:empty { display: none; }
@@ -108,8 +105,8 @@
   .fb-tag { font-size: 0.78rem; padding: 6px 13px; background: #fff; border: 1px solid var(--line); border-radius: 20px; color: var(--red); cursor: pointer; }
   .fb-tag:active { transform: translateY(1px); }
   .fb-next { width: 100%; padding: 15px; border: none; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: transform .05s, box-shadow .05s; }
-  .fb-bar.ok  .fb-next { background: var(--green); box-shadow: 0 4px 0 #2c4d33; }
-  .fb-bar.bad .fb-next { background: var(--red);   box-shadow: 0 4px 0 #7a1d1d; }
+  .fb-panel.ok  .fb-next { background: var(--green); box-shadow: 0 4px 0 #2c4d33; }
+  .fb-panel.bad .fb-next { background: var(--red);   box-shadow: 0 4px 0 #7a1d1d; }
   .fb-next:active { transform: translateY(3px); box-shadow: none; }
   .opt.answered { pointer-events: none; }
   .tag-wrap { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
@@ -165,7 +162,7 @@
       <div class="subtitle">2015–2025</div>
     </div>
     <div class="header-actions">
-      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v6(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v10(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
       <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
       <button class="hdr-link" onclick="backupProgress()">백업</button>
       <button class="hdr-link" onclick="restoreProgress()">복원</button>
@@ -236,18 +233,6 @@
 </div>
 <div id="toast"></div>
 
-<div class="fb-bar" id="feedback-bar">
-  <div class="fb-inner">
-    <div class="fb-head">
-      <div class="fb-icon" id="fb-icon">✓</div>
-      <div class="fb-title" id="fb-title">정답입니다!</div>
-    </div>
-    <div class="fb-exp" id="fb-exp"></div>
-    <div class="fb-tags" id="fb-tags"></div>
-    <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
-  </div>
-</div>
-
 <div class="cl-overlay" id="changelog-modal" onclick="closeChangelogBg(event)">
   <div class="cl-box">
     <div class="cl-head"><span>📋 업데이트 내역</span><button onclick="closeChangelog()" aria-label="닫기">✕</button></div>
@@ -259,9 +244,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 9;
+const BUILD = 10;
 const BUILD_DATE = "260611";
 const CHANGELOG = [
+  { n: 10, date: "260611", notes: [
+    "정답/오답 해설을 보기 바로 아래 패널로 변경 — 화면 위치에 상관없이 보기가 가려지지 않습니다(iOS 고정 바 문제 해결)"
+  ]},
   { n: 9, date: "260611", notes: [
     "정답/오답 해설이 떠도 보기가 가려지지 않도록 수정 — 보기를 피드백 바 위로 자동 정렬(iOS 스크롤 보정)"
   ]},
@@ -1510,11 +1498,6 @@ function syncFilterVisibility() {
 }
 
 function render() {
-  const fb = document.getElementById("feedback-bar");
-  if (fb) fb.classList.remove("show", "ok", "bad");
-  document.body.classList.remove("bar-open");
-  const _c = document.querySelector(".app-container");
-  if (_c) _c.style.paddingBottom = "";
   syncFilterVisibility();
   const cArea = document.getElementById("content-area");
   if (state.mode === "exam") return renderExamMode(cArea);
@@ -1557,6 +1540,7 @@ function renderStudy(cArea) {
       <div id="options-area">
         ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
       </div>
+      <div id="fb-slot"></div>
     </div>
   `;
   updateDashboard();
@@ -1792,27 +1776,24 @@ function checkAns(picked) {
   opts[q.a].classList.add("correct");
   if (!isCorrect) opts[picked].classList.add("wrong");
 
-  const bar = document.getElementById("feedback-bar");
-  bar.classList.remove("ok", "bad");
-  bar.classList.add(isCorrect ? "ok" : "bad");
-  document.getElementById("fb-icon").textContent = isCorrect ? "✓" : "✕";
-  document.getElementById("fb-title").textContent = isCorrect ? "정답입니다!" : `오답 · 정답은 ${q.a + 1}번`;
-  const exp = document.getElementById("fb-exp");
-  exp.innerHTML = q.e || "";
-  exp.style.display = q.e ? "block" : "none";
+  if (!isCorrect) { saveWrong(qid); saveSRS(qid, false); }
+  else { saveSRS(qid, true); }
 
-  const tagsEl = document.getElementById("fb-tags");
-  if (!isCorrect) {
-    saveWrong(qid);
-    const tags = ["헷갈림", "암기부족", "실수"];
-    tagsEl.innerHTML = tags.map(t => `<button class="fb-tag" onclick="setTag('${qid}', '${t}')">${t}</button>`).join("");
-    tagsEl.style.display = "flex";
-    saveSRS(qid, false);
-  } else {
-    tagsEl.innerHTML = "";
-    tagsEl.style.display = "none";
-    saveSRS(qid, true);
-  }
+  const title = isCorrect ? "정답입니다!" : `오답 · 정답은 ${q.a + 1}번`;
+  const icon = isCorrect ? "✓" : "✕";
+  const expHtml = q.e ? `<div class="fb-exp">${q.e}</div>` : "";
+  const tagsHtml = isCorrect ? "" :
+    `<div class="fb-tags">${["헷갈림", "암기부족", "실수"].map(t =>
+      `<button class="fb-tag" onclick="setTag('${qid}', '${t}')">${t}</button>`).join("")}</div>`;
+
+  const slot = document.getElementById("fb-slot");
+  slot.innerHTML = `
+    <div class="fb-panel ${isCorrect ? "ok" : "bad"}">
+      <div class="fb-head"><div class="fb-icon">${icon}</div><div class="fb-title">${title}</div></div>
+      ${expHtml}
+      ${tagsHtml}
+      <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
+    </div>`;
 
   updateStats(qid, isCorrect);
   progress[qid] = isCorrect ? "O" : "X";
@@ -1821,18 +1802,11 @@ function checkAns(picked) {
   invalidateList();
   updateDashboard();
 
-  document.body.classList.add("bar-open");
-  bar.classList.add("show");
-  // 바가 다 올라온(애니메이션 0.22s) 뒤 실제 윗선을 재서 보기를 그 위로 올린다
-  setTimeout(() => {
-    const barH = bar.offsetHeight;
-    const cont = document.querySelector(".app-container");
-    if (cont) cont.style.paddingBottom = (barH + 32) + "px";
-    const optsArea = document.getElementById("options-area");
-    const barTop = bar.getBoundingClientRect().top;          // 바의 실제 윗선
-    const delta = optsArea.getBoundingClientRect().bottom - (barTop - 12);
-    if (delta > 4) smoothScrollTo(window.pageYOffset + delta);
-  }, 260);
+  // 피드백 패널(계속하기 버튼)이 화면에 들어오도록 살짝 스크롤
+  requestAnimationFrame(() => {
+    const y = slot.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 16;
+    if (y > window.pageYOffset) smoothScrollTo(y);
+  });
 }
 
 // 문제 영역을 화면 최상단으로 (모드탭까지 가려지고 문제가 맨 위)
@@ -1872,11 +1846,6 @@ function moveIdx(step) {
 
 // 학습 완료 카드
 function renderComplete(cArea) {
-  const fb = document.getElementById("feedback-bar");
-  if (fb) fb.classList.remove("show", "ok", "bad");
-  document.body.classList.remove("bar-open");
-  const _c = document.querySelector(".app-container");
-  if (_c) _c.style.paddingBottom = "";
   cArea.innerHTML = `
     <div class="card" style="text-align:center; padding:40px 24px;">
       <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--green);">✓</div>
