@@ -27,8 +27,14 @@
     background: var(--paper); color: var(--ink); line-height: 1.65;
   }
   .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px 80px; }
-  header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; }
-  h1 { font-size: 1.4rem; color: var(--burgundy); }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px 16px; }
+  .title-block { min-width: 0; }
+  h1 { font-size: 1.4rem; color: var(--burgundy); white-space: nowrap; line-height: 1.15; }
+  .subtitle { font-size: 0.8rem; color: var(--muted); margin-top: 3px; letter-spacing: 0.03em; }
+  .header-actions { display: flex; align-items: flex-end; gap: 14px; font-size: 0.78rem; flex-wrap: wrap; margin-left: auto; }
+  .hdr-link { background: none; border: none; cursor: pointer; text-decoration: underline; white-space: nowrap; padding: 2px 0; color: var(--ink); font-size: 0.78rem; }
+  .hdr-link.gold { color: var(--gold); }
+  .hdr-link.red { color: var(--red); }
 
   .dashboard { display: flex; gap: 5px; margin-bottom: 15px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: var(--shadow); }
   .dash-item { flex: 1; text-align: center; border-right: 1px solid var(--line); }
@@ -79,7 +85,33 @@
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
 
   .ans-box { margin: 10px 0 12px; padding: 14px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; border-radius: 8px; }
-  .ans-next { margin-top: 14px; }
+
+  /* 듀오링고식 하단 피드백 바 */
+  .fb-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
+    padding: 16px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(115%); transition: transform .22s ease; box-shadow: 0 -6px 20px rgba(40,30,15,.10); }
+  .fb-bar.show { transform: translateY(0); }
+  .fb-bar.ok  { background: var(--green-soft); border-top: 2px solid var(--green); }
+  .fb-bar.bad { background: var(--red-soft);   border-top: 2px solid var(--red); }
+  .fb-inner { max-width: 640px; margin: 0 auto; }
+  .fb-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+  .fb-icon { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .fb-bar.ok  .fb-icon { background: var(--green); }
+  .fb-bar.bad .fb-icon { background: var(--red); }
+  .fb-title { font-size: 1rem; font-weight: bold; }
+  .fb-bar.ok  .fb-title { color: var(--green); }
+  .fb-bar.bad .fb-title { color: var(--red); }
+  .fb-exp { font-size: 0.88rem; line-height: 1.6; margin-bottom: 12px; color: var(--ink);
+    background: rgba(255,255,255,.72); border-radius: 8px; padding: 10px 12px; }
+  .fb-exp:empty { display: none; }
+  .fb-tags { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .fb-tag { font-size: 0.78rem; padding: 6px 13px; background: #fff; border: 1px solid var(--line); border-radius: 20px; color: var(--red); cursor: pointer; }
+  .fb-tag:active { transform: translateY(1px); }
+  .fb-next { width: 100%; padding: 15px; border: none; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: transform .05s, box-shadow .05s; }
+  .fb-bar.ok  .fb-next { background: var(--green); box-shadow: 0 4px 0 #2c4d33; }
+  .fb-bar.bad .fb-next { background: var(--red);   box-shadow: 0 4px 0 #7a1d1d; }
+  .fb-next:active { transform: translateY(3px); box-shadow: none; }
+  .opt.answered { pointer-events: none; }
   .tag-wrap { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
   .tag-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
   .tag-area { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -128,13 +160,16 @@
 
 <div class="app-container">
   <header>
-    <div><h1>목사고시 기출(2015-2025)</h1></div>
-    <div style="display:flex; gap:10px; font-size:0.75rem;">
-      <button class="ver-btn" id="ver-btn" onclick="openChangelog()">v260605-3<span class="ver-dot" id="ver-dot"></span></button>
-      <button onclick="refreshApp()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:var(--gold);">새로고침</button>
-      <button onclick="backupProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">백업</button>
-      <button onclick="restoreProgress()" style="background:none; border:none; text-decoration:underline; cursor:pointer;">복원</button>
-      <button onclick="resetData()" style="background:none; border:none; color:var(--red); text-decoration:underline; cursor:pointer;">초기화</button>
+    <div class="title-block">
+      <h1>목사고시 기출문제</h1>
+      <div class="subtitle">2015–2025</div>
+    </div>
+    <div class="header-actions">
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v6(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
+      <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
+      <button class="hdr-link" onclick="backupProgress()">백업</button>
+      <button class="hdr-link" onclick="restoreProgress()">복원</button>
+      <button class="hdr-link red" onclick="resetData()">초기화</button>
       <input type="file" id="restore-file" style="display:none;" onchange="handleRestore(event)">
     </div>
   </header>
@@ -201,6 +236,18 @@
 </div>
 <div id="toast"></div>
 
+<div class="fb-bar" id="feedback-bar">
+  <div class="fb-inner">
+    <div class="fb-head">
+      <div class="fb-icon" id="fb-icon">✓</div>
+      <div class="fb-title" id="fb-title">정답입니다!</div>
+    </div>
+    <div class="fb-exp" id="fb-exp"></div>
+    <div class="fb-tags" id="fb-tags"></div>
+    <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
+  </div>
+</div>
+
 <div class="cl-overlay" id="changelog-modal" onclick="closeChangelogBg(event)">
   <div class="cl-box">
     <div class="cl-head"><span>📋 업데이트 내역</span><button onclick="closeChangelog()" aria-label="닫기">✕</button></div>
@@ -209,58 +256,68 @@
 </div>
 
 <script>
-/* ===== 업데이트 내역 (수정 시: APP_VERSION 갱신 + CHANGELOG 맨 위에 한 덩어리 추가) ===== */
-const APP_VERSION = "260605-3";
+/* ===== 업데이트 내역 =====
+   수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
+   그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
+const BUILD = 6;
+const BUILD_DATE = "260611";
 const CHANGELOG = [
-  { v: "260605-3", date: "2026.06.05", notes: [
+  { n: 6, date: "260611", notes: [
+    "헤더 버튼 줄바꿈 정리 — 새로고침·백업·복원·초기화가 깔끔하게 한 줄로",
+    "제목/연도 표기 정리, 버전 표기를 v6(260611) 형식으로 변경"
+  ]},
+  { n: 5, date: "260605", notes: [
+    "피드백 바 가독성 개선 — 해설 글자색을 진하게(바 색과 분리)",
+    "선택지와 피드백 바 사이 빈 공간 축소 — 바가 선택지 바로 아래 붙도록"
+  ]},
+  { n: 4, date: "260605", notes: [
+    "정답 확인 화면을 듀오링고식으로 개편 — 하단 색깔 피드백 바(정답 초록·오답 빨강)",
+    "'계속하기' 버튼을 맨 아래 고정",
+    "정답일 때도 해설을 함께 표시"
+  ]},
+  { n: 3, date: "260605", notes: [
     "해설을 선택지 아래로 이동 — 답을 골라도 화면이 위로 밀리지 않습니다",
-    "해설 끝에 '다음 문제 ▶' 버튼 추가 — 답 확인 후 바로 그 자리에서 진행"
+    "해설 끝에 '다음 문제' 버튼 추가"
   ]},
-  { v: "260605-2", date: "2026.06.05", notes: [
-    "백업/복원에 학습 위치 포함 — 기기를 옮겨도(폰↔데스크탑) 풀던 문제부터 이어집니다"
+  { n: 2, date: "260605", notes: [
+    "백업/복원에 학습 위치 포함 — 기기를 옮겨도 풀던 문제부터 이어집니다"
   ]},
-  { v: "260605", date: "2026.06.05", notes: [
-    "학습 완료 카드 추가 — 마지막 문제까지 풀면 표시됩니다",
-    "이어풀기 — 복습·별표 등을 봤다가 돌아와도 보던 문제로 복귀",
-    "오답 태그(헷갈림·암기부족·실수)를 누르면 자동으로 다음 문제로 넘어갑니다"
-  ]},
-  { v: "260604", date: "2026.06.04", notes: [
-    "연도 복수 선택 — 여러 해를 한 번에 골라 풀 수 있습니다",
-    "기출 모드 랜덤 섞기 추가",
-    "모바일 헤더 정렬 정리"
+  { n: 1, date: "260605", notes: [
+    "학습 완료 카드 추가",
+    "이어풀기 — 봤다가 돌아와도 보던 문제로 복귀",
+    "오답 태그를 누르면 자동으로 다음 문제로"
   ]}
 ];
 
-function verNum(v) { return parseFloat(String(v || "0").replace("-", ".")) || 0; }
-function getSeenVer() { return localStorage.getItem("mok_seenver") || ""; }
-function unseenEntries() {
-  const seen = verNum(getSeenVer());
-  return CHANGELOG.filter(e => verNum(e.v) > seen);
-}
+function fmtVer(n, date) { return `v${n}(${date})`; }
+function getSeenBuild() { return parseInt(localStorage.getItem("mok_seenbuild") || "0", 10) || 0; }
+function unseenEntries() { const s = getSeenBuild(); return CHANGELOG.filter(e => e.n > s); }
 function hasUnseen() { return unseenEntries().length > 0; }
 
 function updateVerBadge() {
+  const label = document.getElementById("ver-label");
+  if (label) label.textContent = fmtVer(BUILD, BUILD_DATE);
   const dot = document.getElementById("ver-dot");
   if (dot) dot.classList.toggle("show", hasUnseen());
 }
 
 function renderChangelog() {
-  const seen = verNum(getSeenVer());
+  const seen = getSeenBuild();
   const body = document.getElementById("cl-body");
   body.innerHTML = CHANGELOG.map(e => {
-    const isNew = verNum(e.v) > seen;
+    const isNew = e.n > seen;
     const badge = isNew ? '<span class="cl-new">🆕 NEW</span>' : "";
     const notes = e.notes.map(n => `<div class="cl-note">${n}</div>`).join("");
     return `<div class="cl-entry${isNew ? "" : " seen"}">
-      <div class="cl-ver">v${e.v} <span class="cl-date">${e.date}</span> ${badge}</div>
+      <div class="cl-ver">${fmtVer(e.n, e.date)} ${badge}</div>
       ${notes}
     </div>`;
   }).join("");
 }
 
 function openChangelog() {
-  renderChangelog();                          // 🆕 강조는 '연 시점'의 seen 기준으로 먼저 렌더
-  localStorage.setItem("mok_seenver", APP_VERSION);  // 그 다음 '봤음' 처리
+  renderChangelog();                               // 🆕 강조는 '연 시점' 기준으로 먼저 렌더
+  localStorage.setItem("mok_seenbuild", String(BUILD));  // 그 다음 '봤음' 처리
   document.getElementById("changelog-modal").classList.add("show");
   dismissBanner();
   updateVerBadge();
@@ -1444,6 +1501,11 @@ function syncFilterVisibility() {
 }
 
 function render() {
+  const fb = document.getElementById("feedback-bar");
+  if (fb) fb.classList.remove("show", "ok", "bad");
+  document.body.classList.remove("bar-open");
+  const _c = document.querySelector(".app-container");
+  if (_c) _c.style.paddingBottom = "";
   syncFilterVisibility();
   const cArea = document.getElementById("content-area");
   if (state.mode === "exam") return renderExamMode(cArea);
@@ -1485,14 +1547,6 @@ function renderStudy(cArea) {
       <div class="q-text">${q.q}</div>
       <div id="options-area">
         ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
-      </div>
-      <div class="ans-box" id="ans-box">
-        <strong>정답: ${q.a + 1}번</strong><br>${q.e || ""}
-        <div class="tag-wrap" id="tag-wrap">
-          <div class="tag-title">오답 태그 선택</div>
-          <div class="tag-area" id="tag-area"></div>
-        </div>
-        <button class="nav-btn primary ans-next" onclick="moveIdx(1)">다음 문제 ▶</button>
       </div>
     </div>
   `;
@@ -1722,34 +1776,33 @@ function checkAns(picked) {
   const qid = getQId(q);
   const isCorrect = picked === q.a;
 
-  const ansBox = document.getElementById("ans-box");
-  ansBox.style.display = "block";
   const opts = document.querySelectorAll(".opt");
+  opts.forEach(o => o.classList.add("answered"));
   opts[picked].classList.add("selected");
   opts[q.a].classList.add("correct");
+  if (!isCorrect) opts[picked].classList.add("wrong");
 
+  const bar = document.getElementById("feedback-bar");
+  bar.classList.remove("ok", "bad");
+  bar.classList.add(isCorrect ? "ok" : "bad");
+  document.getElementById("fb-icon").textContent = isCorrect ? "✓" : "✕";
+  document.getElementById("fb-title").textContent = isCorrect ? "정답입니다!" : `오답 · 정답은 ${q.a + 1}번`;
+  const exp = document.getElementById("fb-exp");
+  exp.innerHTML = q.e || "";
+  exp.style.display = q.e ? "block" : "none";
+
+  const tagsEl = document.getElementById("fb-tags");
   if (!isCorrect) {
-    opts[picked].classList.add("wrong");
     saveWrong(qid);
-    showToast("틀렸습니다! 오답노트에 기록합니다.", "bad");
-    const tags = [
-      { t: "헷갈림", c: "t1" },
-      { t: "암기부족", c: "t2" },
-      { t: "실수", c: "t3" }
-    ];
-    const tagWrap = document.getElementById("tag-wrap");
-    tagWrap.style.display = "block";
-    document.getElementById("tag-area").innerHTML = tags.map(x =>
-      `<button class="tag-btn ${x.c}" onclick="setTag('${qid}', '${x.t}')">${x.t}</button>`
-    ).join("");
+    const tags = ["헷갈림", "암기부족", "실수"];
+    tagsEl.innerHTML = tags.map(t => `<button class="fb-tag" onclick="setTag('${qid}', '${t}')">${t}</button>`).join("");
+    tagsEl.style.display = "flex";
+    saveSRS(qid, false);
   } else {
-    showToast("정답!", "ok");
-    const tagWrap = document.getElementById("tag-wrap");
-    tagWrap.style.display = "none";
+    tagsEl.innerHTML = "";
+    tagsEl.style.display = "none";
     saveSRS(qid, true);
   }
-
-  if (!isCorrect) saveSRS(qid, false);
 
   updateStats(qid, isCorrect);
   progress[qid] = isCorrect ? "O" : "X";
@@ -1758,8 +1811,16 @@ function checkAns(picked) {
   invalidateList();
   updateDashboard();
 
-  const nextBtn = ansBox.querySelector(".ans-next");
-  (nextBtn || ansBox).scrollIntoView({ behavior: "smooth", block: "nearest" });
+  document.body.classList.add("bar-open");
+  bar.classList.add("show");
+  requestAnimationFrame(() => {
+    const barH = bar.offsetHeight;
+    const cont = document.querySelector(".app-container");
+    if (cont) cont.style.paddingBottom = (barH + 24) + "px";
+    const optsArea = document.getElementById("options-area");
+    const delta = optsArea.getBoundingClientRect().bottom - (window.innerHeight - barH - 16);
+    if (delta > 0) window.scrollBy({ top: delta, behavior: "smooth" });
+  });
 }
 
 function moveIdx(step) {
@@ -1781,6 +1842,11 @@ function moveIdx(step) {
 
 // 학습 완료 카드
 function renderComplete(cArea) {
+  const fb = document.getElementById("feedback-bar");
+  if (fb) fb.classList.remove("show", "ok", "bad");
+  document.body.classList.remove("bar-open");
+  const _c = document.querySelector(".app-container");
+  if (_c) _c.style.paddingBottom = "";
   cArea.innerHTML = `
     <div class="card" style="text-align:center; padding:40px 24px;">
       <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--green);">✓</div>
