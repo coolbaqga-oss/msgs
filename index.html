@@ -259,9 +259,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 8;
+const BUILD = 9;
 const BUILD_DATE = "260611";
 const CHANGELOG = [
+  { n: 9, date: "260611", notes: [
+    "정답/오답 해설이 떠도 보기가 가려지지 않도록 수정 — 보기를 피드백 바 위로 자동 정렬(iOS 스크롤 보정)"
+  ]},
   { n: 8, date: "260611", notes: [
     "자동 상단 정렬 개선 — 모드 진입·문제 넘김 시 모드탭까지 가려지고 문제가 화면 맨 위로 (iOS 스크롤 보정)"
   ]},
@@ -1820,26 +1823,31 @@ function checkAns(picked) {
 
   document.body.classList.add("bar-open");
   bar.classList.add("show");
-  requestAnimationFrame(() => {
+  // 바가 다 올라온(애니메이션 0.22s) 뒤 실제 윗선을 재서 보기를 그 위로 올린다
+  setTimeout(() => {
     const barH = bar.offsetHeight;
     const cont = document.querySelector(".app-container");
-    if (cont) cont.style.paddingBottom = (barH + 24) + "px";
+    if (cont) cont.style.paddingBottom = (barH + 32) + "px";
     const optsArea = document.getElementById("options-area");
-    const delta = optsArea.getBoundingClientRect().bottom - (window.innerHeight - barH - 16);
-    if (delta > 0) window.scrollBy({ top: delta, behavior: "smooth" });
-  });
+    const barTop = bar.getBoundingClientRect().top;          // 바의 실제 윗선
+    const delta = optsArea.getBoundingClientRect().bottom - (barTop - 12);
+    if (delta > 4) smoothScrollTo(window.pageYOffset + delta);
+  }, 260);
 }
 
 // 문제 영역을 화면 최상단으로 (모드탭까지 가려지고 문제가 맨 위)
+// 공용 스크롤 (부드러운 스크롤 미지원 기기에선 즉시 이동)
+function smoothScrollTo(y) {
+  y = Math.max(0, y);
+  const smooth = "scrollBehavior" in document.documentElement.style;
+  if (smooth) window.scrollTo({ top: y, behavior: "smooth" });
+  else window.scrollTo(0, y);
+}
+
 function scrollToSolve() {
   const el = document.getElementById("content-area");
   if (!el) return;
-  const doIt = () => {
-    const y = el.getBoundingClientRect().top + window.pageYOffset - 8;
-    const smooth = "scrollBehavior" in document.documentElement.style;
-    if (smooth) window.scrollTo({ top: y, behavior: "smooth" });
-    else window.scrollTo(0, y);
-  };
+  const doIt = () => smoothScrollTo(el.getBoundingClientRect().top + window.pageYOffset - 8);
   // 새로 렌더된 레이아웃이 안정된 뒤 스크롤 (iOS 타이밍 대응)
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(doIt, 30)));
 }
