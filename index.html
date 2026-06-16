@@ -104,6 +104,8 @@
   .fb-tags { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
   .fb-tag { font-size: 0.78rem; padding: 6px 13px; background: #fff; border: 1px solid var(--line); border-radius: 20px; color: var(--red); cursor: pointer; }
   .fb-tag:active { transform: translateY(1px); }
+  .fb-gemini { width: 100%; padding: 12px; border: 1px solid #5b6ee0; border-radius: 10px; background: #eef0ff; color: #3b46b0; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-bottom: 9px; }
+  .fb-gemini:active { transform: translateY(1px); }
   .fb-next { width: 100%; padding: 15px; border: none; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: transform .05s, box-shadow .05s; }
   .fb-panel.ok  .fb-next { background: var(--green); box-shadow: 0 4px 0 #2c4d33; }
   .fb-panel.bad .fb-next { background: var(--red);   box-shadow: 0 4px 0 #7a1d1d; }
@@ -162,7 +164,7 @@
       <div class="subtitle">2015–2025</div>
     </div>
     <div class="header-actions">
-      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v10(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v11(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
       <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
       <button class="hdr-link" onclick="backupProgress()">백업</button>
       <button class="hdr-link" onclick="restoreProgress()">복원</button>
@@ -244,9 +246,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 10;
+const BUILD = 11;
 const BUILD_DATE = "260611";
 const CHANGELOG = [
+  { n: 11, date: "260611", notes: [
+    "해설 패널에 ‘✨ Gemini에 물어보기’ 추가 — 누르면 그 문제가 복사되고 Gemini가 열립니다(붙여넣기 한 번)"
+  ]},
   { n: 10, date: "260611", notes: [
     "정답/오답 해설을 보기 바로 아래 패널로 변경 — 화면 위치에 상관없이 보기가 가려지지 않습니다(iOS 고정 바 문제 해결)"
   ]},
@@ -1792,8 +1797,18 @@ function checkAns(picked) {
       <div class="fb-head"><div class="fb-icon">${icon}</div><div class="fb-title">${title}</div></div>
       ${expHtml}
       ${tagsHtml}
+      <button class="fb-gemini" id="fb-gemini-btn">✨ 이 문제 Gemini에 물어보기</button>
       <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
     </div>`;
+
+  // Gemini 버튼: 문제를 복사하고 Gemini를 연다 (특수문자 escape 회피 위해 JS로 연결)
+  const gprompt =
+    `다음은 대한예수교장로회(통합) 목사고시 ${q.subj} 기출문제야. 쉽게 풀어서 설명해주고, 정답인 이유와 다른 보기가 오답인 이유도 알려줘.\n\n` +
+    `[문제] ${plainText(q.q)}\n` +
+    q.opts.map((o, i) => `${i + 1}. ${plainText(o)}`).join("\n") +
+    `\n\n정답: ${q.a + 1}번`;
+  const gbtn = document.getElementById("fb-gemini-btn");
+  if (gbtn) gbtn.onclick = () => askGemini(gprompt);
 
   updateStats(qid, isCorrect);
   progress[qid] = isCorrect ? "O" : "X";
@@ -1809,7 +1824,44 @@ function checkAns(picked) {
   });
 }
 
-// 문제 영역을 화면 최상단으로 (모드탭까지 가려지고 문제가 맨 위)
+// HTML 제거해 순수 텍스트만
+function plainText(html) {
+  const d = document.createElement("div");
+  d.innerHTML = html == null ? "" : String(html);
+  return (d.textContent || d.innerText || "").replace(/\s+/g, " ").trim();
+}
+
+// 클립보드 복사 (iOS 사파리 대응: contentEditable + Range)
+function copyTextSync(text) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    ta.contentEditable = "true";
+    ta.readOnly = false;
+    document.body.appendChild(ta);
+    const range = document.createRange();
+    range.selectNodeContents(ta);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+// 현재 문제를 복사하고 Gemini를 새 탭으로 연다
+function askGemini(promptText) {
+  const ok = copyTextSync(promptText);
+  window.open("https://gemini.google.com/app", "_blank");
+  showToast(ok
+    ? "질문을 복사했어요 — Gemini에서 길게 눌러 ‘붙여넣기’ 하세요."
+    : "Gemini를 열었어요. 질문을 직접 입력해 주세요.");
+}
+
 // 공용 스크롤 (부드러운 스크롤 미지원 기기에선 즉시 이동)
 function smoothScrollTo(y) {
   y = Math.max(0, y);
