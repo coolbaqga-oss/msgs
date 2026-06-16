@@ -164,7 +164,7 @@
       <div class="subtitle">2015–2025</div>
     </div>
     <div class="header-actions">
-      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v12(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v13(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
       <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
       <button class="hdr-link" onclick="backupProgress()">백업</button>
       <button class="hdr-link" onclick="restoreProgress()">복원</button>
@@ -246,9 +246,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 12;
+const BUILD = 13;
 const BUILD_DATE = "260611";
 const CHANGELOG = [
+  { n: 13, date: "260611", notes: [
+    "‘AI에게 물어보기’가 아이패드·PWA에서도 열리도록 수정(팝업 차단 대응)"
+  ]},
   { n: 12, date: "260611", notes: [
     "‘AI에게 물어보기’를 Google AI 모드(Gemini 기반)로 연결 — 질문이 자동 입력·실행되어 답이 바로 뜹니다(붙여넣기 불필요)"
   ]},
@@ -1837,7 +1840,19 @@ function plainText(html) {
 // 현재 문제를 Google AI 모드(Gemini 기반)로 보낸다 — 질문이 자동 입력·실행됨
 function askGemini(promptText) {
   const url = "https://www.google.com/search?udm=50&q=" + encodeURIComponent(promptText);
-  window.open(url, "_blank");
+  // 아이패드·PWA·팝업차단에서도 열리도록 일반 링크 클릭 방식 사용 (window.open은 막힐 수 있음)
+  try {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  } catch (e) {}
+  try { if (window.open(url, "_blank")) return; } catch (e) {}
+  window.location.href = url;  // 최후: 같은 탭에서 열기(돌아오면 이어풀기로 복귀)
 }
 
 // 공용 스크롤 (부드러운 스크롤 미지원 기기에선 즉시 이동)
