@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>목사고시 실전 CBT — 예장통합</title>
+<title>목사고시 기출문제(2015-2025)</title>
 <style>
   :root {
     --ink: #1c1a17;
@@ -22,283 +22,319 @@
     --shadow: 0 1px 2px rgba(40,30,15,.06), 0 8px 24px rgba(40,30,15,.07);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-text-size-adjust: 100%; }
   body {
     font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    line-height: 1.65;
-    letter-spacing: -0.01em;
+    background: var(--paper); color: var(--ink); line-height: 1.65;
   }
-  .app-container {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 20px;
-    padding-bottom: 80px;
-  }
-  header {
-    border-bottom: 2px solid var(--ink);
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  h1 { font-size: 1.5rem; color: var(--burgundy); letter-spacing: -0.03em; margin-bottom: 5px;}
-  
-  /* 과목별 대시보드 */
-  .dashboard {
-    display: flex; gap: 5px; margin-bottom: 20px;
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 8px; padding: 10px; box-shadow: var(--shadow);
-  }
-  .dash-item {
-    flex: 1; text-align: center; border-right: 1px solid var(--line);
-  }
+  .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px 80px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px 16px; }
+  .title-block { min-width: 0; }
+  h1 { font-size: 1.4rem; color: var(--burgundy); white-space: nowrap; line-height: 1.15; }
+  .subtitle { font-size: 0.8rem; color: var(--muted); margin-top: 3px; letter-spacing: 0.03em; }
+  .header-actions { display: flex; align-items: flex-end; gap: 14px; font-size: 0.78rem; flex-wrap: wrap; margin-left: auto; }
+  .hdr-link { background: none; border: none; cursor: pointer; text-decoration: underline; white-space: nowrap; padding: 2px 0; color: var(--ink); font-size: 0.78rem; }
+  .hdr-link.gold { color: var(--gold); }
+  .hdr-link.red { color: var(--red); }
+
+  .dashboard { display: flex; gap: 5px; margin-bottom: 15px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: var(--shadow); }
+  .dash-item { flex: 1; text-align: center; border-right: 1px solid var(--line); }
   .dash-item:last-child { border-right: none; }
-  .dash-title { font-size: 0.75rem; color: var(--muted); }
-  .dash-score { font-size: 1.1rem; font-weight: bold; color: var(--burgundy); }
-  
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
+  .dash-title { font-size: 0.72rem; color: var(--muted); }
+  .dash-score { font-size: 1.05rem; font-weight: bold; color: var(--burgundy); }
+  .dash-sub { font-size: 0.65rem; color: var(--muted); }
+
+  .filters-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .chip {
-    padding: 6px 12px;
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    font-size: 0.9rem;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 6px 12px; background: var(--paper-2); border: 1px solid var(--line);
+    border-radius: 20px; font-size: 0.85rem; color: var(--muted); cursor: pointer; transition: 0.2s;
   }
-  .chip.on {
-    background: var(--burgundy);
-    color: #fff;
-    border-color: var(--burgundy);
+  .chip.on { background: var(--burgundy); color: #fff; border-color: var(--burgundy); }
+  .chip.pick.on::before { content: "✓ "; }
+
+  .adv-wrap { position: relative; }
+  .adv-toggle { background: var(--paper-2); border: 1px dashed var(--line); color: var(--muted); }
+  #adv-panel {
+    display: none; position: absolute; right: 0; top: 42px; z-index: 10;
+    background: var(--paper-2); padding: 12px; border-radius: 10px; border: 1px solid var(--line);
+    box-shadow: var(--shadow); min-width: 240px; gap: 10px; flex-direction: column;
   }
-  
-  .mode-tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    cursor: pointer;
-    font-weight: bold;
-    color: var(--muted);
-  }
-  .mode-tab:first-child { border-radius: 8px 0 0 8px; }
-  .mode-tab:last-child { border-radius: 0 8px 8px 0; }
-  .mode-tab.on {
-    background: var(--ink);
-    color: #fff;
-    border-color: var(--ink);
+  #adv-panel.show { display: flex; }
+  @media (max-width: 480px) {
+    #adv-panel { left: 0; right: 0; width: 100%; }
   }
 
-  /* 카드 디자인 */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-  }
-  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 10px; }
-  .q-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; word-break: keep-all; }
-  
-  .options { display: flex; flex-direction: column; gap: 10px; }
+  #search-box { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.95rem; }
+
+  .mode-tabs { display: flex; margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+  .mode-tab { flex: 1; padding: 12px; text-align: center; background: var(--paper-2); cursor: pointer; font-weight: bold; border: none; color: var(--muted); }
+  .mode-tab.on { background: var(--ink); color: #fff; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .q-meta { font-size: 0.85rem; color: var(--gold); font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .meta-right { display: flex; align-items: center; gap: 10px; }
+  .meta-link { font-size: 0.8rem; color: var(--muted); text-decoration: underline; cursor: pointer; }
+  .star { cursor: pointer; }
+  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; word-break: keep-all; }
   .opt {
-    padding: 14px 16px;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 1.05rem;
+    display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 1rem;
   }
-  .opt:hover { border-color: var(--gold); background: var(--paper-2); }
+  .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .opt.wrong { background: var(--red-soft); border-color: var(--red); color: var(--red); text-decoration: line-through; }
-  .opt.dim { opacity: 0.5; cursor: not-allowed; }
-  .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
-  
-  .ans-box {
-    margin-top: 20px;
-    padding: 16px;
-    background: var(--paper-2);
-    border-left: 4px solid var(--gold);
-    border-radius: 0 8px 8px 0;
-    font-size: 0.95rem;
-    display: none;
-    animation: fadeIn 0.3s;
-  }
-  
-  /* 50:50 듀얼 버튼 */
-  .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
-  .nav-btn {
-    flex: 1;
-    padding: 14px;
-    background: var(--card);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-size: 1.05rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .nav-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .nav-btn.primary:hover { background: var(--burgundy); border-color: var(--burgundy); }
-  .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* 시험모드 전용 CSS */
-  .exam-timer {
-    background: var(--burgundy);
-    color: white;
-    padding: 10px;
-    text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    position: sticky;
-    top: 10px;
-    z-index: 100;
-    box-shadow: var(--shadow);
-  }
-  .exam-submit-btn {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-top: 30px;
-    margin-bottom: 40px;
-    cursor: pointer;
-  }
-  .exam-result-box {
-    background: var(--card);
-    border: 2px solid var(--burgundy);
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .wrong-badge {
-    display: inline-block;
-    background: var(--red-soft);
-    color: var(--red);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-left: 10px;
-  }
+  .ans-box { margin: 10px 0 12px; padding: 14px; background: var(--paper-2); border-left: 4px solid var(--gold); display: none; border-radius: 8px; }
 
-  /* 토스트 알림 */
-  #toast {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: var(--burgundy);
-    color: #fff;
-    text-align: center;
-    border-radius: 8px;
-    padding: 16px;
-    position: fixed;
-    z-index: 1000;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-size: 0.95rem;
-    box-shadow: var(--shadow);
-  }
-  #toast.show {
-    visibility: visible;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  }
-  @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-  @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  /* 듀오링고식 피드백 패널 (보기 바로 아래, 인라인) */
+  .fb-panel { margin-top: 14px; padding: 16px; border-radius: 12px; animation: fbPop .18s ease; }
+  @keyframes fbPop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .fb-panel.ok  { background: var(--green-soft); border: 1px solid var(--green); }
+  .fb-panel.bad { background: var(--red-soft);   border: 1px solid var(--red); }
+  .fb-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+  .fb-icon { width: 26px; height: 26px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .fb-panel.ok  .fb-icon { background: var(--green); }
+  .fb-panel.bad .fb-icon { background: var(--red); }
+  .fb-title { font-size: 1rem; font-weight: bold; }
+  .fb-panel.ok  .fb-title { color: var(--green); }
+  .fb-panel.bad .fb-title { color: var(--red); }
+  .fb-exp { font-size: 0.88rem; line-height: 1.6; margin-bottom: 12px; color: var(--ink);
+    background: rgba(255,255,255,.72); border-radius: 8px; padding: 10px 12px; }
+  .fb-exp:empty { display: none; }
+  .fb-tags { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .fb-tag { font-size: 0.78rem; padding: 6px 13px; background: #fff; border: 1px solid var(--line); border-radius: 20px; color: var(--red); cursor: pointer; }
+  .fb-tag:active { transform: translateY(1px); }
+  .fb-next { width: 100%; padding: 15px; border: none; border-radius: 12px; color: #fff; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: transform .05s, box-shadow .05s; }
+  .fb-panel.ok  .fb-next { background: var(--green); box-shadow: 0 4px 0 #2c4d33; }
+  .fb-panel.bad .fb-next { background: var(--red);   box-shadow: 0 4px 0 #7a1d1d; }
+  .fb-next:active { transform: translateY(3px); box-shadow: none; }
+  .opt.answered { pointer-events: none; }
+  .tag-wrap { display: none; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .tag-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+  .tag-area { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+  .tag-btn.t1 { background: #fff3c4; border-color: #e2c36a; }
+  .tag-btn.t2 { background: #dff0ff; border-color: #7ab4e4; }
+  .tag-btn.t3 { background: #ffe0e0; border-color: #e38b8b; }
+
+  .nav-btns { display: flex; gap: 8px; margin-bottom: 15px; }
+  .nav-btn { flex: 1; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid var(--line); background: var(--card); }
+  .nav-btn.primary { background: var(--ink); color: #fff; }
+
+  .exam-timer { background: var(--burgundy); color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; }
+  .no-timer { background: var(--paper-2); color: var(--muted); border: 1px dashed var(--line); }
+  #toast { visibility: hidden; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 10px 20px; border-radius: 30px; z-index: 1000; pointer-events: none; white-space: nowrap; }
+  #toast.show { visibility: visible; animation: fadeInOut 1.8s; }
+  #toast.ok  { background: var(--green); }   /* 정답 - 초록 */
+  #toast.bad { background: var(--red); }      /* 오답 - 빨강 */
+  @keyframes fadeInOut { 0%, 100% { opacity: 0; } 15%, 85% { opacity: 1; } }
+
+  /* 업데이트 내역 */
+  .ver-btn { background:none; border:none; cursor:pointer; color:var(--muted); text-decoration:underline; position:relative; font-size:0.75rem; white-space:nowrap; }
+  .ver-dot { position:absolute; top:-3px; right:-7px; width:7px; height:7px; border-radius:50%; background:var(--red); display:none; }
+  .ver-dot.show { display:block; }
+  .cl-overlay { display:none; position:fixed; inset:0; background:rgba(20,15,8,.45); z-index:2000; align-items:center; justify-content:center; padding:18px; }
+  .cl-overlay.show { display:flex; }
+  .cl-box { background:var(--card); border-radius:14px; max-width:430px; width:100%; max-height:80vh; overflow:auto; box-shadow:var(--shadow); }
+  .cl-head { display:flex; justify-content:space-between; align-items:center; padding:15px 18px; border-bottom:1px solid var(--line); font-weight:bold; color:var(--burgundy); position:sticky; top:0; background:var(--card); }
+  .cl-head button { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--muted); line-height:1; }
+  .cl-entry { padding:14px 18px; border-bottom:1px solid var(--line); }
+  .cl-entry:last-child { border-bottom:none; }
+  .cl-ver { font-weight:bold; color:var(--burgundy); font-size:0.95rem; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
+  .cl-date { font-size:0.72rem; color:var(--muted); font-weight:normal; }
+  .cl-new { font-size:0.68rem; background:var(--red); color:#fff; border-radius:10px; padding:1px 7px; font-weight:bold; }
+  .cl-entry.seen { opacity:.55; }
+  .cl-entry.seen .cl-ver { color:var(--muted); }
+  .cl-note { font-size:0.9rem; margin:3px 0; padding-left:13px; position:relative; }
+  .cl-note::before { content:"·"; position:absolute; left:3px; }
+  .cl-banner { display:none; background:var(--burgundy); color:#fff; padding:10px 14px; border-radius:8px; margin-bottom:14px; align-items:center; justify-content:space-between; gap:10px; font-size:0.9rem; }
+  .cl-banner.show { display:flex; }
+  .cl-banner .cl-see { background:#fff; color:var(--burgundy); border:none; border-radius:6px; padding:5px 11px; font-weight:bold; cursor:pointer; font-size:0.83rem; white-space:nowrap; }
+  .cl-banner .cl-x { background:none; border:none; color:#fff; font-size:1.05rem; cursor:pointer; padding:0 2px; line-height:1; }
 </style>
 </head>
 <body>
 
 <div class="app-container">
   <header>
-    <div>
-      <div class="kicker">대한예수교장로회 · 통합</div>
-      <h1>목사고시 실전 CBT</h1>
+    <div class="title-block">
+      <h1>목사고시 기출문제</h1>
+      <div class="subtitle">2015–2025</div>
     </div>
-    <button id="reset" style="background:transparent; border:none; color:var(--muted); text-decoration:underline; cursor:pointer;">기록 초기화</button>
+    <div class="header-actions">
+      <button class="ver-btn" id="ver-btn" onclick="openChangelog()"><span id="ver-label">v10(260611)</span><span class="ver-dot" id="ver-dot"></span></button>
+      <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
+      <button class="hdr-link" onclick="backupProgress()">백업</button>
+      <button class="hdr-link" onclick="restoreProgress()">복원</button>
+      <button class="hdr-link red" onclick="resetData()">초기화</button>
+      <input type="file" id="restore-file" style="display:none;" onchange="handleRestore(event)">
+    </div>
   </header>
 
-  <!-- 과목별 정답률 대시보드 -->
+  <div class="cl-banner" id="cl-banner">
+    <span>✨ 업데이트되었습니다!</span>
+    <span style="display:flex; gap:6px; align-items:center;">
+      <button class="cl-see" onclick="openChangelog()">변경사항 보기</button>
+      <button class="cl-x" onclick="dismissBanner()">✕</button>
+    </span>
+  </div>
+
   <div class="dashboard">
     <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
     <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
     <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
   </div>
-
-  <!-- 필터 옵션 -->
-  <div class="filters">
-    <button class="chip year-f on" data-year="all">전체 연도</button>
-    <button class="chip year-f" data-year="2015">2015 기출</button>
-    <button class="chip year-f" data-year="2016">2016 기출</button>
-    <button class="chip year-f" data-year="2017">2017 기출</button>
-    <button class="chip year-f" data-year="2018">2018 기출</button>
-    <button class="chip year-f" data-year="2019">2019 기출</button>
-    <button class="chip year-f" data-year="2020">2020 기출</button>
-    <button class="chip year-f" data-year="2021">2021 기출</button>
-    <button class="chip year-f" data-year="2022">2022 기출</button>
-    <button class="chip year-f" data-year="2023">2023 기출</button>
-    <button class="chip year-f" data-year="2024">2024 기출</button>
-    <button class="chip year-f" data-year="2025">2025 기출</button>
-    
-    <div style="width:100%; height:4px;"></div>
-    
-    <button class="chip subj-f on" data-subj="all">전체 과목</button>
-    <button class="chip subj-f" data-subj="성경">성경</button>
-    <button class="chip subj-f" data-subj="교회사">교회사</button>
-    <button class="chip subj-f" data-subj="헌법">헌법</button>
-    
-    <div style="width:100%; height:4px;"></div>
-    
-    <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
-    <button class="chip" data-filter="wrong">내가 틀린 문제</button>
-    <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
-    <button class="chip" style="border-color:var(--burgundy); color:var(--burgundy); font-weight:bold;" data-filter="wrongnote">🔥 약점 TOP(3회 이상)</button>
+  <div class="dashboard">
+    <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
+    <div class="dash-item"><div class="dash-title">전체 진도</div><div class="dash-score" id="stat-progress">0%</div></div>
+    <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
   </div>
 
-  <!-- ✨ 카테고리(모드) 3분할 -->
-  <div class="filters" style="display:flex; margin-bottom:20px;">
-    <button class="mode-tab on" data-mode="study">학습 모드</button>
-    <button class="mode-tab" data-mode="yearly">📚 연도별 기출</button>
-    <button class="mode-tab" style="color:var(--red);" data-mode="exam">⏳ 실전 모의고사</button>
+  <div class="filters-group">
+    <div class="filters" id="year-chips"></div>
+    <div class="filters">
+      <button class="chip subj-f on" data-subj="all">전체 과목</button>
+      <button class="chip subj-f" data-subj="성경">성경</button>
+      <button class="chip subj-f" data-subj="교회사">교회사</button>
+      <button class="chip subj-f" data-subj="헌법">헌법</button>
+      <button class="chip" data-filter="shuffle">🔀 랜덤 섞기</button>
+    </div>
+    <input id="search-box" type="text" placeholder="🔍 문제 키워드 검색...">
+    <div class="filters">
+      <button class="chip" data-filter="due">📅 오늘 복습</button>
+      <button class="chip" data-filter="wrong">❌ 오답만</button>
+      <button class="chip" data-filter="bookmark">⭐ 별표</button>
+      <div class="adv-wrap">
+        <button class="chip adv-toggle" onclick="toggleAdv(event)">⚙️ 고급</button>
+        <div id="adv-panel">
+          <div class="filters">
+            <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
+            <button class="chip" data-filter="wrongnote">🔥 오답 TOP3</button>
+            <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
+          </div>
+          <select id="tag-filter" style="padding:8px; border-radius:6px; border:1px solid var(--line);">
+            <option value="all">🏷 모든 오답 태그</option>
+            <option value="헷갈림">헷갈림</option>
+            <option value="암기부족">암기부족</option>
+            <option value="실수">실수</option>
+          </select>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- 콘텐츠 렌더링 영역 -->
+  <div class="mode-tabs">
+    <button class="mode-tab on" data-mode="study">학습</button>
+    <button class="mode-tab" data-mode="yearly">기출</button>
+    <button class="mode-tab" style="color:var(--red);" data-mode="exam">모의</button>
+  </div>
+
   <div id="content-area"></div>
 </div>
-
-<!-- 토스트 알림창 -->
 <div id="toast"></div>
 
+<div class="cl-overlay" id="changelog-modal" onclick="closeChangelogBg(event)">
+  <div class="cl-box">
+    <div class="cl-head"><span>📋 업데이트 내역</span><button onclick="closeChangelog()" aria-label="닫기">✕</button></div>
+    <div id="cl-body"></div>
+  </div>
+</div>
+
 <script>
-// ==========================================
-// 1. 데이터베이스 영역
-// ==========================================
+/* ===== 업데이트 내역 =====
+   수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
+   그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
+const BUILD = 10;
+const BUILD_DATE = "260611";
+const CHANGELOG = [
+  { n: 10, date: "260611", notes: [
+    "정답/오답 해설을 보기 바로 아래 패널로 변경 — 화면 위치에 상관없이 보기가 가려지지 않습니다(iOS 고정 바 문제 해결)"
+  ]},
+  { n: 9, date: "260611", notes: [
+    "정답/오답 해설이 떠도 보기가 가려지지 않도록 수정 — 보기를 피드백 바 위로 자동 정렬(iOS 스크롤 보정)"
+  ]},
+  { n: 8, date: "260611", notes: [
+    "자동 상단 정렬 개선 — 모드 진입·문제 넘김 시 모드탭까지 가려지고 문제가 화면 맨 위로 (iOS 스크롤 보정)"
+  ]},
+  { n: 7, date: "260611", notes: [
+    "모드 진입·문제 넘김 시 문제 영역이 화면 위로 자동 정렬 — 아래로 스크롤할 필요 없이 바로 풀이"
+  ]},
+  { n: 6, date: "260611", notes: [
+    "헤더 버튼 줄바꿈 정리 — 새로고침·백업·복원·초기화가 깔끔하게 한 줄로",
+    "제목/연도 표기 정리, 버전 표기를 v6(260611) 형식으로 변경"
+  ]},
+  { n: 5, date: "260605", notes: [
+    "피드백 바 가독성 개선 — 해설 글자색을 진하게(바 색과 분리)",
+    "선택지와 피드백 바 사이 빈 공간 축소 — 바가 선택지 바로 아래 붙도록"
+  ]},
+  { n: 4, date: "260605", notes: [
+    "정답 확인 화면을 듀오링고식으로 개편 — 하단 색깔 피드백 바(정답 초록·오답 빨강)",
+    "'계속하기' 버튼을 맨 아래 고정",
+    "정답일 때도 해설을 함께 표시"
+  ]},
+  { n: 3, date: "260605", notes: [
+    "해설을 선택지 아래로 이동 — 답을 골라도 화면이 위로 밀리지 않습니다",
+    "해설 끝에 '다음 문제' 버튼 추가"
+  ]},
+  { n: 2, date: "260605", notes: [
+    "백업/복원에 학습 위치 포함 — 기기를 옮겨도 풀던 문제부터 이어집니다"
+  ]},
+  { n: 1, date: "260605", notes: [
+    "학습 완료 카드 추가",
+    "이어풀기 — 봤다가 돌아와도 보던 문제로 복귀",
+    "오답 태그를 누르면 자동으로 다음 문제로"
+  ]}
+];
+
+function fmtVer(n, date) { return `v${n}(${date})`; }
+function getSeenBuild() { return parseInt(localStorage.getItem("mok_seenbuild") || "0", 10) || 0; }
+function unseenEntries() { const s = getSeenBuild(); return CHANGELOG.filter(e => e.n > s); }
+function hasUnseen() { return unseenEntries().length > 0; }
+
+function updateVerBadge() {
+  const label = document.getElementById("ver-label");
+  if (label) label.textContent = fmtVer(BUILD, BUILD_DATE);
+  const dot = document.getElementById("ver-dot");
+  if (dot) dot.classList.toggle("show", hasUnseen());
+}
+
+function renderChangelog() {
+  const seen = getSeenBuild();
+  const body = document.getElementById("cl-body");
+  body.innerHTML = CHANGELOG.map(e => {
+    const isNew = e.n > seen;
+    const badge = isNew ? '<span class="cl-new">🆕 NEW</span>' : "";
+    const notes = e.notes.map(n => `<div class="cl-note">${n}</div>`).join("");
+    return `<div class="cl-entry${isNew ? "" : " seen"}">
+      <div class="cl-ver">${fmtVer(e.n, e.date)} ${badge}</div>
+      ${notes}
+    </div>`;
+  }).join("");
+}
+
+function openChangelog() {
+  renderChangelog();                               // 🆕 강조는 '연 시점' 기준으로 먼저 렌더
+  localStorage.setItem("mok_seenbuild", String(BUILD));  // 그 다음 '봤음' 처리
+  document.getElementById("changelog-modal").classList.add("show");
+  dismissBanner();
+  updateVerBadge();
+}
+function closeChangelog() { document.getElementById("changelog-modal").classList.remove("show"); }
+function closeChangelogBg(e) { if (e.target.id === "changelog-modal") closeChangelog(); }
+
+function dismissBanner() {
+  const b = document.getElementById("cl-banner");
+  if (b) b.classList.remove("show");
+}
+function showUpdateBannerIfNeeded() {
+  if (hasUnseen()) {
+    const b = document.getElementById("cl-banner");
+    if (b) b.classList.add("show");
+  }
+}
+
 const allQuestions = [
-  // 💡 기존 2015년 ~ 2023년 데이터는 용량 제한으로 비워두었습니다. 
-  // 가지고 계신 텍스트 파일이나 이전 답변에서 복사하여 이 곳에 붙여넣어 주세요!
-  // (🚨 붙여넣으실 때 각 객체 마지막에 쉼표(,)가 누락되지 않도록 주의하세요!)
+  // 여기에 2015~2025 전체 문제를 붙여넣기
  // ===================== 2015년도 기출 =====================
   {subj:"성경",year:"2015",no:1,q:"다음 중 연결이 맞지 않는 것은?",opts:["창세기 4장 — 가인의 족보","창세기 5장 — 아담의 족보","창세기 6장 — 노아의 족보","창세기 9장 — 노아 아들들의 족보"],a:3,e:"노아 아들들(셈·함·야벳)의 족보는 <b>창세기 10장</b>(열국 분포). 창9장은 노아 언약. 창6:9 '노아의 족보', 창5장 아담 계보, 창4장 가인 후손."},
   {subj:"성경",year:"2015",no:2,q:"출애굽기 17장에 나타난 중요한 2가지 사건은?",opts:["므리바 사건 — 아말렉과의 전쟁","므리바 사건 — 만나를 주심","만나를 주심 — 지도자를 세움","아말렉과의 전쟁 — 지도자를 세움"],a:0,e:"출17장: 르비딤(맛사·<b>므리바</b>)에서 반석의 물 + <b>아말렉</b>과의 전쟁. 만나는 16장, 천부장 세움은 18장(이드로)."},
@@ -845,7 +881,7 @@ const allQuestions = [
 {subj:"성경",year:"2022",no:16,q:"“여호와 크고 두려우신 하나님이여 주를 사랑하고 주의 계명을 지키는 자 에게 언약을 지키시며 긍휼을 베푸시는 주여 간구하나이다”는 누구의 기도 인가?",opts:["느헤미야","에스라","모르드개","에스더","솔로몬"],a:0,e:"<b>느헤미야 1:5</b> — 예루살렘 성벽이 무너졌다는 소식을 듣고 <b>느헤미야</b>가 금식하며 올린 기도이다."},
 {subj:"성경",year:"2022",no:17,q:"\"네 시작은 미약하였으나 네 나중은 심히 창대하리라\"는 누구의 말인가?",opts:["욥","소발","엘리후","빌닷","엘리바스"],a:3,e:"<b>욥기 8:7</b> — 욥의 친구인 수아 사람 <b>빌닷</b>이 한 말이다."},
 {subj:"성경",year:"2022",no:18,q:"시편은 모두 몇 권으로 구성되어 있는가?",opts:["1권","2권","3권","4권","5권"],a:4,e:"<b>시편</b>은 모세오경과 같이 총 <b>5권</b>(제1권~제5권)으로 구성되어 있다."},
-{subj:"성경",year:"2022",no:19,q:"“어떤 길은 사람이 보기에 바르나 필경은 사망의 길이니라” 잠언 몇 장에 기록되어 있는가?",opts:["13장","14장","15장","16장","17장"],a:1,e:"<b>잠언 14:12 = 16:25</b> — 이 구절은 두 곳에 토씨 하나 틀리지 않고 동일하게 나오므로 <b>14장(②)과 16장(④) 모두 정답</b>이다. (앱에서는 ②를 기준 정답으로 처리하나, ④도 옳음)"}
+{subj:"성경",year:"2022",no:19,q:"“어떤 길은 사람이 보기에 바르나 필경은 사망의 길이니라” 잠언 몇 장에 기록되어 있는가?",opts:["13장","14장","15장","16장","17장"],a:1,e:"<b>잠언 14:12 = 16:25</b> — 이 구절은 두 곳에 토씨 하나 틀리지 않고 동일하게 나오므로 <b>14장(②)과 16장(④) 모두 정답</b>이다. (앱에서는 ②를 기준 정답으로 처리하나, ④도 옳음)"},
 {subj:"성경",year:"2022",no:20,q:"음란한 고멜을 취해서 음란한 자식을 낳으라는 명령을 받은 선지자는?",opts:["호세아","요엘","아모스","스바냐","미가"],a:0,e:"<b>호세아 1:2</b> — 하나님이 <b>호세아</b>에게 음란한 여자를 맞이하여 음란한 자식들을 낳으라고 명하셨다."},
 {subj:"성경",year:"2022",no:21,q:"예수님의 산상보훈의 팔 복중 연결이 잘못된 것은?",opts:["심령이 가난한 자 – 천국이 그들의 것","마음이 청결한 자 – 위로를 받음","온유한 자 – 땅을 기업으로 받음","긍휼히 여기는 자 – 긍휼히 여김을 받음","화평케 하는 자 – 하나님의 아들이라 일컬음을 받음"],a:1,e:"<b>마태복음 5:8</b> — 마음이 청결한 자는 <b>하나님을 볼 것임이요</b>. (위로를 받는 자는 '애통하는 자'이다.)"},
 {subj:"성경",year:"2022",no:22,q:"마가복음 4장과 마태복음 13장에 공통적으로 언급된 비유는 무엇인가?",opts:["그물 비유","누룩 비유","진주비유","겨자씨 비유","숨겨진 보화 비유"],a:3,e:"<b>마가복음 4장, 마태복음 13장</b> — 씨 뿌리는 자 비유와 <b>겨자씨 비유</b>가 공통적으로 등장한다."},
@@ -1030,7 +1066,6 @@ const allQuestions = [
 {subj:"헌법",year:"2023",no:31,q:"“원로 장로는 한 교회에서 20년 이상 장로로 시무하고 은퇴하는 경우에 (     ) 결의로 추대한다.”에서 괄호 안에 알맞은 말은 무엇인가?",opts:["공동의회의 투표 수 과반수","공동의회의 회원 수 과반수","공동의회의 출석회원 과반수","공동의회의 투표수 3분의2","공동의회의 출석회원 3분의2"],a:2,e:"<b>정치 제44조</b> — 원로장로는 한 교회에서 20년 이상 시무하고 은퇴할 때 공동의회의 <b>출석회원 과반수</b>의 결의로 추대한다. (원로'목사'는 공동의회 출석 2/3 추대로 다름)"},
 {subj:"헌법",year:"2023",no:32,q:"“서리집사 임명은 신실한 세례교인(입교인)으로서 1년을 경과하고 교회에 등록한 후 (  ) 교인의 의무를 성실하게 이행한자 중에서 당회의 결의를 거처 당회장이 임명한다.”에서 괄호 안에 알맞은 말은 무엇인가?",opts:["등록즉시","2개월 이상","3개월 이상","6개월","1년 이상"],a:4,e:"<b>정치 제59조</b> — 무흠 세례교인으로 1년을 경과하고 교회에 등록한 후 <b>1년 이상</b> 교인의 의무를 성실히 이행한 자 중에서 당회의 결의를 거쳐 당회장이 임명한다."},
 {subj:"헌법",year:"2023",no:33,q:"다음 중 공동의회의 소집에 관한 내용 중 틀린 것은 무엇인가?",opts:["당회장이 소집할 필요가 있을 때","당회의 결의로 소집한다. (상회의 지시가 있을 때는 예외)","제직회 청원이 있을 때 소집한다.","무흠세례교인(입교인) 3분의1 이상 청원이 있을 때","상회의 지시가 있을 때 청원한다."],a:0,e:"<b>정치 제90조</b> — '당회장이' 단독으로 필요를 인정하여 소집하는 것이 아니라 <b>당회의 결의</b>로 소집한다."},
- 
 
 // ===================== 2024 성경 =====================
 {subj:"성경",year:"2024",no:1,q:"삼년 동안 벗은 몸과 벗은 발로 다니면서 애굽과 구스가 앗수르의 포로가 될 것을 예언한 선지자는 누구인가?",opts:["이사야","예레미야","호세아","아모스","에스겔"],a:0,e:"<b>이사야 20:2-3</b> — 여호와께서 이사야에게 이르시되... 내 종 이사야가 삼 년 동안 벗은 몸과 벗은 발로 다니며 애굽과 구스에 대하여 징조와 예표가 되었느니라."},
@@ -1168,16 +1203,16 @@ const allQuestions = [
 {subj:"성경",year:"2025",no:27,q:"갈라디아서 1장 17절에 바울이 회심한 후 간 곳은?",opts:["예루살렘","안디옥","다메섹","드로아","아라비아"],a:4,e:"<b>갈라디아서 1:17</b> — 오직 아라비아로 갔다가 다시 다메섹으로 돌아갔노라."},
 {subj:"성경",year:"2025",no:28,q:"디모데후서 4장 14절에 언급된 바울의 대적자는?",opts:["후메내오","빌레도","알렉산더","데마","그리스게"],a:2,e:"<b>디모데후서 4:14</b> — 구리 세공업자 알렉산더가 내게 해를 많이 입혔으매."},
 {subj:"성경",year:"2025",no:29,q:"내가 궁핍하므로 말하는 것이 아니니라 어떠한 형편에든지 나는 자족하기를 배웠노니라는 말씀이 기록되어 있는 서신서는?",opts:["로마서","빌립보서","빌레몬서","갈라디아서","골로새서"],a:1,e:"<b>빌립보서 4:11-12</b> — 감옥에서 쓴 바울의 자족에 대한 위대한 신앙 고백이다."},
-{subj:"성경",year:"2025",no:30,q:"베드로전서 2장 9절에는 그리스도인의 정체성을 선언하고 있다. 괄호에 알맞은 말은?",opts:["민족 - 왕 - 자녀 된 자 - 백성 - 소식","나라 - 왕 - 구원받은 자녀 - 나라 - 덕","기업 - 금 - 거룩한 나라 - 자녀 - 복음","족속 - 금 - 구원받은 자녀 - 백성 - 복음","족속 - 왕 - 거룩한 나라 - 백성 - 덕"],a:4,e:"<b>베드로전서 2:9</b> — 오직 너희는 택하신 족속이요 왕 같은 제사장들이요 거룩한 나라요 그의 소유된 백성이니... 아름다운 덕을 선포하게 하려 하심이라."},
-{subj:"성경",year:"2025",no:31,q:"열왕기하 2장 3절에 다윗이 솔로몬에게 한 말이다. 괄호에 알맞은 말은?",opts:["길 - 율법 - 형통","길 - 가르침 - 평안","규례 - 길 - 승리","규례 - 가르침 - 순탄","법도 - 율법 - 평안"],a:0,e:"<b>열왕기상 2:3</b> — 원문의 성경명 오타이나, 여호와의 명령을 지켜 그 길로 행하여... 모세의 율법에 기록된 대로 지키라... 어디로 가든지 형통할지라가 정답이다."},
-{subj:"성경",year:"2025",no:32,q:"역대하 7장 14절의 말씀이다. 괄호에 알맞은 말은?",opts:["죄 - 겸비 - 뜻 - 과거","죄 - 회개 - 이름 - 과오","악한 길 - 겸비 - 이름 - 죄","악한 길 - 기도 - 얼굴 - 죄","거짓 - 기도 - 긍휼 - 과거"],a:3,e:"<b>역대하 7:14</b> — 그들의 악한 길에서 떠나 스스로 낮추고 기도하여 내 얼굴을 찾으면... 그들의 죄를 사하고."},
+{subj:"성경",year:"2025",no:30,q:"베드로전서 2장 9절에는 그리스도인의 정체성을 선언하고 있다. 괄호에 알맞은 말은? “너희는 택하신 (    )이요, (  ) 같은 제사장들이요, (            )요, 그의 소유가 된 (    )이니 이는 너희를 어두운 데서 불러내어 그의 기이한 빛에 들어가게 하신 이의 아름다운 (   )을 선포하게 하려 하심이라”",opts:["민족 - 왕 - 자녀 된 자 - 백성 - 소식","나라 - 왕 - 구원받은 자녀 - 나라 - 덕","기업 - 금 - 거룩한 나라 - 자녀 - 복음","족속 - 금 - 구원받은 자녀 - 백성 - 복음","족속 - 왕 - 거룩한 나라 - 백성 - 덕"],a:4,e:"<b>베드로전서 2:9</b> — 오직 너희는 택하신 족속이요 왕 같은 제사장들이요 거룩한 나라요 그의 소유된 백성이니... 아름다운 덕을 선포하게 하려 하심이라."},
+{subj:"성경",year:"2025",no:31,q:"열왕기하 2장 3절에 다윗이 솔로몬에게 한 말이다. 괄호에 알맞은 말은? “네 하나님 여호와의 명령을 지켜 그 (    )로 행하여 그 법률과 계명과 율례와 증거를 모세의 (    )에 기록된 대로 지키라 그리하면 네가 무엇을 하든지 어디로 가든지 (    )할지라”",opts:["길 - 율법 - 형통","길 - 가르침 - 평안","규례 - 길 - 승리","규례 - 가르침 - 순탄","법도 - 율법 - 평안"],a:0,e:"<b>열왕기상 2:3</b> — 원문의 성경명 오타이나, 여호와의 명령을 지켜 그 길로 행하여... 모세의 율법에 기록된 대로 지키라... 어디로 가든지 형통할지라가 정답이다."},
+{subj:"성경",year:"2025",no:32,q:"역대하 7장 14절의 말씀이다. 괄호에 알맞은 말은? “내 이름으로 일컫는 내 백성이 그들의 (    )에서 떠나 스스로 낮추고 (    )하여 내 (    )을 찾으면 내가 하늘에서 듣고 그들의 (    )를 사하고 그들의 땅을 고칠지라”",opts:["죄 - 겸비 - 뜻 - 과거","죄 - 회개 - 이름 - 과오","악한 길 - 겸비 - 이름 - 죄","악한 길 - 기도 - 얼굴 - 죄","거짓 - 기도 - 긍휼 - 과거"],a:3,e:"<b>역대하 7:14</b> — 그들의 악한 길에서 떠나 스스로 낮추고 기도하여 내 얼굴을 찾으면... 그들의 죄를 사하고."},
 {subj:"성경",year:"2025",no:33,q:"사도 요한이 요한계시록을 기록한 장소는?",opts:["바보 섬","구브로 섬","사모 섬","그레데","밧모 섬"],a:4,e:"<b>요한계시록 1:9</b> — 사도 요한은 밧모라 하는 섬에서 계시를 받아 기록하였다."},
 // 교회사
 {subj:"교회사",year:"2025",no:1,q:"개화기 이수정의 주요 활동 중 틀린 것은?",opts:["일본의 농업의 권위자 쓰다센에게 신앙적 영향을 받았다.","일본에서 마가복음을 비롯하여 한글성경번역에 참여했다.","미국선교부에 조선으로 선교사 파송을 요청하였다.","최초 선교사 언더우드, 아펜젤러의 조선행을 이끌었다.","일본에서 귀국하여 알렌과 함께 협력하여 사역하였다."],a:4,e:"<b>역사적 사실</b> — 이수정은 1886년 귀국 직후 자객에게 암살당해 순교하였으므로, 국내에서 알렌과 본격적으로 협력하여 사역할 수 없었다."},
 {subj:"교회사",year:"2025",no:2,q:"네비우스 선교정책 중 틀린 것은?",opts:["신자 각인은 타인에게 복음의 선생이 된다.","모든 교회는 무급·유급 지도자나 조사들이 각 지역에서 지도자가 될 수 있도록 훈련한다.","모든 예배당은 신자들의 힘으로 건축되어야 한다.","1890년 6월에 선교사들에게 강론한 선교전략 방법이다.","교회 내의 소송문제는 선교사들의 주도하에 해결한다."],a:4,e:"<b>네비우스 정책</b> — 3대 근간인 자치(Self-Governing) 원칙에 따라 현지 교인들 스스로 치리하도록 자율성을 보장했으므로 선교사 주도 해결은 틀렸다."},
 {subj:"교회사",year:"2025",no:3,q:"한국교회사에 중요한 사건들과 그 연도가 잘못 연결된 것은?",opts:["평양장로회신학교 설립 - 1901년","조선예수교장로회 총회 조직 - 1915년","교단 명칭을 대한예수교장로회로 변경 - 1949년","신사참배 결의를 취소하고 참회 기도회 개최 - 1954년","대한예수교장로회 합동 측이 분립 - 1959년"],a:1,e:"<b>한국 교회사</b> — 조선예수교장로회 첫 총회 조직은 1915년이 아니라 1912년 9월 1일이다."},
 {subj:"교회사",year:"2025",no:4,q:"신사참배 가결과 관련이 없는 것은?",opts:["조선예수교장로회 총회 제29회에서 결의함","로마 교황청은 신사참배 독려함","미국 북장로교회는 기독교학교 및 세브란스 의전을 자발적으로 폐쇄함","주기철, 손양원 목사 등 순교자 배출 됨","남산 중턱에 조선 신궁이 건축 됨"],a:0,e:"<b>한국 교회사</b> — 장로교 총회가 평양에서 신사참배를 가결한 치욕스러운 사건은 제29회가 아니라 1938년 제27회 총회이다."},
-{subj:"교회사",year:"2025",no:5,q:"일제강점기 당시 삼천리 반도 금수강산 하나님 주신 동산이라는 찬송가를 작사한 사람은 누구인가?",opts:["이광수","이승훈","윤치호","전영택","남궁억"],a:4,e:"<b>찬송가 작사</b> — 독립운동가이며 교육자인 남궁억 선생이 작사하여 민족의 얼과 노동의 신성함을 일깨운 찬송가이다."},
+{subj:"교회사",year:"2025",no:5,q:"일제강점기 당시 “삼천리 반도 금수강산 하나님 주신 동산”이라는 찬송가를 작사한 사람은 누구인가?",opts:["이광수","이승훈","윤치호","전영택","남궁억"],a:4,e:"<b>찬송가 작사</b> — 독립운동가이며 교육자인 남궁억 선생이 작사하여 민족의 얼과 노동의 신성함을 일깨운 찬송가이다."},
 {subj:"교회사",year:"2025",no:6,q:"3.1 운동이 갖는 의미 중 틀린 것은?",opts:["3.1운동은 한민족의 독립을 넘어 동양과 세계의 평화를 주장하였다.","3.1운동은 기독교의 평화적 비폭력 저항운동이었다.","3.1운동은 한국교회의 민족운동과 애국적 신앙의 모습을 보여주었다.","3.1운동은 일제 치하의 정교분리를 적극적으로 지지한 운동이었다.","3.1운동으로 인해 한국교회는 민족 동반자의 종교로 인정받게 되었다."],a:3,e:"<b>역사적 의미</b> — 기독교인들이 주도적으로 민족의 독립(정치적 현실)에 앞장선 사건이므로 정교분리 지지 운동이라는 설명은 틀렸다."},
 {subj:"교회사",year:"2025",no:7,q:"초기 선교사들의 선교지 분할 정책 예양협정(Mission Comity Arrangement)에 대해서 틀린 것은?",opts:["같은 지역에서 선교의 경쟁적 구도를 만들기 위한 협정이다.","미국 북장로교회는 평안도, 황해도, 경기도, 경상북도 지역을 맡았다.","미국 남장로교회는 전라도, 충청도 지역을 맡았다.","캐나다장로교회는 함경도 지역을 맡았다.","호주장로교회는 경상남도와 부산 지역을 맡았다."],a:0,e:"<b>예양협정</b> — 각국 선교부 간에 마찰과 경쟁 구도를 '피하고' 효율적인 복음 전도를 위해 지역을 분할하여 협력한 정책이다."},
 {subj:"교회사",year:"2025",no:8,q:"초기 한국교회의 복음 수용의 특징이 아닌 것은?",opts:["주체적이고 자발적이다.","성경을 중시하였다.","교파 절대주의였다.","연합정신이 강했다.","선교를 중요하게 여겼다."],a:2,e:"<b>한국 교회사</b> — 초기 한국교회는 교파 절대주의가 아니라, 장로교와 감리교가 연합하여 찬송가와 성경을 만드는 등 초교파적 연합정신이 매우 강했다."},
@@ -1214,7 +1249,7 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:5,q:"장로에 관한 내용 중 맞는 것은?",opts:["무흠 세례교인으로 7년을 경과하고 45세 이상 된 자라야 한다.","피택자는 4개월 이상 당회 지도를 받고 노회 고시에 합격하여야 한다.","장로가 특별한 사정에 의하여 휴무코자 하면 제직회의 결의로 할 수 있다.","은퇴 장로는 제직회에는 언권회원이 되나 당회에는 참여할 수 없다.","자의 사임을 한 장로가 복직을 원할 경우 당회원 과반수의 결의로 복직할 수 있다."],a:1,e:"<b>헌법 정치 제42조 1항</b> — 장로 피택자는 반드시 4개월 이상 당회의 지도 아래 교육을 받은 후 노회 고시에 합격하여야 한다."},
 {subj:"헌법",year:"2025",no:6,q:"지교회의 당회장이 결원되었을 때 노회에서 파송하는 목사의 칭호는?",opts:["임시당회장","대리당회장","파송당회장","수습당회장","유고당회장"],a:0,e:"<b>헌법 정치 제67조 2항</b> — 당회장이 결원되었을 때 당회원 과반수 결의로 노회에 요청하면 노회는 '임시당회장'을 파송한다."},
 {subj:"헌법",year:"2025",no:7,q:"노회 회원권(결의권, 선거권, 피선거권)이 없는 목사는?",opts:["부목사","선교동역자","기관목사","교육목사","군종목사"],a:3,e:"<b>헌법 정치 제74조 2항</b> — 교육목사, 유학목사, 무임목사는 결의권이 없는 노회의 언권회원이 된다."},
-{subj:"헌법",year:"2025",no:8,q:"하나님의 영광과 권위를 위하여 ()를 미연에 방지하고 교회의 ()과(와) ()을(를) 유지하고 범죄자의 ()을(를) 촉구하여 올바른 신앙생활을 하게 함을 그 목적으로 한다. 괄호에 맞는 것은?",opts:["범죄 - 건덕 - 평화 - 회개","과오 - 화평 - 질서 - 반성","사고 - 권위 - 안녕 - 자백","과오 - 영성 - 권위 - 자백","범죄 - 신성 - 질서 - 회개"],a:4,e:"<b>권징 제2조</b> — 권징의 목적은 범죄를 방지하고 교회의 신성과 질서를 유지하며 회개를 촉구하는 것이다."},
+{subj:"헌법",year:"2025",no:8,q:"하나님의 영광과 권위를 위하여 (  )를 미연에 방지하고 교회의 (  )과(와) (  )을(를) 유지하고 범죄자의 (  )을(를) 촉구하여 올바른 신앙생활을 하게 함을 그 목적으로 한다. 괄호에 맞는 것은?",opts:["범죄 - 건덕 - 평화 - 회개","과오 - 화평 - 질서 - 반성","사고 - 권위 - 안녕 - 자백","과오 - 영성 - 권위 - 자백","범죄 - 신성 - 질서 - 회개"],a:4,e:"<b>권징 제2조</b> — 권징의 목적은 범죄를 방지하고 교회의 신성과 질서를 유지하며 회개를 촉구하는 것이다."},
 {subj:"헌법",year:"2025",no:9,q:"책벌의 원칙과 관련하여 틀린 것은?",opts:["은퇴자는 책벌의 대상이 되지 않는다.","재판을 받지 않고서는 권징할 수 없다.","재판석상에서 범한 폭언, 협박, 폭행, 상해, 재물 손괴 행위는 별도의 고소 및 기소 없이 즉시 판결로 책벌할 수 있다.","폭언, 협박, 폭행, 상해, 재물 손괴 행위는 피고인인 경우 본 죄와 병합하여 가중처벌할 수 있다.","죄과를 범한 자의 책벌은 재판 절차를 거쳐서 행하여야 한다."],a:0,e:"<b>권징 제6조 1항</b> — 죄과를 범한 자(은퇴자 포함)의 책벌은 재판절차를 거쳐서 행하여야 한다고 명시되어 은퇴자도 권징 대상이다."},
 {subj:"헌법",year:"2025",no:10,q:"해벌에 관한 내용 중 틀린 것은?",opts:["시벌 중인 자가 회개의 정이 뚜렷하면 치리회의 결의로 해벌할 수 있다.","시벌 기간이 만료된 자는 해벌 절차 없이 자동 해벌된 것으로 본다.","출교 받은 교인이 해벌되면 수찬 정지도 자연 해벌된다.","시벌 중에 있는 자에 대하여도 청빙할 수는 있으나 청빙 후에도 집행을 완료해야 해벌된다.","면직된 자가 해벌되어 복직되면 청빙이나 신임을 얻어 시무할 수 있다."],a:2,e:"<b>권징 제135조</b> — 출교 받은 교인은 해벌이 되어도 수찬정지로 2년이 경과되고 다시 치리회의 결의가 있어야 수찬정지가 해벌된다."},
 {subj:"헌법",year:"2025",no:11,q:"미조직교회에서는 당회권을 누가 행사하는가?",opts:["노회장","당회장","임시당회장","대리당회장","시찰장"],a:1,e:"<b>헌법 정치 제67조 4항</b> — 미조직교회의 당회권은 당회장이 단독으로 행사한다."},
@@ -1239,469 +1274,871 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:30,q:"당회장 결원 시 임시당회장을 노회에 요청하지 않을 경우 얼마가 경과하면 노회에서 임시당회장을 직접 파송할 수 있는가?",opts:["즉시","3주","2개월","3개월","6개월"],a:3,e:"<b>임시당회장 파송 (정치 제67조 관련)</b> — 당회장 결원 후 3개월간 지교회가 파송을 요청하지 않으면 노회가 직권으로 파송할 수 있다."},
 {subj:"헌법",year:"2025",no:31,q:"군목과 선교목사의 임직식은 노회의 위임을 받아 어디에서 주관하는가?",opts:["파송교회 및 기관단체","노회 임원회","노회선교부(국내선교부)","총회 파송부서","시무 군부대 및 선교처"],a:1,e:"<b>헌법 정치 제33조</b> — 군목과 선교목사의 임직식은 예외적으로 노회의 위임을 받아 노회 임원회가 주관할 수 있다."},
 {subj:"헌법",year:"2025",no:32,q:"총회 출석 회원 3분의 2 이상의 가결로 개정안을 작성, 각 노회 3분의 2 이상의 가결과 투표 총수의 3분의 2 이상의 찬성을 얻어야 개정할 수 있는 헌법은 무엇인가?",opts:["정치","권징","교리","예배와 예식","재판규정"],a:2,e:"<b>헌법 정치 제103조</b> — 교리편은 가장 엄격한 개정 절차(노회 3/2 가결 및 투표 3/2 이상 찬성)를 거친다."},
-{subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."}
+{subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."},
 
 ];
-// ==========================================
-// 2. 상태 및 로컬 스토리지 관리
-// ==========================================
+
+function keyText(t) {
+  return (t || "").toLowerCase().replace(/\s+/g, "").replace(/[^\w가-힣]/g, "").slice(0, 80);
+}
+function getFreqQs(list) {
+  const map = new Map();
+  list.forEach(q => {
+    const key = keyText(q.q) + "_" + q.subj;
+    if (!map.has(key)) map.set(key, { count: 0, data: q });
+    map.get(key).count++;
+  });
+  return [...map.values()]
+    .filter(v => v.count >= 2)
+    .sort((a, b) => b.count - a.count)
+    .map(v => ({ ...v.data, year: "빈출" }));
+}
+const baseQuestions = allQuestions.slice();
+const freqPool = getFreqQs(baseQuestions);
+freqPool.forEach(q => allQuestions.push(q));
+
 let state = {
-  year: 'all', 
-  subj: 'all',
-  mode: 'study', // 'study', 'yearly', 'exam'
-  idx: 0,
-  freqOnly: false,
-  wrongOnly: false,
-  shuffled: false,
-  wrongnoteOnly: false
+  years: [], subj: "all", mode: "study", idx: 0,
+  yearlyYears: [],
+  examCount: 33,
+  freqOnly: false, wrongOnly: false, shuffled: false,
+  bookmarkOnly: false, search: "", tagFilter: "all",
+  wrongnoteOnly: false, weakOnly: false, dueOnly: false,
+  lastQid: localStorage.getItem("mok_last") || null,  // 이어풀기: 마지막으로 본 문제
+  pendingResume: false  // 필터/모드 전환 시 마지막 문제로 복귀 시도
 };
 
-let progress = JSON.parse(localStorage.getItem("moksagosi_prog")) || {};
-let wrongNotes = JSON.parse(localStorage.getItem("wrongNotes")) || {};
-let list = [];
-let showAns = false;
+let progress = JSON.parse(localStorage.getItem("mok_prog")) || {};
+let wrongNotes = JSON.parse(localStorage.getItem("mok_wrong")) || {};
+let srs = JSON.parse(localStorage.getItem("mok_srs")) || {};
+let bookmarks = JSON.parse(localStorage.getItem("mok_bm")) || {};
+let stats = JSON.parse(localStorage.getItem("mok_stats")) || {};
+let streakInfo = JSON.parse(localStorage.getItem("mok_streak")) || { last: "", streak: 0 };
 
-// 모의고사/연도별기출 공용 데이터 객체
-let examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
+let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null, source: "", timed: false };
 
-const getQId = (q) => `${q.year}-${q.subj}-${q.no || q.q.slice(0, 10)}`;
+let listCache = { key: "", list: [] };
 
-function save() {
-  localStorage.setItem("moksagosi_prog", JSON.stringify(progress));
+function normalize(s) { return (s || "").toLowerCase().trim(); }
+function formatDate(d) { return d.toISOString().split("T")[0]; }
+function todayStr() { return formatDate(new Date()); }
+function addDays(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d; }
+
+function shuffleInPlace(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function mixByYear(list, count) {
+  const groups = new Map();
+  list.forEach(q => {
+    const y = q.year || "미상";
+    if (!groups.has(y)) groups.set(y, []);
+    groups.get(y).push(q);
+  });
+  const years = Array.from(groups.keys());
+  years.forEach(y => shuffleInPlace(groups.get(y)));
+  shuffleInPlace(years);
+  const total = count || list.length;
+  const out = [];
+  while (out.length < total) {
+    let added = false;
+    for (let i = 0; i < years.length && out.length < total; i++) {
+      const y = years[i];
+      const arr = groups.get(y);
+      if (arr && arr.length) {
+        out.push(arr.pop());
+        added = true;
+      }
+    }
+    if (!added) break;
+    shuffleInPlace(years);
+  }
+  return out;
 }
 
-// ==========================================
-// 3. UI 렌더링 및 필터링 로직
-// ==========================================
-function render() {
-  // 모드별 분기
-  if (state.mode === 'yearly') return renderYearly();
-  if (state.mode === 'exam') return renderExam();
+function getQId(q) {
+  const head = (q.q || "").replace(/\s+/g, "").slice(0, 20);
+  return `${q.year}-${q.subj}-${q.no || head}`;
+}
+function getAttempt(qid) {
+  if (stats[qid]) return stats[qid];
+  if (progress[qid] === "O") return { c: 1, t: 1 };
+  if (progress[qid] === "X") return { c: 0, t: 1 };
+  return { c: 0, t: 0 };
+}
+function isDue(qid) {
+  const s = srs[qid];
+  if (!s || !s.due) return false;
+  return s.due <= todayStr();
+}
+function saveAll() {
+  localStorage.setItem("mok_prog", JSON.stringify(progress));
+  localStorage.setItem("mok_wrong", JSON.stringify(wrongNotes));
+  localStorage.setItem("mok_srs", JSON.stringify(srs));
+  localStorage.setItem("mok_bm", JSON.stringify(bookmarks));
+  localStorage.setItem("mok_stats", JSON.stringify(stats));
+  localStorage.setItem("mok_streak", JSON.stringify(streakInfo));
+}
+function invalidateList() { listCache.key = ""; }
 
-  // --- 이하 학습 모드(study) 로직 ---
-  const cArea = document.getElementById("content-area");
-  cArea.innerHTML = "";
-  showAns = false;
+function getTopWrongIds(n) {
+  const entries = Object.entries(wrongNotes)
+    .map(([qid, v]) => ({ qid, count: v.count || 0 }))
+    .filter(x => x.count > 0)
+    .sort((a, b) => b.count - a.count);
+  return new Set(entries.slice(0, n).map(x => x.qid));
+}
+function getWeakIds(list) {
+  if (!list.length) return new Set();
+  const arr = list.map(q => {
+    const qid = getQId(q);
+    const st = getAttempt(qid);
+    const acc = st.t ? st.c / st.t : 0;
+    return { qid, acc };
+  }).sort((a, b) => a.acc - b.acc);
+  const n = Math.max(1, Math.ceil(arr.length * 0.2));
+  return new Set(arr.slice(0, n).map(x => x.qid));
+}
 
-  // 필터링 적용
-  list = allQuestions.filter(q => {
-    if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-    if (state.freqOnly && q.year !== '빈출') return false;
-    if (state.subj !== 'all' && q.subj !== state.subj) return false;
-    
-    if (state.wrongOnly) {
-      const rec = progress[getQId(q)];
-      if (!rec || rec === 'O') return false;
+function buildList(forExam) {
+  const search = normalize(state.search);
+  let temp = allQuestions.filter(q => {
+    if (!q || !q.q) return false;
+    const isFreq = q.year === "빈출";
+    if (state.freqOnly) {
+      if (!isFreq) return false;
+    } else if (isFreq) return false;
+
+    const yMatch = state.years.length === 0 || state.years.includes(q.year);
+    const sMatch = state.subj === "all" || q.subj === state.subj;
+    if (!yMatch || !sMatch) return false;
+
+    if (search) {
+      const blob = (q.q + " " + (q.opts || []).join(" ") + " " + (q.e || "")).toLowerCase();
+      if (!blob.includes(search)) return false;
     }
-    // 약점 오답 필터 (3회 이상 틀린 문제만)
-    if (state.wrongnoteOnly) {
-      if (!wrongNotes[getQId(q)] || wrongNotes[getQId(q)].count < 3) return false;
+
+    if (!forExam) {
+      const qid = getQId(q);
+      if (state.dueOnly && !isDue(qid)) return false;
+      if (state.wrongOnly && progress[qid] !== "X") return false;
+      if (state.bookmarkOnly && !bookmarks[qid]) return false;
+      if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
     }
     return true;
   });
 
-  // 셔플 및 빈출 2배수 적용 (학습 모드)
-  if (state.shuffled) {
-    let pool = [];
-    list.forEach(q => {
-      pool.push(q);
-      if (state.freqOnly && q.year === '빈출') pool.push(q);
-    });
-    list = pool.sort(() => Math.random() - 0.5);
+  if (!forExam) {
+    if (state.wrongnoteOnly) {
+      const set = getTopWrongIds(3);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
+    if (state.weakOnly) {
+      const set = getWeakIds(temp);
+      temp = temp.filter(q => set.has(getQId(q)));
+    }
   }
+  return temp;
+}
 
-  updateDashboard();
+function getList(forExam) {
+  const key = JSON.stringify({
+    years: state.years.slice().sort(),
+    subj: state.subj, freqOnly: state.freqOnly, wrongOnly: state.wrongOnly,
+    shuffled: state.shuffled, bookmarkOnly: state.bookmarkOnly,
+    search: state.search, tagFilter: state.tagFilter,
+    wrongnoteOnly: state.wrongnoteOnly, weakOnly: state.weakOnly, dueOnly: state.dueOnly,
+    forExam
+  });
+  if (listCache.key !== key) {
+    let list = buildList(forExam);
+    if (state.shuffled) list = shuffleInPlace(list);
+    listCache = { key, list };
+  }
+  return listCache.list;
+}
 
+function buildExamPool() {
+  let temp = allQuestions.filter(q => q && q.q);
+  if (state.freqOnly) temp = temp.filter(q => q.year === "빈출");
+  else temp = temp.filter(q => q.year !== "빈출");
+  if (state.subj !== "all") temp = temp.filter(q => q.subj === state.subj);
+
+  if (state.dueOnly) temp = temp.filter(q => isDue(getQId(q)));
+  if (state.wrongOnly) temp = temp.filter(q => progress[getQId(q)] === "X");
+  if (state.bookmarkOnly) temp = temp.filter(q => bookmarks[getQId(q)]);
+  if (state.tagFilter !== "all") temp = temp.filter(q => wrongNotes[getQId(q)]?.tag === state.tagFilter);
+  if (state.wrongnoteOnly) {
+    const set = getTopWrongIds(3);
+    temp = temp.filter(q => set.has(getQId(q)));
+  }
+  if (state.weakOnly) {
+    const set = getWeakIds(temp);
+    temp = temp.filter(q => set.has(getQId(q)));
+  }
+  return temp;
+}
+
+function getYearList() {
+  return [...new Set(allQuestions.filter(q => q.year !== "빈출").map(q => q.year))].sort();
+}
+function buildYearlyPoolAll() {
+  if (!state.yearlyYears.length) return [];
+  let temp = allQuestions.filter(q => q && q.q && q.year !== "빈출" && state.yearlyYears.includes(q.year));
+  if (state.subj !== "all") temp = temp.filter(q => q.subj === state.subj);
+  return temp;
+}
+
+function syncFilterVisibility() {
+  const yearWrap = document.getElementById("year-chips");
+  if (yearWrap) yearWrap.style.display = state.mode === "yearly" ? "none" : "flex";
+}
+
+function render() {
+  syncFilterVisibility();
+  const cArea = document.getElementById("content-area");
+  if (state.mode === "exam") return renderExamMode(cArea);
+  if (state.mode === "yearly") return renderYearlyMode(cArea);
+  return renderStudy(cArea);
+}
+
+function renderStudy(cArea) {
+  const list = getList(false);
   if (list.length === 0) {
-    cArea.innerHTML = `<div class="card" style="text-align:center; padding:40px;">조건에 맞는 문제가 없습니다.</div>`;
+    cArea.innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
+    updateDashboard();
     return;
   }
-  
-  if (state.idx >= list.length) state.idx = 0;
-  if (state.idx < 0) state.idx = list.length - 1;
-
-  renderStudy(cArea);
-}
-
-// 과목별 정답률 계산
-function updateDashboard() {
-  let stats = { '성경': { t: 0, c: 0 }, '교회사': { t: 0, c: 0 }, '헌법': { t: 0, c: 0 } };
-  
-  allQuestions.forEach(q => {
-    const qid = getQId(q);
-    if (progress[qid] === 'O' || progress[qid] === 'X') {
-      if (stats[q.subj]) {
-          stats[q.subj].t++;
-          if (progress[qid] === 'O') stats[q.subj].c++;
-      }
-    }
-  });
-
-  ['성경', '교회사', '헌법'].forEach(subj => {
-    const el = document.getElementById(`score-${subj === '성경' ? 'bible' : subj === '교회사' ? 'history' : 'law'}`);
-    if (el) {
-      const percent = stats[subj].t === 0 ? 0 : Math.round((stats[subj].c / stats[subj].t) * 100);
-      el.textContent = `${percent}%`;
-    }
-  });
-}
-
-function showToast(msg) {
-  const x = document.getElementById("toast");
-  x.innerHTML = msg;
-  x.className = "show";
-  setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
-}
-
-function scrollToQuestion() {
-  const el = document.querySelector('.card');
-  if (el) {
-    const y = el.getBoundingClientRect().top + window.pageYOffset - 20;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'auto' });
+  if (state.pendingResume) {
+    const ri = list.findIndex(item => getQId(item) === state.lastQid);
+    state.idx = ri >= 0 ? ri : 0;
+    state.pendingResume = false;
+  } else if (state.idx >= list.length) {
+    state.idx = 0;
   }
-}
-
-// ==========================================
-// [학습 모드] 렌더링
-// ==========================================
-function renderStudy(cArea) {
   const q = list[state.idx];
   const qid = getQId(q);
-  const rec = progress[qid];
-  
-  let html = `
-    <div class="card">
-      <div class="q-meta">${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}</div>
-      <div class="q-text">Q. ${q.q}</div>
-      <div class="options">
-  `;
-  
-  q.opts.forEach((opt, i) => {
-    html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`;
-  });
-  
-  html += `
-      </div>
-      <div class="ans-box" id="ans-box">
-        <strong>정답: ${q.a + 1}번</strong><br><br>
-        ${q.e}
-      </div>
-    </div>
+  state.lastQid = qid;
+  localStorage.setItem("mok_last", qid);
+
+  cArea.innerHTML = `
     <div class="nav-btns">
-      <button class="nav-btn" id="prev-btn">◀ 이전</button>
-      <button class="nav-btn primary" id="next-btn">다음 ▶</button>
+      <button class="nav-btn" onclick="moveIdx(-1)">◀ 이전</button>
+      <button class="nav-btn primary" onclick="moveIdx(1)">다음 ▶</button>
+    </div>
+    <div class="card">
+      <div class="q-meta">
+        <div>${state.idx + 1} / ${list.length} | ${q.year}년 ${q.subj}</div>
+        <div class="meta-right">
+          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+        </div>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div id="options-area">
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="checkAns(${i})">${i + 1}. ${opt}</button>`).join("")}
+      </div>
+      <div id="fb-slot"></div>
     </div>
   `;
+  updateDashboard();
+}
+
+function renderExamMode(cArea) {
+  if (exam.active && exam.source === "exam") return renderExamScreen(cArea);
+  cArea.innerHTML = `
+    <div class="card">
+      <div class="q-text">모의고사 설정</div>
+      <div style="display:flex; gap:10px; margin-bottom:8px;">
+        <input id="exam-count" type="number" min="1" step="1" value="${state.examCount || 33}"
+          style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);" placeholder="문항 수 (기본 33)">
+        <select id="exam-time" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--line);">
+          <option value="30">30분</option>
+          <option value="40" selected>40분</option>
+          <option value="60">60분</option>
+        </select>
+      </div>
+      <div style="font-size:0.85rem; color:var(--muted);">모의고사는 전체 연도에서 균등 섞기 방식으로 출제됩니다.</div>
+      <button class="nav-btn primary" style="margin-top:12px;" onclick="startExam()">모의고사 시작</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function renderYearlyMode(cArea) {
+  if (exam.active && exam.source === "yearly") return renderExamScreen(cArea);
+  const years = getYearList();
+  const allOn = years.length > 0 && state.yearlyYears.length === years.length;
+  const count = state.yearlyYears.length ? buildYearlyPoolAll().length : 0;
+  cArea.innerHTML = `
+    <div class="card">
+      <div class="q-text">기출 연도 선택 (복수 선택)</div>
+      <div class="filters" id="year-pick-wrap" style="margin-top:10px;">
+        <button class="chip pick year-pick ${allOn ? "on" : ""}" onclick="toggleYearPick('all')">전체</button>
+        ${years.map(y => `<button class="chip pick year-pick ${state.yearlyYears.includes(y) ? "on" : ""}" onclick="toggleYearPick('${y}')">${y}</button>`).join("")}
+      </div>
+      <div style="margin-top:10px; font-size:0.85rem; color:var(--muted);">선택 연도: ${state.yearlyYears.length ? state.yearlyYears.join(", ") : "없음"} | 총 ${count}문항</div>
+      <button class="nav-btn primary" style="margin-top:12px;" onclick="startYearlyExam()">기출 풀이 시작</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function toggleYearPick(y) {
+  const years = getYearList();
+  if (y === "all") {
+    if (state.yearlyYears.length === years.length) state.yearlyYears = [];
+    else state.yearlyYears = years.slice();
+  } else {
+    if (state.yearlyYears.includes(y)) state.yearlyYears = state.yearlyYears.filter(v => v !== y);
+    else state.yearlyYears.push(y);
+  }
+  renderYearlyMode(document.getElementById("content-area"));
+}
+
+function parseCount(id, defVal) {
+  const el = document.getElementById(id);
+  if (!el) return defVal;
+  const v = parseInt(el.value, 10);
+  return (!v || v < 1) ? defVal : v;
+}
+
+function startExam() {
+  let list = buildExamPool();
+  if (!list.length) {
+    document.getElementById("content-area").innerHTML = "<div class='card'>조건에 맞는 문제가 없습니다.</div>";
+    return;
+  }
+  let count = parseCount("exam-count", 33);
+  state.examCount = count;
+  count = Math.min(count, list.length);
+  const minutes = parseInt(document.getElementById("exam-time").value, 10);
+  startExamWithList(list, count, minutes, "exam", true);
+}
+
+function startYearlyExam() {
+  if (!state.yearlyYears.length) {
+    showToast("연도를 하나 이상 선택하세요.");
+    return;
+  }
+  const list = buildYearlyPoolAll();
+  if (!list.length) {
+    showToast("선택 연도에 문제가 없습니다.");
+    return;
+  }
+  startExamWithList(list, list.length, null, "yearly", false);
+}
+
+function startExamWithList(list, count, minutes, source, timed) {
+  const picked = (source === "exam") ? mixByYear(list, count) : list.slice(0, count);
+  exam.list = picked;
+  exam.answers = [];
+  exam.idx = 0;
+  exam.active = true;
+  exam.source = source;
+  exam.timed = timed;
+  if (timed) {
+    exam.start = Date.now();
+    exam.duration = minutes * 60;
+    startExamTimer();
+  } else {
+    exam.start = 0;
+    exam.duration = 0;
+    clearInterval(exam.timerId);
+  }
+  renderExamScreen(document.getElementById("content-area"));
+}
+
+function renderExamScreen(cArea) {
+  const q = exam.list[exam.idx];
+  const title = exam.source === "yearly" ? "기출 풀이" : "모의고사";
+  const timerHtml = exam.timed
+    ? `<div class="exam-timer" id="exam-timer" style="flex:1; position:static;">남은 시간: ${formatTime(getExamLeft())}</div>`
+    : `<div class="exam-timer no-timer" style="flex:1; position:static;">시간 제한 없음</div>`;
+  cArea.innerHTML = `
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      ${timerHtml}
+      <button class="nav-btn" style="flex:0 0 auto; padding:10px 14px;" onclick="stopExam()">종료</button>
+    </div>
+    <div class="card">
+      <div class="q-meta"><div>${title} | ${exam.idx + 1} / ${exam.list.length} | ${q.year}년 ${q.subj}</div></div>
+      <div class="q-text">${q.q}</div>
+      <div>
+        ${q.opts.map((opt, i) => `<button class="opt" onclick="pickExam(${i})">${i + 1}. ${opt}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  scrollToSolve();
+}
+
+function stopExam() {
+  if (!confirm("시험을 종료하시겠습니까?")) return;
+  finishExam("manual");
+}
+
+function pickExam(picked) {
+  const q = exam.list[exam.idx];
+  const qid = getQId(q);
+  const isCorrect = picked === q.a;
+  exam.answers[exam.idx] = picked;
+  recordAnswer(qid, isCorrect);
+  if (exam.idx < exam.list.length - 1) {
+    exam.idx++;
+    renderExamScreen(document.getElementById("content-area"));
+  } else {
+    finishExam("done");
+  }
+}
+
+function recordAnswer(qid, isCorrect) {
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  if (!isCorrect) saveWrong(qid);
+  saveSRS(qid, isCorrect);
+  updateStreak();
+  saveAll();
+  invalidateList();
+}
+
+function startExamTimer() {
+  clearInterval(exam.timerId);
+  exam.timerId = setInterval(() => {
+    if (!exam.active || !exam.timed) return;
+    const left = getExamLeft();
+    const el = document.getElementById("exam-timer");
+    if (el) el.textContent = "남은 시간: " + formatTime(left);
+    if (left <= 0) finishExam("timeover");
+  }, 500);
+}
+
+function getExamLeft() {
+  const elapsed = Math.floor((Date.now() - exam.start) / 1000);
+  return Math.max(0, exam.duration - elapsed);
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function finishExam(reason) {
+  clearInterval(exam.timerId);
+  exam.active = false;
+
+  const total = exam.list.length;
+  let correct = 0;
+  const wrongItems = [];
+  exam.list.forEach((q, i) => {
+    const picked = exam.answers[i];
+    if (picked === q.a) correct++;
+    else wrongItems.push({ q, picked });
+  });
+
+  const baseTitle = exam.source === "yearly" ? "기출" : "모의고사";
+  const title = reason === "timeover" ? "시간 종료" : (reason === "manual" ? `${baseTitle} 중도 종료` : `${baseTitle} 완료`);
+  const score = total ? Math.round((correct / total) * 100) : 0;
+
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = `
+    <div class="card">
+      <div class="q-text">${title}</div>
+      <div style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">점수: ${score}점 (${correct}/${total})</div>
+      ${wrongItems.length ? `
+        <div style="margin-top:10px;">
+          ${wrongItems.map(w => `
+            <div style="padding:10px; border-top:1px dashed var(--line);">
+              <div style="color:var(--gold); font-weight:bold;">오답: ${w.q.year}년 ${w.q.subj}</div>
+              <div>${w.q.q}</div>
+              <div style="margin-top:6px;">정답: ${w.q.a + 1}번 / 선택: ${w.picked !== undefined ? w.picked + 1 : "미응답"}</div>
+              <div style="margin-top:6px; color:var(--muted);">${w.q.e || ""}</div>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div>오답이 없습니다.</div>`}
+      <button class="nav-btn primary" style="margin-top:15px;" onclick="render()">다시 돌아가기</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function checkAns(picked) {
+  const list = getList(false);
+  const q = list[state.idx];
+  const qid = getQId(q);
+  const isCorrect = picked === q.a;
+
+  const opts = document.querySelectorAll(".opt");
+  opts.forEach(o => o.classList.add("answered"));
+  opts[picked].classList.add("selected");
+  opts[q.a].classList.add("correct");
+  if (!isCorrect) opts[picked].classList.add("wrong");
+
+  if (!isCorrect) { saveWrong(qid); saveSRS(qid, false); }
+  else { saveSRS(qid, true); }
+
+  const title = isCorrect ? "정답입니다!" : `오답 · 정답은 ${q.a + 1}번`;
+  const icon = isCorrect ? "✓" : "✕";
+  const expHtml = q.e ? `<div class="fb-exp">${q.e}</div>` : "";
+  const tagsHtml = isCorrect ? "" :
+    `<div class="fb-tags">${["헷갈림", "암기부족", "실수"].map(t =>
+      `<button class="fb-tag" onclick="setTag('${qid}', '${t}')">${t}</button>`).join("")}</div>`;
+
+  const slot = document.getElementById("fb-slot");
+  slot.innerHTML = `
+    <div class="fb-panel ${isCorrect ? "ok" : "bad"}">
+      <div class="fb-head"><div class="fb-icon">${icon}</div><div class="fb-title">${title}</div></div>
+      ${expHtml}
+      ${tagsHtml}
+      <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
+    </div>`;
+
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  updateStreak();
+  saveAll();
+  invalidateList();
+  updateDashboard();
+
+  // 피드백 패널(계속하기 버튼)이 화면에 들어오도록 살짝 스크롤
+  requestAnimationFrame(() => {
+    const y = slot.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 16;
+    if (y > window.pageYOffset) smoothScrollTo(y);
+  });
+}
+
+// 문제 영역을 화면 최상단으로 (모드탭까지 가려지고 문제가 맨 위)
+// 공용 스크롤 (부드러운 스크롤 미지원 기기에선 즉시 이동)
+function smoothScrollTo(y) {
+  y = Math.max(0, y);
+  const smooth = "scrollBehavior" in document.documentElement.style;
+  if (smooth) window.scrollTo({ top: y, behavior: "smooth" });
+  else window.scrollTo(0, y);
+}
+
+function scrollToSolve() {
+  const el = document.getElementById("content-area");
+  if (!el) return;
+  const doIt = () => smoothScrollTo(el.getBoundingClientRect().top + window.pageYOffset - 8);
+  // 새로 렌더된 레이아웃이 안정된 뒤 스크롤 (iOS 타이밍 대응)
+  requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(doIt, 30)));
+}
+
+function moveIdx(step) {
+  const list = getList(false);
+  if (!list.length) return;
+  // 마지막 문제에서 '다음'을 누르면 1번으로 돌지 않고 완료 카드 표시
+  if (step > 0 && state.idx >= list.length - 1) {
+    renderComplete(document.getElementById("content-area"));
+    return;
+  }
+  let idx = state.idx + step;
+  if (idx < 0) idx = 0;
+  if (idx >= list.length) idx = list.length - 1;
+  state.idx = idx;
+  state.lastQid = getQId(list[idx]);
+  localStorage.setItem("mok_last", state.lastQid);
+  render();
+  scrollToSolve();
+}
+
+// 학습 완료 카드
+function renderComplete(cArea) {
+  cArea.innerHTML = `
+    <div class="card" style="text-align:center; padding:40px 24px;">
+      <div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--green);">✓</div>
+      <div style="font-size:1.3rem;font-weight:bold;margin-bottom:6px;">학습 완료!</div>
+      <div style="color:var(--muted);margin-bottom:24px;line-height:1.6;">선택하신 범위의 마지막 문제까지<br>모두 푸셨습니다.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:280px;margin:0 auto;">
+        <button class="nav-btn primary" onclick="restartStudy()">처음부터 다시</button>
+        <button class="nav-btn" onclick="retryWrong()">틀린 것만 다시 풀기</button>
+        <button class="nav-btn" style="color:var(--muted);" onclick="endStudy()">학습 종료</button>
+      </div>
+    </div>`;
+  updateDashboard();
+  scrollToSolve();
+}
+function restartStudy() { state.idx = 0; state.pendingResume = false; render(); scrollToSolve(); }
+function endStudy() { state.idx = 0; state.pendingResume = false; render(); scrollToSolve(); }
+function retryWrong() {
+  state.wrongOnly = true; invalidateList();
+  const list = getList(false);
+  if (!list.length) {
+    state.wrongOnly = false; invalidateList();
+    showToast("틀린 문제가 없습니다.");
+    state.idx = 0; state.pendingResume = false; render();
+    return;
+  }
+  const b = document.querySelector('.chip[data-filter="wrong"]');
+  if (b) b.classList.add("on");
+  state.idx = 0; state.pendingResume = false; render();
+  scrollToSolve();
+}
+
+function toggleAdv(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById("adv-panel");
+  p.classList.toggle("show");
+}
+
+function toggleBm(qid) {
+  bookmarks[qid] = !bookmarks[qid];
+  saveAll();
+  render();
+}
+
+function showToast(m, type) {
+  const t = document.getElementById("toast");
+  t.textContent = m;
+  t.className = "show" + (type ? " " + type : "");
+  setTimeout(() => t.className = "", 1400);
+}
+
+function updateStats(qid, isCorrect) {
+  if (!stats[qid]) stats[qid] = { c: 0, t: 0 };
+  stats[qid].t += 1;
+  if (isCorrect) stats[qid].c += 1;
+}
+
+function updateStreak() {
+  const today = todayStr();
+  if (streakInfo.last === today) return;
+  const yesterday = formatDate(addDays(new Date(), -1));
+  if (streakInfo.last === yesterday) streakInfo.streak += 1;
+  else streakInfo.streak = 1;
+  streakInfo.last = today;
+}
+
+function updateDashboard() {
+  const base = allQuestions.filter(q => q.year !== "빈출");
+  const bySubj = { "성경": { c: 0, t: 0 }, "교회사": { c: 0, t: 0 }, "헌법": { c: 0, t: 0 } };
+  let total = 0, answered = 0;
+
+  base.forEach(q => {
+    const qid = getQId(q);
+    const st = getAttempt(qid);
+    if (st.t > 0) answered++;
+    total++;
+    if (bySubj[q.subj]) {
+      bySubj[q.subj].c += st.c;
+      bySubj[q.subj].t += st.t;
+    }
+  });
+
+  const progressPct = total ? Math.round((answered / total) * 100) : 0;
+  const dueCount = Object.keys(srs).filter(qid => isDue(qid)).length;
+
+  const acc = obj => obj.t ? Math.round((obj.c / obj.t) * 100) : 0;
+  document.getElementById("score-bible").textContent = acc(bySubj["성경"]) + "%";
+  document.getElementById("score-history").textContent = acc(bySubj["교회사"]) + "%";
+  document.getElementById("score-law").textContent = acc(bySubj["헌법"]) + "%";
+  document.getElementById("stat-progress").textContent = progressPct + "%";
+  document.getElementById("stat-streak").textContent = (streakInfo.streak || 0) + "일";
+  document.getElementById("stat-due").textContent = dueCount;
+}
+
+function saveSRS(qid, success) {
+  const today = new Date();
+  const prev = srs[qid] || { interval: 0 };
+  let interval = success ? (prev.interval ? Math.min(prev.interval * 2, 60) : 1) : 1;
+  let due = success ? addDays(today, interval) : today;
+  srs[qid] = { due: formatDate(due), interval };
+}
+
+function setTag(qid, tag) {
+  if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0 };
+  wrongNotes[qid].tag = tag;
+  saveAll();
+  invalidateList();
+  showToast(`'${tag}' 태그가 설정되었습니다.`);
+  moveIdx(1);
+}
+
+function saveWrong(qid) {
+  if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0 };
+  wrongNotes[qid].count += 1;
+}
+
+function backupProgress() {
+  const data = { progress, wrongNotes, srs, bookmarks, stats, streakInfo, lastQid: state.lastQid, savedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mok_backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast("백업 파일이 저장되었습니다.");
+}
+
+function restoreProgress() {
+  document.getElementById("restore-file").click();
+}
   
-  cArea.innerHTML = html;
-  
-  // 마킹 정보 표시
-  if (rec === 'O') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--green)">[맞힘]</span>`;
-  if (rec === 'X') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--red)">[틀림]</span>`;
-  
-  q.opts.forEach((opt, i) => {
-    document.getElementById(`opt-${i}`).onclick = () => {
-      if (showAns) return;
-      showAns = true;
-      
-      if (i === q.a) {
-        progress[qid] = 'O';
-      } else {
-        progress[qid] = 'X';
-        
-        // 오답 노트 카운트 증가
-        if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
-        wrongNotes[qid].count++;
-        wrongNotes[qid].last = new Date().toISOString().split('T')[0];
-        localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-        
-        // ✨ 에빙하우스 오답 자동 반복 (틀리면 맨 뒤에 다시 추가)
-        list.push(q);
-        showToast("오답 노트에 기록되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
+function refreshApp() {
+  location.reload();
+}
+
+function handleRestore(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      progress = data.progress || {};
+      wrongNotes = data.wrongNotes || {};
+      srs = data.srs || {};
+      bookmarks = data.bookmarks || {};
+      stats = data.stats || {};
+      streakInfo = data.streakInfo || { last: "", streak: 0 };
+      if (data.lastQid) {                       // 이어풀기 위치 복원
+        state.lastQid = data.lastQid;
+        localStorage.setItem("mok_last", data.lastQid);
+        state.pendingResume = true;             // 그 문제로 복귀
       }
-      save();
-      updateDashboard();
-      
-      document.getElementById(`opt-${q.a}`).classList.add("correct");
-      if (i !== q.a) document.getElementById(`opt-${i}`).classList.add("wrong");
-      document.getElementById("ans-box").style.display = "block";
+      saveAll();
+      invalidateList();
+      render();
+      showToast("복원이 완료되었습니다.");
+    } catch {
+      showToast("복원 실패: 파일을 확인하세요.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (!confirm("모든 기록을 초기화하시겠습니까?")) return;
+  progress = {};
+  wrongNotes = {};
+  srs = {};
+  bookmarks = {};
+  stats = {};
+  streakInfo = { last: "", streak: 0 };
+  state.lastQid = null;
+  localStorage.removeItem("mok_last");
+  saveAll();
+  invalidateList();
+  render();
+  showToast("초기화 완료");
+}
+
+function renderYearChips() {
+  const wrap = document.getElementById("year-chips");
+  const years = getYearList();
+  wrap.innerHTML = `<button class="chip year-f on" data-year="all">전체 연도</button>` +
+    years.map(y => `<button class="chip year-f" data-year="${y}">${y}</button>`).join("");
+}
+
+function updateYearUI() {
+  document.querySelectorAll(".year-f").forEach(b => {
+    const y = b.dataset.year;
+    if (y === "all") b.classList.toggle("on", state.years.length === 0);
+    else b.classList.toggle("on", state.years.includes(y));
+  });
+}
+
+function updateSubjUI() {
+  document.querySelectorAll(".subj-f").forEach(b => {
+    b.classList.toggle("on", b.dataset.subj === state.subj);
+  });
+}
+
+window.onload = () => {
+  renderYearChips();
+
+  document.querySelectorAll(".year-f").forEach(btn => {
+    btn.onclick = () => {
+      const y = btn.dataset.year;
+      if (y === "all") state.years = [];
+      else {
+        if (state.years.includes(y)) state.years = state.years.filter(v => v !== y);
+        else state.years.push(y);
+      }
+      updateYearUI();
+      state.pendingResume = true;
+      invalidateList();
+      render();
     };
   });
-  
-  document.getElementById("prev-btn").onclick = () => { state.idx--; render(); scrollToQuestion(); };
-  document.getElementById("next-btn").onclick = () => { state.idx++; render(); scrollToQuestion(); };
-}
 
-// ==========================================
-// [연도별 기출] 렌더링
-// ==========================================
-function renderYearly() {
-  const cArea = document.getElementById("content-area");
-  cArea.innerHTML = "";
-
-  if (!examData.active && !examData.finished) {
-    if (state.year === 'all') {
-        cArea.innerHTML = `
-        <div class="card" style="text-align:center; padding:40px 20px;">
-            <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 연도별 기출 풀기</h2>
-            <p>상단 필터에서 풀고자 하는 <b>[연도]</b>와 <b>[과목]</b>을 선택해 주세요.</p>
-            <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(예: 2025 기출 / 전체 과목)</p>
-        </div>`;
-        return;
-    }
-
-    let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
-    
-    cArea.innerHTML = `
-      <div class="card" style="text-align:center; padding:40px 20px;">
-        <h2 style="color:var(--burgundy); margin-bottom:15px;">📚 ${state.year}년도 기출 풀기</h2>
-        <p>선택하신 [<b>${state.subj === 'all' ? '전체 과목' : state.subj}</b>] 총 <b>${currentList.length}문제</b>를<br>실제 시험지 번호 순서대로 풀어봅니다.</p>
-        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">(본 모드는 제한 시간이 없습니다.)</p>
-        <button onclick="startExamMode(true)" style="margin-top:30px; padding:12px 24px; background:var(--ink); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">기출 풀기 시작</button>
-      </div>`;
-    return;
-  }
-
-  drawExamUI(cArea, true); // true = yearly mode
-}
-
-// ==========================================
-// [실전 모의고사] 렌더링 (랜덤 33문제)
-// ==========================================
-function renderExam() {
-  const cArea = document.getElementById("content-area");
-  cArea.innerHTML = "";
-
-  if (!examData.active && !examData.finished) {
-    let subjText = state.subj === 'all' ? '전체 과목 믹스' : state.subj;
-    cArea.innerHTML = `
-      <div class="card" style="text-align:center; padding:40px 20px;">
-        <h2 style="color:var(--red); margin-bottom:15px;">⏳ 실전 모의고사 (33제)</h2>
-        <p>선택된 필터 내에서 [<b>${subjText}</b>]<br><b>랜덤 33문제</b>가 섞여서 출제됩니다.</p>
-        <p style="color:var(--muted); font-size:0.9rem; margin-top:10px;">실제 목사고시와 동일하게 20분 타이머가 작동합니다.</p>
-        <button onclick="startExamMode(false)" style="margin-top:30px; padding:12px 24px; background:var(--burgundy); color:#fff; border:none; border-radius:8px; font-size:1.1rem; cursor:pointer;">모의고사 시작</button>
-      </div>`;
-    return;
-  }
-
-  drawExamUI(cArea, false); // false = random exam mode
-}
-
-// 공통 시험/모의고사 UI 그리기 함수
-function drawExamUI(cArea, isYearly) {
-  if (examData.finished) {
-    let score = 0;
-    examData.list.forEach((q, idx) => { if (examData.answers[idx] === q.a) score++; });
-    const finalScore = Math.round((score / examData.list.length) * 100);
-
-    let html = `
-      <div class="exam-result-box">
-        <h2>${isYearly ? state.year+'년 기출 결과' : '모의고사 결과'}</h2>
-        <h1 style="color:var(--burgundy); font-size:3rem; margin:10px 0;">${finalScore}점</h1>
-        <p>${examData.list.length}문제 중 ${score}문제 정답</p>
-        <button onclick="resetExamMode()" style="margin-top:15px; padding:8px 16px; border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); border-radius:4px; cursor:pointer;">종료하고 돌아가기</button>
-      </div>
-      <h3 style="margin-bottom:10px; color:var(--red);">틀린 문제 오답 노트</h3>
-    `;
-
-    let hasWrong = false;
-    examData.list.forEach((q, idx) => {
-      if (examData.answers[idx] !== q.a) {
-        hasWrong = true;
-        html += `
-          <div class="card" style="margin-top:15px; border-left:4px solid var(--red);">
-            <div class="q-meta">${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''} <span class="wrong-badge">내가 고른 답: ${examData.answers[idx] !== undefined ? examData.answers[idx]+1+'번' : '미체크'}</span></div>
-            <div class="q-text" style="font-size:1rem; margin-bottom:10px;">Q. ${q.q}</div>
-            <div class="ans-box" style="margin-top:10px; display:block; padding:10px;">
-              <strong>정답: ${q.a + 1}번</strong><br>
-              ${q.e}
-            </div>
-          </div>`;
-      }
-    });
-    
-    if(!hasWrong) html += `<div class="card" style="text-align:center; font-weight:bold;">🎉 완벽합니다! 모두 맞았습니다.</div>`;
-    
-    cArea.innerHTML = html;
-    window.scrollTo(0, 0);
-    return;
-  }
-
-  // 문제 푸는 화면 (타이머 유무)
-  let timerHtml = "";
-  if (!isYearly) {
-      const min = Math.floor(examData.timeLeft / 60).toString().padStart(2, '0');
-      const sec = (examData.timeLeft % 60).toString().padStart(2, '0');
-      timerHtml = `<div class="exam-timer">남은 시간 - ${min}:${sec}</div>`;
-  } else {
-      timerHtml = `<div class="exam-timer" style="background:var(--ink);">📚 ${state.year}년 기출 풀이 (총 ${examData.list.length}문제)</div>`;
-  }
-  
-  let html = timerHtml;
-  
-  examData.list.forEach((q, qIndex) => {
-    html += `
-      <div class="card" style="margin-bottom:20px; padding:20px;">
-        <div class="q-meta">${qIndex + 1}번. (${q.year} ${q.subj} ${q.no ? q.no+'번' : ''})</div>
-        <div class="q-text" style="font-size:1.1rem;">${q.q}</div>
-        <div class="options">
-          ${q.opts.map((opt, i) => `
-            <div class="opt" 
-                 onclick="markExamAnswer(${qIndex}, ${i})" 
-                 style="cursor:pointer; padding:10px; border:1px solid var(--line); margin-bottom:5px; border-radius:4px; ${examData.answers[qIndex] === i ? 'background:var(--burgundy-soft); color:white; border-color:var(--burgundy);' : ''}">
-              ${i + 1}. ${opt}
-            </div>
-          `).join('')}
-        </div>
-      </div>`;
+  document.querySelectorAll(".subj-f").forEach(btn => {
+    btn.onclick = () => {
+      state.subj = btn.dataset.subj;
+      updateSubjUI();
+      state.pendingResume = true;
+      invalidateList();
+      render();
+    };
   });
 
-  html += `<button class="exam-submit-btn" onclick="submitExamMode()">답안 제출 및 채점하기</button>`;
-  cArea.innerHTML = html;
-}
-
-// 시험 시작 컨트롤러
-function startExamMode(isYearly) {
-  let pool = [];
-
-  if (isYearly) {
-      // 연도별: 선택 연도/과목에 맞춰 기출 번호(no) 순서대로 정렬
-      const subjOrder = {"성경":1, "교회사":2, "헌법":3};
-      let currentList = allQuestions.filter(q => q.year === state.year && (state.subj === 'all' || q.subj === state.subj));
-      pool = currentList.sort((a, b) => {
-          if(subjOrder[a.subj] !== subjOrder[b.subj]) return subjOrder[a.subj] - subjOrder[b.subj];
-          return (a.no || 0) - (b.no || 0);
-      });
-  } else {
-      // 랜덤 모의고사: 33문제 추출
-      let currentList = allQuestions.filter(q => {
-        if (!state.freqOnly && state.year !== 'all' && q.year !== state.year && q.year !== '빈출') return false;
-        if (state.freqOnly && q.year !== '빈출') return false;
-        if (state.subj !== 'all' && q.subj !== state.subj) return false;
-        return true;
-      });
-      
-      // '전체 과목'일 경우 각 과목별로 11문제씩 공평하게 뽑아 섞음
-      if (state.subj === 'all' && currentList.length >= 33) {
-          let bible = currentList.filter(q => q.subj === '성경').sort(()=>Math.random()-0.5).slice(0,11);
-          let history = currentList.filter(q => q.subj === '교회사').sort(()=>Math.random()-0.5).slice(0,11);
-          let law = currentList.filter(q => q.subj === '헌법').sort(()=>Math.random()-0.5).slice(0,11);
-          pool = [...bible, ...history, ...law].sort(()=>Math.random()-0.5);
-      } else {
-          pool = [...currentList].sort(()=>Math.random()-0.5).slice(0, 33);
-      }
-  }
-  
-  examData = { 
-      active: true, 
-      finished: false, 
-      isYearly: isYearly,
-      list: pool, 
-      answers: new Array(pool.length).fill(undefined), 
-      timeLeft: 1200, 
-      timerId: null 
+  const filterMap = {
+    due: "dueOnly",
+    wrong: "wrongOnly",
+    shuffle: "shuffled",
+    bookmark: "bookmarkOnly",
+    freq: "freqOnly",
+    wrongnote: "wrongnoteOnly",
+    weak: "weakOnly"
   };
-  
-  if (!isYearly) {
-      examData.timerId = setInterval(() => {
-        examData.timeLeft--;
-        if (examData.timeLeft <= 0) {
-          clearInterval(examData.timerId);
-          alert("시간이 종료되었습니다. 자동 채점합니다.");
-          submitExamMode();
-        } else {
-          render(); // 타이머 갱신
-        }
-      }, 1000);
-  }
-  
-  render();
-}
 
-function markExamAnswer(qIndex, optIndex) {
-  examData.answers[qIndex] = optIndex;
-  render(); 
-}
-
-function submitExamMode() {
-  clearInterval(examData.timerId);
-  
-  // 틀린 문제 오답노트 자동 등록
-  examData.list.forEach((q, idx) => {
-    if (examData.answers[idx] !== q.a) {
-      const qid = getQId(q);
-      if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
-      wrongNotes[qid].count++;
-      wrongNotes[qid].last = new Date().toISOString().split('T')[0];
-    }
+  document.querySelectorAll(".chip[data-filter]").forEach(btn => {
+    btn.onclick = () => {
+      const key = filterMap[btn.dataset.filter];
+      state[key] = !state[key];
+      btn.classList.toggle("on");
+      state.pendingResume = true;
+      invalidateList();
+      render();
+    };
   });
-  localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-  
-  examData.active = false;
-  examData.finished = true;
+
+  document.getElementById("tag-filter").onchange = e => {
+    state.tagFilter = e.target.value;
+    state.pendingResume = true;
+    invalidateList();
+    render();
+  };
+
+  document.getElementById("search-box").oninput = e => {
+    state.search = e.target.value.trim();
+    state.pendingResume = true;
+    invalidateList();
+    render();
+  };
+
+  document.querySelectorAll(".mode-tab").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".mode-tab").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      state.mode = btn.dataset.mode;
+      state.pendingResume = true;
+      if (state.mode === "yearly") {
+        state.freqOnly = false;
+        const freqBtn = document.querySelector('[data-filter="freq"]');
+        if (freqBtn) freqBtn.classList.remove("on");
+      }
+      render();
+      scrollToSolve();
+    };
+  });
+
+  document.addEventListener("click", e => {
+    const wrap = document.querySelector(".adv-wrap");
+    const panel = document.getElementById("adv-panel");
+    if (wrap && panel && !wrap.contains(e.target)) panel.classList.remove("show");
+  });
+
+  updateYearUI();
+  updateSubjUI();
+  state.pendingResume = true;  // 앱 재진입 시 마지막 본 문제로 복귀
+  render();
   updateDashboard();
-  render();
-}
-
-function resetExamMode() {
-  examData = { active: false, finished: false, isYearly: false, list: [], answers: [], timeLeft: 1200, timerId: null };
-  render();
-}
-
-// ==========================================
-// 5. 이벤트 리스너 연결
-// ==========================================
-document.querySelectorAll(".year-f").forEach(c => c.onclick = () => {
-  document.querySelectorAll(".year-f").forEach(x => x.classList.remove("on"));
-  c.classList.add("on"); state.year = c.dataset.year; state.idx = 0; render();
-});
-
-document.querySelectorAll(".subj-f").forEach(c => c.onclick = () => {
-  document.querySelectorAll(".subj-f").forEach(x => x.classList.remove("on"));
-  c.classList.add("on"); state.subj = c.dataset.subj; state.idx = 0; render();
-});
-
-document.querySelectorAll(".chip[data-filter]").forEach(c => c.onclick = () => {
-  const f = c.dataset.filter;
-  if(f === "freq"){ state.freqOnly = !state.freqOnly; c.classList.toggle("on"); }
-  if(f === "wrong"){ state.wrongOnly = !state.wrongOnly; c.classList.toggle("on"); }
-  if(f === "shuffle"){ state.shuffled = !state.shuffled; c.classList.toggle("on"); }
-  if(f === "wrongnote"){ state.wrongnoteOnly = !state.wrongnoteOnly; c.classList.toggle("on"); }
-  state.idx = 0; render();
-});
-
-// 모드 탭 클릭 이벤트 (3가지 모드 분기)
-document.querySelectorAll(".mode-tab").forEach(t => t.onclick = () => {
-  document.querySelectorAll(".mode-tab").forEach(x => x.classList.remove("on"));
-  t.classList.add("on"); 
-  state.mode = t.dataset.mode; 
-  state.idx = 0; 
-  
-  if(state.mode === 'study' && examData.active) {
-      clearInterval(examData.timerId); examData.active = false;
-  }
-  render();
-});
-
-document.getElementById("reset").onclick = () => {
-  progress = {}; localStorage.removeItem("moksagosi_prog");
-  wrongNotes = {}; localStorage.removeItem("wrongNotes");
-  state.idx = 0; render(); 
-  alert("학습 기록 및 오답노트가 모두 초기화되었습니다.");
+  updateVerBadge();             // 헤더 버전 옆 🆕 점
+  showUpdateBannerIfNeeded();   // 새 버전이면 상단 배너 1회
 };
-
-document.addEventListener("keydown", e => {
-  if (state.mode !== 'study') return; 
-  if (e.key === "ArrowRight") { const n = document.getElementById("next-btn"); if (n) n.click(); }
-  if (e.key === "ArrowLeft") { const p = document.getElementById("prev-btn"); if (p) p.click(); }
-  if (e.key >= "1" && e.key <= "5") {
-    const idx = parseInt(e.key) - 1;
-    const btn = document.getElementById(`opt-${idx}`);
-    if (btn) btn.click();
-  }
-});
-
-render();
 </script>
 </body>
 </html>
