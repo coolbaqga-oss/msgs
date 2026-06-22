@@ -2103,7 +2103,8 @@ window.onload = () => {
         else state.years.push(y);
       }
       updateYearUI();
-      state.pendingResume = true;
+      state.idx = 0;
+      state.pendingResume = false;
       invalidateList();
       render();
     };
@@ -2113,7 +2114,8 @@ window.onload = () => {
     btn.onclick = () => {
       state.subj = btn.dataset.subj;
       updateSubjUI();
-      state.pendingResume = true;
+      state.idx = 0;
+      state.pendingResume = false;
       invalidateList();
       render();
     };
@@ -2134,7 +2136,8 @@ window.onload = () => {
       const key = filterMap[btn.dataset.filter];
       state[key] = !state[key];
       btn.classList.toggle("on");
-      state.pendingResume = true;
+      state.idx = 0;
+      state.pendingResume = false;
       invalidateList();
       render();
     };
@@ -2142,14 +2145,16 @@ window.onload = () => {
 
   document.getElementById("tag-filter").onchange = e => {
     state.tagFilter = e.target.value;
-    state.pendingResume = true;
+    state.idx = 0;
+    state.pendingResume = false;
     invalidateList();
     render();
   };
 
   document.getElementById("search-box").oninput = e => {
     state.search = e.target.value.trim();
-    state.pendingResume = true;
+    state.idx = 0;
+    state.pendingResume = false;
     invalidateList();
     render();
   };
