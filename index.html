@@ -2041,7 +2041,7 @@ function handleRestore(e) {
       if (data.lastQid) {                       // 이어풀기 위치 복원
         state.lastQid = data.lastQid;
         localStorage.setItem("mok_last", data.lastQid);
-        state.pendingResume = true;             // 그 문제로 복귀
+        state.idx = 0; state.pendingResume = false;             // 그 문제로 복귀
       }
       saveAll();
       invalidateList();
