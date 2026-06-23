@@ -266,8 +266,6 @@
         <button class="chip adv-toggle" onclick="toggleAdv(event)">⚙️ 고급</button>
         <div id="adv-panel">
           <div class="filters">
-            <button class="chip" data-filter="freq">⭐ 빈출 2배수</button>
-            <button class="chip" data-filter="wrongnote">🔥 오답 TOP3</button>
             <button class="chip" data-filter="weak">🎯 약점 집중(상위20%)</button>
           </div>
           <select id="tag-filter" style="padding:8px; border-radius:6px; border:1px solid var(--line);">
@@ -311,7 +309,8 @@ const CHANGELOG = [
     "글자 크기 조절 — 상단 ‘가- / 가+’로 문제·보기 글씨 키우기",
     "키보드 단축키 — 숫자 1~5로 보기 선택, ←→로 이전·다음(외장 키보드)",
     "‘학습 종료’가 처음부터 다시와 똑같이 동작하던 문제 수정 — 종료 시 진도 화면 유지",
-    "검색 반응성 개선(입력 끊김 완화) · 마지막 백업 시점 표시로 백업 잊지 않도록"
+    "검색 반응성 개선(입력 끊김 완화) · 마지막 백업 시점 표시로 백업 잊지 않도록",
+    "고급 필터 정리 — 거의 쓰지 않는 ‘빈출 2배수’·‘오답 TOP3’ 제거(약점 집중은 유지)"
   ]},
   { n: 16, date: "260624", notes: [
     "보기 소거 기능 — 보기 옆 ✕를 누르면 흐려집니다(채점 안 됨). 괄호·헷갈리는 문제 풀 때 따로 적을 필요 없이 화면에서 바로 소거",
@@ -1364,25 +1363,6 @@ const allQuestions = [
 {subj:"헌법",year:"2025",no:33,q:"행정쟁송의 종류가 아닌 것은?",opts:["행정소송","결의취소 등의 소송","치리회 간의 소송","선거무효소송 및 당선무효소송","총회특별재심 소송"],a:4,e:"<b>권징 제138조</b> — 행정쟁송은 행정소송, 결의취소 소송, 치리회간 소송, 선거 및 당선무효 소송으로 한정되며, 총회특별재심은 권징 절차이다."},
 
 ];
-
-function keyText(t) {
-  return (t || "").toLowerCase().replace(/\s+/g, "").replace(/[^\w가-힣]/g, "").slice(0, 80);
-}
-function getFreqQs(list) {
-  const map = new Map();
-  list.forEach(q => {
-    const key = keyText(q.q) + "_" + q.subj;
-    if (!map.has(key)) map.set(key, { count: 0, data: q });
-    map.get(key).count++;
-  });
-  return [...map.values()]
-    .filter(v => v.count >= 2)
-    .sort((a, b) => b.count - a.count)
-    .map(v => ({ ...v.data, year: "빈출" }));
-}
-const baseQuestions = allQuestions.slice();
-const freqPool = getFreqQs(baseQuestions);
-freqPool.forEach(q => allQuestions.push(q));
 
 let state = {
   years: [], subj: "all", mode: "study", idx: 0,
