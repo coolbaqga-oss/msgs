@@ -95,6 +95,35 @@
   .opt-x.on { background: var(--ink); color: #fff; border-color: var(--ink); }
   .opt.eliminated { opacity: .4; text-decoration: line-through; background: var(--paper-2); color: var(--muted); }
 
+  /* 유틸리티 바: 글자 크기 + 백업 표시 */
+  .util-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 14px; flex-wrap: wrap; }
+  .font-ctrl { display: flex; align-items: center; gap: 6px; }
+  .font-lbl { font-size: 0.75rem; color: var(--muted); }
+  .font-btn { padding: 3px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); font-size: 0.8rem; cursor: pointer; }
+  .font-btn:active { transform: translateY(1px); }
+  .backup-note { font-size: 0.72rem; color: var(--muted); }
+  .backup-note.warn { color: var(--red); }
+
+  /* 글자 크기 스케일: 문제·보기·해설에 적용 */
+  .q-text { font-size: calc(1.15rem * var(--fscale, 1)); }
+  .opt { font-size: calc(1rem * var(--fscale, 1)); }
+  .fb-exp { font-size: calc(0.88rem * var(--fscale, 1)); }
+
+  /* 오답노트 리스트 뷰 */
+  .rv-head { font-weight: bold; color: var(--burgundy); margin: 4px 2px 12px; font-size: 1.05rem; }
+  .rv-card { padding: 16px; }
+  .rv-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rv-tag { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 1px 8px; color: var(--ink); }
+  .rv-ok  { color: var(--green); font-weight: bold; }
+  .rv-bad { color: var(--red);   font-weight: bold; }
+  .rv-q { font-size: calc(1.02rem * var(--fscale, 1)); font-weight: 600; margin-bottom: 10px; word-break: keep-all; }
+  .rv-opts { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .rv-opt { font-size: calc(0.92rem * var(--fscale, 1)); padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); }
+  .rv-opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
+  .rv-exp { font-size: calc(0.85rem * var(--fscale, 1)); line-height: 1.6; background: var(--paper-2); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; color: var(--ink); }
+  .rv-go { width: 100%; padding: 10px; border: 1px solid var(--burgundy); border-radius: 8px; background: #fff; color: var(--burgundy); font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+  .rv-go:active { transform: translateY(1px); }
+
   /* 문제 번호 점프 */
   .q-counter { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
   .jump-wrap { display: inline-flex; align-items: center; gap: 6px; }
@@ -191,6 +220,15 @@
     </div>
   </header>
 
+  <div class="util-bar">
+    <div class="font-ctrl">
+      <span class="font-lbl">글자</span>
+      <button class="font-btn" onclick="adjustFont(-1)">가-</button>
+      <button class="font-btn" onclick="adjustFont(1)">가+</button>
+    </div>
+    <div class="backup-note" id="backup-note"></div>
+  </div>
+
   <div class="cl-banner" id="cl-banner">
     <span>✨ 업데이트되었습니다!</span>
     <span style="display:flex; gap:6px; align-items:center;">
@@ -247,6 +285,7 @@
     <button class="mode-tab on" data-mode="study">학습</button>
     <button class="mode-tab" data-mode="yearly">기출</button>
     <button class="mode-tab" style="color:var(--red);" data-mode="exam">모의</button>
+    <button class="mode-tab" data-mode="review">오답노트</button>
   </div>
 
   <div id="content-area"></div>
@@ -264,9 +303,16 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 16;
+const BUILD = 17;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 17, date: "260624", notes: [
+    "오답노트 탭 추가 — 틀린 문제를 정답·해설과 함께 한 화면에서 쭉 복습(시험 직전 총정리용). 자주 틀린 순으로 정렬",
+    "글자 크기 조절 — 상단 ‘가- / 가+’로 문제·보기 글씨 키우기",
+    "키보드 단축키 — 숫자 1~5로 보기 선택, ←→로 이전·다음(외장 키보드)",
+    "‘학습 종료’가 처음부터 다시와 똑같이 동작하던 문제 수정 — 종료 시 진도 화면 유지",
+    "검색 반응성 개선(입력 끊김 완화) · 마지막 백업 시점 표시로 백업 잊지 않도록"
+  ]},
   { n: 16, date: "260624", notes: [
     "보기 소거 기능 — 보기 옆 ✕를 누르면 흐려집니다(채점 안 됨). 괄호·헷갈리는 문제 풀 때 따로 적을 필요 없이 화면에서 바로 소거",
     "문제 번호 점프 — 상단 ‘N / 전체’ 숫자를 누르면 원하는 번호로 바로 이동",
@@ -1544,7 +1590,90 @@ function render() {
   const cArea = document.getElementById("content-area");
   if (state.mode === "exam") return renderExamMode(cArea);
   if (state.mode === "yearly") return renderYearlyMode(cArea);
+  if (state.mode === "review") return renderReviewMode(cArea);
   return renderStudy(cArea);
+}
+
+// 오답노트: 한 번이라도 틀린 문제를 정답·해설과 함께 모아 보여준다(자주 틀린 순)
+function renderReviewMode(cArea) {
+  const ids = Object.keys(wrongNotes).filter(qid => (wrongNotes[qid].count || 0) > 0);
+  if (!ids.length) {
+    cArea.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px;color:var(--muted);line-height:1.7;">아직 틀린 문제가 없어요.<br>학습하다 틀리면 여기에 자동으로 모입니다.</div>`;
+    updateDashboard();
+    return;
+  }
+  const byId = {};
+  allQuestions.forEach(q => { byId[getQId(q)] = q; });
+  ids.sort((a, b) => (wrongNotes[b].count || 0) - (wrongNotes[a].count || 0));
+
+  const cards = ids.map(qid => {
+    const q = byId[qid];
+    if (!q) return "";
+    const cnt = wrongNotes[qid].count || 0;
+    const tag = wrongNotes[qid].tag ? `<span class="rv-tag">${wrongNotes[qid].tag}</span>` : "";
+    const status = progress[qid] === "O"
+      ? `<span class="rv-ok">현재 정답</span>`
+      : `<span class="rv-bad">아직 오답</span>`;
+    const opts = q.opts.map((o, i) =>
+      `<div class="rv-opt ${i === q.a ? "correct" : ""}">${i + 1}. ${o}</div>`).join("");
+    const exp = q.e ? `<div class="rv-exp">${q.e}</div>` : "";
+    return `<div class="card rv-card">
+      <div class="rv-meta"><span>${q.year}년 ${q.subj} · ${cnt}회 틀림</span>${tag}${status}</div>
+      <div class="rv-q">${q.q}</div>
+      <div class="rv-opts">${opts}</div>
+      ${exp}
+      <button class="rv-go" onclick="gotoQuestion('${qid}')">이 문제 풀러 가기 ▶</button>
+    </div>`;
+  }).join("");
+
+  cArea.innerHTML = `<div class="rv-head">오답노트 · ${ids.length}문제</div>${cards}`;
+  updateDashboard();
+}
+
+// 오답노트에서 특정 문제로 점프 — 필터를 풀어 그 문제가 보이도록 한 뒤 학습 모드로 이동
+function gotoQuestion(qid) {
+  state.mode = "study";
+  state.subj = "all"; state.years = [];
+  state.wrongOnly = false; state.bookmarkOnly = false; state.dueOnly = false;
+  state.freqOnly = false; state.wrongnoteOnly = false; state.weakOnly = false;
+  state.tagFilter = "all"; state.search = ""; state.shuffled = false;
+  invalidateList();
+  const list = getList(false);
+  const i = list.findIndex(item => getQId(item) === qid);
+  state.idx = i >= 0 ? i : 0;
+  state.pendingResume = false;
+  syncAllUI();
+  render();
+  scrollToSolve();
+}
+
+// 글자 크기 조절(0.85~1.6 범위), localStorage에 저장
+function adjustFont(dir) {
+  let s = parseFloat(localStorage.getItem("mok_fscale") || "1") || 1;
+  s = Math.round((s + dir * 0.1) * 100) / 100;
+  s = Math.max(0.85, Math.min(1.6, s));
+  localStorage.setItem("mok_fscale", String(s));
+  applyFont();
+}
+function applyFont() {
+  const s = parseFloat(localStorage.getItem("mok_fscale") || "1") || 1;
+  document.documentElement.style.setProperty("--fscale", s);
+}
+
+// 마지막 백업 시점 표시
+function updateBackupBadge() {
+  const el = document.getElementById("backup-note");
+  if (!el) return;
+  const ts = localStorage.getItem("mok_lastbackup");
+  if (!ts) {
+    el.textContent = "⚠️ 아직 백업한 적 없어요";
+    el.classList.add("warn");
+    return;
+  }
+  const days = Math.floor((Date.now() - new Date(ts).getTime()) / 86400000);
+  const txt = days <= 0 ? "오늘" : `${days}일 전`;
+  el.textContent = `마지막 백업: ${txt}`;
+  el.classList.toggle("warn", days >= 7);
 }
 
 // 보기 한 줄 = [보기 버튼] + [✕ 소거 토글]. handler는 "checkAns" 또는 "pickExam".
@@ -1998,7 +2127,17 @@ function renderComplete(cArea) {
   scrollToSolve();
 }
 function restartStudy() { state.idx = 0; state.pendingResume = false; render(); scrollToSolve(); }
-function endStudy() { state.idx = 0; state.pendingResume = false; render(); scrollToSolve(); }
+function endStudy() {
+  const cArea = document.getElementById("content-area");
+  cArea.innerHTML = `
+    <div class="card" style="text-align:center; padding:40px 24px;">
+      <div style="font-size:1.2rem; font-weight:bold; margin-bottom:6px;">학습을 종료했습니다</div>
+      <div style="color:var(--muted); margin-bottom:22px; line-height:1.6;">위 대시보드에서 진도와 정답률을<br>확인할 수 있어요.</div>
+      <button class="nav-btn primary" style="max-width:240px; margin:0 auto;" onclick="restartStudy()">다시 시작</button>
+    </div>`;
+  updateDashboard();
+  scrollToSolve();
+}
 function retryWrong() {
   state.wrongOnly = true; invalidateList();
   const list = getList(false);
@@ -2133,6 +2272,8 @@ function backupProgress() {
   a.download = "mok_backup.json";
   a.click();
   URL.revokeObjectURL(a.href);
+  localStorage.setItem("mok_lastbackup", new Date().toISOString());
+  updateBackupBadge();
   showToast("백업 파일이 저장되었습니다.");
 }
 
@@ -2298,11 +2439,16 @@ window.onload = () => {
     render();
   };
 
+  let searchTimer = null;
   document.getElementById("search-box").oninput = e => {
-    state.search = e.target.value.trim();
-    state.pendingResume = true;
-    invalidateList();
-    render();
+    const val = e.target.value.trim();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      state.search = val;
+      state.pendingResume = true;
+      invalidateList();
+      render();
+    }, 250);
   };
 
   document.querySelectorAll(".mode-tab").forEach(btn => {
@@ -2327,6 +2473,37 @@ window.onload = () => {
     if (wrap && panel && !wrap.contains(e.target)) panel.classList.remove("show");
   });
 
+  // 키보드 단축키 (외장 키보드) — 입력칸 포커스 중이거나 모달 열렸을 땐 무시
+  document.addEventListener("keydown", e => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const modal = document.getElementById("changelog-modal");
+    if (modal && modal.classList.contains("show")) return;
+
+    const answered = !!document.querySelector(".opt.answered");
+
+    if (state.mode === "study") {
+      if (/^[1-9]$/.test(e.key) && !answered) {
+        const opts = document.querySelectorAll("#options-area .opt");
+        const i = parseInt(e.key, 10) - 1;
+        if (opts[i]) { e.preventDefault(); checkAns(i); }
+      } else if (e.key === "ArrowRight" || (e.key === "Enter" && answered)) {
+        e.preventDefault(); moveIdx(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault(); moveIdx(-1);
+      }
+    } else if (state.mode === "exam" && exam.active) {
+      if (/^[1-9]$/.test(e.key)) {
+        const opts = document.querySelectorAll("#options-area .opt");
+        const i = parseInt(e.key, 10) - 1;
+        if (opts[i]) { e.preventDefault(); pickExam(i); }
+      }
+    }
+  });
+
+  applyFont();                  // 저장된 글자 크기 적용
+  updateBackupBadge();          // 마지막 백업 시점 표시
   updateYearUI();
   updateSubjUI();
   state.pendingResume = true;  // 앱 재진입 시 마지막 본 문제로 복귀
