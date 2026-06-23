@@ -246,9 +246,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 14;
-const BUILD_DATE = "260611";
+const BUILD = 15;
+const BUILD_DATE = "260623";
 const CHANGELOG = [
+  { n: 15, date: "260623", notes: [
+    "랜덤 섞기 시 1번부터 시작하도록 수정 — 셔플 후 중간 번호부터 시작되던 버그 해결"
+  ]},
   { n: 14, date: "260611", notes: [
     "헌법 일부 문제 해설 보강(공동의회·노회 장로 총대 등) — 정답 근거 조문과 함정 포인트 추가"
   ]},
@@ -2137,7 +2140,12 @@ window.onload = () => {
       const key = filterMap[btn.dataset.filter];
       state[key] = !state[key];
       btn.classList.toggle("on");
-      state.pendingResume = true;
+      if (btn.dataset.filter === "shuffle") {
+        state.idx = 0;
+        state.pendingResume = false;
+      } else {
+        state.pendingResume = true;
+      }
       invalidateList();
       render();
     };
