@@ -196,6 +196,14 @@
   .cl-entry.seen .cl-ver { color:var(--muted); }
   .cl-note { font-size:0.9rem; margin:3px 0; padding-left:13px; position:relative; }
   .cl-note::before { content:"·"; position:absolute; left:3px; }
+
+  /* 초기화 선택 모달 */
+  .reset-opt { width:100%; text-align:left; padding:14px; border:1px solid var(--line); border-radius:10px; background:#fff; cursor:pointer; }
+  .reset-opt:active { transform:translateY(1px); }
+  .reset-opt.danger { border-color:var(--red); }
+  .reset-opt-t { font-weight:bold; font-size:0.98rem; margin-bottom:4px; color:var(--ink); }
+  .reset-opt.danger .reset-opt-t { color:var(--red); }
+  .reset-opt-d { font-size:0.8rem; color:var(--muted); line-height:1.5; }
   .cl-banner { display:none; background:var(--burgundy); color:#fff; padding:10px 14px; border-radius:8px; margin-bottom:14px; align-items:center; justify-content:space-between; gap:10px; font-size:0.9rem; }
   .cl-banner.show { display:flex; }
   .cl-banner .cl-see { background:#fff; color:var(--burgundy); border:none; border-radius:6px; padding:5px 11px; font-weight:bold; cursor:pointer; font-size:0.83rem; white-space:nowrap; }
@@ -215,7 +223,7 @@
       <button class="hdr-link gold" onclick="refreshApp()">새로고침</button>
       <button class="hdr-link" onclick="backupProgress()">백업</button>
       <button class="hdr-link" onclick="restoreProgress()">복원</button>
-      <button class="hdr-link red" onclick="resetData()">초기화</button>
+      <button class="hdr-link red" onclick="openResetMenu()">초기화</button>
       <input type="file" id="restore-file" style="display:none;" onchange="handleRestore(event)">
     </div>
   </header>
@@ -297,13 +305,33 @@
   </div>
 </div>
 
+<div class="cl-overlay" id="reset-modal" onclick="closeResetBg(event)">
+  <div class="cl-box" style="max-width:360px;">
+    <div class="cl-head"><span>초기화</span><button onclick="closeResetMenu()" aria-label="닫기">✕</button></div>
+    <div style="padding:16px 18px; display:flex; flex-direction:column; gap:12px;">
+      <button class="reset-opt" onclick="resetScores()">
+        <div class="reset-opt-t">점수만 초기화</div>
+        <div class="reset-opt-d">정답률·진도·통계·복습 일정을 0으로. 오답노트와 별표는 그대로 둡니다. (정답률 다시 도전용)</div>
+      </button>
+      <button class="reset-opt danger" onclick="resetAll()">
+        <div class="reset-opt-t">전체 초기화</div>
+        <div class="reset-opt-d">오답노트·별표까지 모든 기록을 삭제합니다. 되돌릴 수 없어요.</div>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 17;
+const BUILD = 18;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 18, date: "260624", notes: [
+    "초기화를 둘로 분리 — ‘점수만 초기화’(정답률·진도·통계·복습일정만 0, 오답노트·별표 유지)와 ‘전체 초기화’. 정답률 다시 도전할 때 오답노트는 자산으로 남길 수 있어요",
+    "모드별 필터 정리 — 학습 모드에서만 과목·연도·검색 필터를 표시(기출·모의·오답노트 모드에선 숨김)"
+  ]},
   { n: 17, date: "260624", notes: [
     "오답노트 탭 추가 — 틀린 문제를 정답·해설과 함께 한 화면에서 쭉 복습(시험 직전 총정리용). 자주 틀린 순으로 정렬",
     "글자 크기 조절 — 상단 ‘가- / 가+’로 문제·보기 글씨 키우기",
@@ -1561,8 +1589,8 @@ function buildYearlyPoolAll() {
 }
 
 function syncFilterVisibility() {
-  const yearWrap = document.getElementById("year-chips");
-  if (yearWrap) yearWrap.style.display = state.mode === "yearly" ? "none" : "flex";
+  const fg = document.querySelector(".filters-group");
+  if (fg) fg.style.display = (state.mode === "study") ? "flex" : "none";
 }
 
 function render() {
@@ -1593,7 +1621,9 @@ function renderReviewMode(cArea) {
     const tag = wrongNotes[qid].tag ? `<span class="rv-tag">${wrongNotes[qid].tag}</span>` : "";
     const status = progress[qid] === "O"
       ? `<span class="rv-ok">현재 정답</span>`
-      : `<span class="rv-bad">아직 오답</span>`;
+      : progress[qid] === "X"
+        ? `<span class="rv-bad">아직 오답</span>`
+        : `<span style="color:var(--muted)">미응시</span>`;
     const opts = q.opts.map((o, i) =>
       `<div class="rv-opt ${i === q.a ? "correct" : ""}">${i + 1}. ${o}</div>`).join("");
     const exp = q.e ? `<div class="rv-exp">${q.e}</div>` : "";
@@ -2321,8 +2351,32 @@ function handleRestore(e) {
   reader.readAsText(file);
 }
 
-function resetData() {
-  if (!confirm("모든 기록을 초기화하시겠습니까?")) return;
+function openResetMenu() { document.getElementById("reset-modal").classList.add("show"); }
+function closeResetMenu() { document.getElementById("reset-modal").classList.remove("show"); }
+function closeResetBg(e) { if (e.target.id === "reset-modal") closeResetMenu(); }
+
+// 점수만 초기화 — 정답률·진도·통계·연속일·복습 일정만 0. 오답노트·별표는 유지.
+function resetScores() {
+  if (!confirm("정답률·진도·통계·복습 일정을 초기화할까요?\n(오답노트와 별표는 그대로 유지됩니다)")) return;
+  progress = {};
+  srs = {};
+  stats = {};
+  streakInfo = { last: "", streak: 0 };
+  state.lastQid = null;
+  localStorage.removeItem("mok_last");
+  saveAll();
+  invalidateList();
+  closeResetMenu();
+  state.idx = 0;
+  state.pendingResume = false;
+  render();
+  updateDashboard();
+  showToast("점수를 초기화했습니다.");
+}
+
+// 전체 초기화 — 오답노트·별표까지 모든 기록 삭제.
+function resetAll() {
+  if (!confirm("오답노트·별표까지 모든 기록을 삭제합니다.\n정말 진행할까요? (되돌릴 수 없습니다)")) return;
   progress = {};
   wrongNotes = {};
   srs = {};
@@ -2333,8 +2387,12 @@ function resetData() {
   localStorage.removeItem("mok_last");
   saveAll();
   invalidateList();
+  closeResetMenu();
+  state.idx = 0;
+  state.pendingResume = false;
   render();
-  showToast("초기화 완료");
+  updateDashboard();
+  showToast("전체 초기화 완료");
 }
 
 function renderYearChips() {
@@ -2460,6 +2518,8 @@ window.onload = () => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const modal = document.getElementById("changelog-modal");
     if (modal && modal.classList.contains("show")) return;
+    const rmodal = document.getElementById("reset-modal");
+    if (rmodal && rmodal.classList.contains("show")) return;
 
     const answered = !!document.querySelector(".opt.answered");
 
