@@ -170,6 +170,21 @@
   .nav-btn { flex: 1; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid var(--line); background: var(--card); }
   .nav-btn.primary { background: var(--ink); color: #fff; }
 
+  /* 학습모드: 보기란 양옆 세로 이전/다음 버튼 */
+  .study-row { display: flex; align-items: stretch; gap: 8px; }
+  .study-row .card { flex: 1; margin-bottom: 0; min-width: 0; }
+  .side-nav { flex-shrink: 0; width: 42px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--ink); font-size: 1.7rem; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .side-nav.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .side-nav:active { transform: translateY(1px); }
+
+  /* 학습모드: 필터 접기/펼치기 토글 바 */
+  .filter-toggle { display: none; width: 100%; padding: 9px; margin-bottom: 12px;
+    border: 1px dashed var(--line); border-radius: 8px; background: var(--paper-2);
+    color: var(--muted); font-size: 0.85rem; cursor: pointer; }
+  .filter-toggle:active { transform: translateY(1px); }
+
   .exam-timer { background: var(--burgundy); color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; }
   .no-timer { background: var(--paper-2); color: var(--muted); border: 1px dashed var(--line); }
   #toast { visibility: hidden; position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: var(--burgundy); color: white; padding: 10px 20px; border-radius: 30px; z-index: 1000; pointer-events: none; white-space: nowrap; }
@@ -256,6 +271,7 @@
     <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
   </div>
 
+  <button class="filter-toggle" id="filter-toggle" onclick="toggleFilters()">🔍 과목·연도·검색 필터 ▾</button>
   <div class="filters-group">
     <div class="filters" id="year-chips"></div>
     <div class="filters">
@@ -325,9 +341,14 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 18;
+const BUILD = 19;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 19, date: "260624", notes: [
+    "정답률 기준 변경 — ‘시도 중 정답률’에서 ‘전체 문제 중 맞힌 비율(정복률)’로. 0%→100% 우상향, 한 문제만 풀어도 100% 뜨던 문제 해결",
+    "학습 모드: 보기란 양옆에 세로 이전/다음 버튼 추가 — 아래로 스크롤 없이 바로 넘기기. 넘길 때마다 문제가 화면 위로 정렬",
+    "학습 모드: 과목·연도·검색 필터를 기본 접힘으로(필요할 때 한 번 탭해 펼침) — 문제가 더 위로 올라와 집중하기 편함"
+  ]},
   { n: 18, date: "260624", notes: [
     "초기화를 둘로 분리 — ‘점수만 초기화’(정답률·진도·통계·복습일정만 0, 오답노트·별표 유지)와 ‘전체 초기화’. 정답률 다시 도전할 때 오답노트는 자산으로 남길 수 있어요",
     "모드별 필터 정리 — 학습 모드에서만 과목·연도·검색 필터를 표시(기출·모의·오답노트 모드에선 숨김)"
@@ -1589,8 +1610,21 @@ function buildYearlyPoolAll() {
 }
 
 function syncFilterVisibility() {
+  const study = state.mode === "study";
+  const open = localStorage.getItem("mok_filteropen") === "1";
+  const toggle = document.getElementById("filter-toggle");
   const fg = document.querySelector(".filters-group");
-  if (fg) fg.style.display = (state.mode === "study") ? "flex" : "none";
+  if (toggle) {
+    toggle.style.display = study ? "block" : "none";
+    toggle.textContent = open ? "🔍 필터 닫기 ▴" : "🔍 과목·연도·검색 필터 ▾";
+  }
+  if (fg) fg.style.display = (study && open) ? "flex" : "none";
+}
+
+function toggleFilters() {
+  const open = localStorage.getItem("mok_filteropen") === "1";
+  localStorage.setItem("mok_filteropen", open ? "0" : "1");
+  syncFilterVisibility();
 }
 
 function render() {
@@ -1764,22 +1798,22 @@ function renderStudy(cArea) {
   localStorage.setItem("mok_lasts", JSON.stringify(state.lastQids));
 
   cArea.innerHTML = `
-    <div class="nav-btns">
-      <button class="nav-btn" onclick="moveIdx(-1)">◀ 이전</button>
-      <button class="nav-btn primary" onclick="moveIdx(1)">다음 ▶</button>
-    </div>
-    <div class="card">
-      <div class="q-meta">
-        <div><span class="q-counter" id="q-counter" onclick="openJump()">${state.idx + 1} / ${list.length}</span> | ${q.year}년 ${q.subj}</div>
-        <div class="meta-right">
-          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+    <div class="study-row">
+      <button class="side-nav" onclick="moveIdx(-1)" aria-label="이전 문제">‹</button>
+      <div class="card">
+        <div class="q-meta">
+          <div><span class="q-counter" id="q-counter" onclick="openJump()">${state.idx + 1} / ${list.length}</span> | ${q.year}년 ${q.subj}</div>
+          <div class="meta-right">
+            <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
+          </div>
         </div>
+        <div class="q-text">${q.q}</div>
+        <div id="options-area">
+          ${optionRowsHtml(q.opts, "checkAns")}
+        </div>
+        <div id="fb-slot"></div>
       </div>
-      <div class="q-text">${q.q}</div>
-      <div id="options-area">
-        ${optionRowsHtml(q.opts, "checkAns")}
-      </div>
-      <div id="fb-slot"></div>
+      <button class="side-nav primary" onclick="moveIdx(1)" aria-label="다음 문제">›</button>
     </div>
   `;
   updateDashboard();
@@ -2118,6 +2152,7 @@ function moveIdx(step) {
   localStorage.setItem("mok_lasts", JSON.stringify(state.lastQids));
   render();
   scrollToSolve();
+  scrollToSolve();
 }
 
 // 학습 완료 카드
@@ -2199,7 +2234,7 @@ function updateStreak() {
 
 function updateDashboard() {
   const base = allQuestions.filter(q => q.year !== "빈출");
-  const bySubj = { "성경": { c: 0, t: 0 }, "교회사": { c: 0, t: 0 }, "헌법": { c: 0, t: 0 } };
+  const bySubj = { "성경": { ok: 0, tot: 0 }, "교회사": { ok: 0, tot: 0 }, "헌법": { ok: 0, tot: 0 } };
   let total = 0, answered = 0;
 
   base.forEach(q => {
@@ -2208,15 +2243,15 @@ function updateDashboard() {
     if (st.t > 0) answered++;
     total++;
     if (bySubj[q.subj]) {
-      bySubj[q.subj].c += st.c;
-      bySubj[q.subj].t += st.t;
+      bySubj[q.subj].tot++;
+      if (progress[qid] === "O") bySubj[q.subj].ok++;   // 현재 맞힌 상태인 고유 문제
     }
   });
 
   const progressPct = total ? Math.round((answered / total) * 100) : 0;
   const dueCount = Object.keys(srs).filter(qid => isDue(qid)).length;
 
-  const acc = obj => obj.t ? Math.round((obj.c / obj.t) * 100) : 0;
+  const acc = o => o.tot ? Math.round((o.ok / o.tot) * 100) : 0;
   document.getElementById("score-bible").textContent = acc(bySubj["성경"]) + "%";
   document.getElementById("score-history").textContent = acc(bySubj["교회사"]) + "%";
   document.getElementById("score-law").textContent = acc(bySubj["헌법"]) + "%";
