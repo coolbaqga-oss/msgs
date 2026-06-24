@@ -377,9 +377,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 26;
+const BUILD = 27;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 27, date: "260624", notes: [
+    "랜덤 섞기 버그 수정 — 답을 맞힐 때마다 목록이 다시 섞여서 문제가 건너뛰어지거나 중복되던 문제 해결. 이제 섞기를 켠 시점의 순서가 고정되어 처음부터 끝까지 빠짐없이 풀립니다"
+  ]},
   { n: 26, date: "260624", notes: [
     "‘🎯 아직 안 맞힌 것만’ 필터 추가 — 오답(X) + 한 번도 안 푼 문제(미응시)를 모두 모아서 풀 수 있어요. 과목 정복률을 100%로 끌어올릴 때 사용(켠 시점 목록 고정으로 순서대로 한 바퀴)"
   ]},
@@ -1524,6 +1527,14 @@ function shuffleInPlace(a) {
   }
   return a;
 }
+// 셔플을 켠 시점에 각 문제에 고정 정렬키를 부여 → 목록이 재계산돼도 같은 순서 유지(건너뜀/중복 방지)
+let shuffleKey = {};
+let shuffleActive = false;
+function captureShuffle() {
+  shuffleKey = {};
+  allQuestions.forEach(q => { shuffleKey[getQId(q)] = Math.random(); });
+  shuffleActive = true;
+}
 function mixByYear(list, count) {
   const groups = new Map();
   list.forEach(q => {
@@ -1652,7 +1663,10 @@ function getList(forExam) {
   });
   if (listCache.key !== key) {
     let list = buildList(forExam);
-    if (state.shuffled) list = shuffleInPlace(list);
+    if (state.shuffled) {
+      if (!shuffleActive) captureShuffle();
+      list = list.slice().sort((a, b) => (shuffleKey[getQId(a)] || 0) - (shuffleKey[getQId(b)] || 0));
+    }
     listCache = { key, list };
   }
   return listCache.list;
@@ -2619,6 +2633,8 @@ window.onload = () => {
         else unsolvedSnapActive = false;
       }
       if (btn.dataset.filter === "shuffle") {
+        if (state.shuffled) captureShuffle();   // 켠 시점 순서 고정
+        else shuffleActive = false;
         state.idx = 0;
         state.pendingResume = false;
       } else {
