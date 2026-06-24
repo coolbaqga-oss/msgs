@@ -26,7 +26,7 @@
     font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     background: var(--paper); color: var(--ink); line-height: 1.65;
   }
-  .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px 80px; }
+  .app-container { max-width: 640px; margin: 0 auto; padding: 20px 20px calc(100px + env(safe-area-inset-bottom)); }
   header { border-bottom: 2px solid var(--ink); padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px 16px; }
   .title-block { min-width: 0; }
   h1 { font-size: 1.4rem; color: var(--burgundy); white-space: nowrap; line-height: 1.15; }
@@ -79,6 +79,7 @@
   .opt {
     display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
     background: #fff; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 1rem;
+    word-break: keep-all;
   }
   .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
@@ -88,12 +89,27 @@
   .opt-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
   .opt-row .opt { margin-bottom: 0; flex: 1; }
   .opt-x {
-    flex-shrink: 0; width: 44px; border: 1px solid var(--line); border-radius: 8px;
-    background: #fff; color: var(--muted); font-size: 1rem; cursor: pointer; line-height: 1;
+    flex-shrink: 0; width: 40px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fff; color: var(--muted); font-size: 0.95rem; cursor: pointer; line-height: 1;
   }
   .opt-x:active { transform: translateY(1px); }
   .opt-x.on { background: var(--ink); color: #fff; border-color: var(--ink); }
   .opt.eliminated { opacity: .4; text-decoration: line-through; background: var(--paper-2); color: var(--muted); }
+
+  /* 학습모드: 화면 하단 고정 이전/다음 바 */
+  .study-nav {
+    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; gap: 10px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(255,255,255,0.96); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border-top: 1px solid var(--line);
+  }
+  .study-nav.show { display: flex; max-width: 640px; margin: 0 auto; }
+  .snav-btn {
+    flex: 1; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 1rem;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  .snav-btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .snav-btn:active { transform: translateY(1px); }
 
   /* 유틸리티 바: 글자 크기 + 백업 표시 */
   .util-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 14px; flex-wrap: wrap; }
@@ -314,6 +330,11 @@
 </div>
 <div id="toast"></div>
 
+<div class="study-nav" id="study-nav">
+  <button class="snav-btn" onclick="moveIdx(-1)">‹ 이전</button>
+  <button class="snav-btn primary" onclick="moveIdx(1)">다음 ›</button>
+</div>
+
 <div class="cl-overlay" id="changelog-modal" onclick="closeChangelogBg(event)">
   <div class="cl-box">
     <div class="cl-head"><span>📋 업데이트 내역</span><button onclick="closeChangelog()" aria-label="닫기">✕</button></div>
@@ -341,9 +362,14 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 19;
+const BUILD = 20;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 20, date: "260624", notes: [
+    "이전/다음 버튼을 양옆 세로바 → 화면 하단 고정 바로 변경. 보기 글씨가 좁아지던 문제 해결(전체 폭 사용), 스크롤 없이 항상 손닿는 위치에서 넘기기",
+    "보기 줄바꿈을 단어 단위로 정리(어색한 ‘위하여’ 분리 개선)",
+    "중복되던 ‘계속하기’ 버튼 제거 — 하단 고정 ‘다음’ 바가 대체"
+  ]},
   { n: 19, date: "260624", notes: [
     "정답률 기준 변경 — ‘시도 중 정답률’에서 ‘전체 문제 중 맞힌 비율(정복률)’로. 0%→100% 우상향, 한 문제만 풀어도 100% 뜨던 문제 해결",
     "학습 모드: 보기란 양옆에 세로 이전/다음 버튼 추가 — 아래로 스크롤 없이 바로 넘기기. 넘길 때마다 문제가 화면 위로 정렬",
@@ -1619,6 +1645,8 @@ function syncFilterVisibility() {
     toggle.textContent = open ? "🔍 필터 닫기 ▴" : "🔍 과목·연도·검색 필터 ▾";
   }
   if (fg) fg.style.display = (study && open) ? "flex" : "none";
+  const snav = document.getElementById("study-nav");
+  if (snav) snav.classList.toggle("show", study);
 }
 
 function toggleFilters() {
@@ -1798,22 +1826,18 @@ function renderStudy(cArea) {
   localStorage.setItem("mok_lasts", JSON.stringify(state.lastQids));
 
   cArea.innerHTML = `
-    <div class="study-row">
-      <button class="side-nav" onclick="moveIdx(-1)" aria-label="이전 문제">‹</button>
-      <div class="card">
-        <div class="q-meta">
-          <div><span class="q-counter" id="q-counter" onclick="openJump()">${state.idx + 1} / ${list.length}</span> | ${q.year}년 ${q.subj}</div>
-          <div class="meta-right">
-            <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
-          </div>
+    <div class="card">
+      <div class="q-meta">
+        <div><span class="q-counter" id="q-counter" onclick="openJump()">${state.idx + 1} / ${list.length}</span> | ${q.year}년 ${q.subj}</div>
+        <div class="meta-right">
+          <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
         </div>
-        <div class="q-text">${q.q}</div>
-        <div id="options-area">
-          ${optionRowsHtml(q.opts, "checkAns")}
-        </div>
-        <div id="fb-slot"></div>
       </div>
-      <button class="side-nav primary" onclick="moveIdx(1)" aria-label="다음 문제">›</button>
+      <div class="q-text">${q.q}</div>
+      <div id="options-area">
+        ${optionRowsHtml(q.opts, "checkAns")}
+      </div>
+      <div id="fb-slot"></div>
     </div>
   `;
   updateDashboard();
@@ -2067,7 +2091,6 @@ function checkAns(picked) {
       ${expHtml}
       ${tagsHtml}
       <button class="fb-gemini" id="fb-gemini-btn">✨ 이 문제 AI에게 물어보기</button>
-      <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
     </div>`;
 
   // Gemini 버튼: 문제를 복사하고 Gemini를 연다 (특수문자 escape 회피 위해 JS로 연결)
@@ -2086,9 +2109,9 @@ function checkAns(picked) {
   invalidateList();
   updateDashboard();
 
-  // 피드백 패널(계속하기 버튼)이 화면에 들어오도록 살짝 스크롤
+  // 정답/해설 패널이 하단 고정바에 가리지 않고 화면에 들어오도록 스크롤
   requestAnimationFrame(() => {
-    const y = slot.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 16;
+    const y = slot.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 96;
     if (y > window.pageYOffset) smoothScrollTo(y);
   });
 }
