@@ -135,6 +135,10 @@
 
   /* 오답노트 리스트 뷰 */
   .rv-head { font-weight: bold; color: var(--burgundy); margin: 4px 2px 12px; font-size: 1.05rem; }
+  .rv-chips { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .rv-chip { padding: 7px 13px; border: 1px solid var(--line); border-radius: 20px; background: #fff; color: var(--muted); font-size: 0.85rem; cursor: pointer; }
+  .rv-chip.on { background: var(--burgundy); color: #fff; border-color: var(--burgundy); }
+  .rv-group { font-weight: bold; color: var(--burgundy); margin: 20px 2px 10px; font-size: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
   .rv-card { padding: 16px; }
   .rv-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .rv-tag { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 1px 8px; color: var(--ink); }
@@ -372,9 +376,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 23;
+const BUILD = 24;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 24, date: "260624", notes: [
+    "오답노트 정리 — 상단 과목 칩(전체·성경·교회사·헌법)으로 걸러보기. ‘전체’에선 과목별로 구분 헤더를 넣어 묶음(더 이상 뒤죽박죽 X). 선택한 과목은 저장됨"
+  ]},
   { n: 23, date: "260624", notes: [
     "q·w·e·r 단축키가 한글 입력 상태에서 안 먹던 문제 수정(물리 키 위치로 인식)",
     "다음 문제로 넘기기: Space와 Enter 둘 다 가능(→ 화살표도 그대로)"
@@ -1686,6 +1693,34 @@ function render() {
 }
 
 // 오답노트: 한 번이라도 틀린 문제를 정답·해설과 함께 모아 보여준다(자주 틀린 순)
+// 오답노트 카드 한 장
+function reviewCardHtml(qid, byId) {
+  const q = byId[qid];
+  if (!q) return "";
+  const cnt = wrongNotes[qid].count || 0;
+  const tag = wrongNotes[qid].tag ? `<span class="rv-tag">${wrongNotes[qid].tag}</span>` : "";
+  const status = progress[qid] === "O"
+    ? `<span class="rv-ok">현재 정답</span>`
+    : progress[qid] === "X"
+      ? `<span class="rv-bad">아직 오답</span>`
+      : `<span style="color:var(--muted)">미응시</span>`;
+  const opts = q.opts.map((o, i) =>
+    `<div class="rv-opt ${i === q.a ? "correct" : ""}">${i + 1}. ${o}</div>`).join("");
+  const exp = q.e ? `<div class="rv-exp">${q.e}</div>` : "";
+  return `<div class="card rv-card">
+    <div class="rv-meta"><span>${q.year}년 ${q.subj} · ${cnt}회 틀림</span>${tag}${status}</div>
+    <div class="rv-q">${q.q}</div>
+    <div class="rv-opts">${opts}</div>
+    ${exp}
+    <button class="rv-go" onclick="gotoQuestion('${qid}')">이 문제 풀러 가기 ▶</button>
+  </div>`;
+}
+
+function setReviewSubj(s) {
+  localStorage.setItem("mok_reviewsubj", s);
+  render();
+}
+
 function renderReviewMode(cArea) {
   const ids = Object.keys(wrongNotes).filter(qid => (wrongNotes[qid].count || 0) > 0);
   if (!ids.length) {
@@ -1695,31 +1730,38 @@ function renderReviewMode(cArea) {
   }
   const byId = {};
   allQuestions.forEach(q => { byId[getQId(q)] = q; });
-  ids.sort((a, b) => (wrongNotes[b].count || 0) - (wrongNotes[a].count || 0));
+  const valid = ids.filter(qid => byId[qid]);
 
-  const cards = ids.map(qid => {
-    const q = byId[qid];
-    if (!q) return "";
-    const cnt = wrongNotes[qid].count || 0;
-    const tag = wrongNotes[qid].tag ? `<span class="rv-tag">${wrongNotes[qid].tag}</span>` : "";
-    const status = progress[qid] === "O"
-      ? `<span class="rv-ok">현재 정답</span>`
-      : progress[qid] === "X"
-        ? `<span class="rv-bad">아직 오답</span>`
-        : `<span style="color:var(--muted)">미응시</span>`;
-    const opts = q.opts.map((o, i) =>
-      `<div class="rv-opt ${i === q.a ? "correct" : ""}">${i + 1}. ${o}</div>`).join("");
-    const exp = q.e ? `<div class="rv-exp">${q.e}</div>` : "";
-    return `<div class="card rv-card">
-      <div class="rv-meta"><span>${q.year}년 ${q.subj} · ${cnt}회 틀림</span>${tag}${status}</div>
-      <div class="rv-q">${q.q}</div>
-      <div class="rv-opts">${opts}</div>
-      ${exp}
-      <button class="rv-go" onclick="gotoQuestion('${qid}')">이 문제 풀러 가기 ▶</button>
-    </div>`;
-  }).join("");
+  // 과목별로 분류 + 각 과목 안에서 많이 틀린 순
+  const subs = ["성경", "교회사", "헌법"];
+  const bySub = { "성경": [], "교회사": [], "헌법": [] };
+  valid.forEach(qid => { const s = byId[qid].subj; if (bySub[s]) bySub[s].push(qid); });
+  subs.forEach(s => bySub[s].sort((a, b) => (wrongNotes[b].count || 0) - (wrongNotes[a].count || 0)));
 
-  cArea.innerHTML = `<div class="rv-head">오답노트 · ${ids.length}문제</div>${cards}`;
+  const cur = localStorage.getItem("mok_reviewsubj") || "all";
+  const chip = (key, label, n) => `<button class="rv-chip ${cur === key ? "on" : ""}" onclick="setReviewSubj('${key}')">${label} ${n}</button>`;
+  const chips = `<div class="rv-chips">
+    ${chip("all", "전체", valid.length)}
+    ${chip("성경", "성경", bySub["성경"].length)}
+    ${chip("교회사", "교회사", bySub["교회사"].length)}
+    ${chip("헌법", "헌법", bySub["헌법"].length)}
+  </div>`;
+
+  let body = "";
+  if (cur === "all") {
+    subs.forEach(s => {
+      if (!bySub[s].length) return;
+      body += `<div class="rv-group">${s} · ${bySub[s].length}문제</div>`;
+      body += bySub[s].map(qid => reviewCardHtml(qid, byId)).join("");
+    });
+  } else {
+    const list = bySub[cur] || [];
+    body = list.length
+      ? list.map(qid => reviewCardHtml(qid, byId)).join("")
+      : `<div class="card" style="text-align:center;padding:28px;color:var(--muted)">이 과목엔 틀린 문제가 없어요.</div>`;
+  }
+
+  cArea.innerHTML = `<div class="rv-head">오답노트 · ${valid.length}문제</div>${chips}${body}`;
   updateDashboard();
 }
 
