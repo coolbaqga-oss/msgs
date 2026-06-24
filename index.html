@@ -83,11 +83,11 @@
   .meta-right { display: flex; align-items: center; gap: 10px; }
   .meta-link { font-size: 0.8rem; color: var(--muted); text-decoration: underline; cursor: pointer; }
   .star { cursor: pointer; }
-  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; word-break: keep-all; }
+  .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; word-break: keep-all; overflow-wrap: anywhere; }
   .opt {
     display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 8px;
     background: #fff; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 1rem;
-    word-break: keep-all;
+    word-break: keep-all; overflow-wrap: anywhere;
   }
   .opt.selected { background: var(--burgundy-soft); color: white; border-color: var(--burgundy); }
   .opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
@@ -95,7 +95,7 @@
 
   /* 보기 소거 */
   .opt-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
-  .opt-row .opt { margin-bottom: 0; flex: 1; }
+  .opt-row .opt { margin-bottom: 0; flex: 1; min-width: 0; }
   .opt-x {
     flex-shrink: 0; width: 40px; border: 1px solid var(--line); border-radius: 8px;
     background: #fff; color: var(--muted); font-size: 0.95rem; cursor: pointer; line-height: 1;
@@ -144,9 +144,9 @@
   .rv-tag { background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 1px 8px; color: var(--ink); }
   .rv-ok  { color: var(--green); font-weight: bold; }
   .rv-bad { color: var(--red);   font-weight: bold; }
-  .rv-q { font-size: calc(1.02rem * var(--fscale, 1)); font-weight: 600; margin-bottom: 10px; word-break: keep-all; }
+  .rv-q { font-size: calc(1.02rem * var(--fscale, 1)); font-weight: 600; margin-bottom: 10px; word-break: keep-all; overflow-wrap: anywhere; }
   .rv-opts { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-  .rv-opt { font-size: calc(0.92rem * var(--fscale, 1)); padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); }
+  .rv-opt { font-size: calc(0.92rem * var(--fscale, 1)); padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); overflow-wrap: anywhere; }
   .rv-opt.correct { background: var(--green-soft); border-color: var(--green); color: var(--green); font-weight: bold; }
   .rv-exp { font-size: calc(0.85rem * var(--fscale, 1)); line-height: 1.6; background: var(--paper-2); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; color: var(--ink); }
   .rv-go { width: 100%; padding: 10px; border: 1px solid var(--burgundy); border-radius: 8px; background: #fff; color: var(--burgundy); font-weight: bold; font-size: 0.85rem; cursor: pointer; }
@@ -377,9 +377,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 27;
+const BUILD = 28;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 28, date: "260624", notes: [
+    "긴 보기 깨짐 수정 — 띄어쓰기 없이 하이픈으로 길게 이어진 보기(예: ‘옷니엘-삼갈-에훗-…’)가 화면 밖으로 삐져나가던 문제 해결(줄바꿈 허용)"
+  ]},
   { n: 27, date: "260624", notes: [
     "랜덤 섞기 버그 수정 — 답을 맞힐 때마다 목록이 다시 섞여서 문제가 건너뛰어지거나 중복되던 문제 해결. 이제 섞기를 켠 시점의 순서가 고정되어 처음부터 끝까지 빠짐없이 풀립니다"
   ]},
