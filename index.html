@@ -41,6 +41,14 @@
   .dash-item:last-child { border-right: none; }
   .dash-title { font-size: 0.72rem; color: var(--muted); }
   .dash-score { font-size: 1.05rem; font-weight: bold; color: var(--burgundy); }
+
+  /* 전체 정복률 진행 바 */
+  .mastery { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 13px 16px; margin-bottom: 15px; box-shadow: var(--shadow); }
+  .mastery-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .mastery-label { font-size: 0.78rem; color: var(--muted); }
+  .mastery-val { font-size: 0.95rem; font-weight: bold; color: var(--burgundy); }
+  .mastery-track { height: 10px; background: var(--paper-2); border-radius: 6px; overflow: hidden; }
+  .mastery-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--burgundy), var(--gold)); border-radius: 6px; transition: width 0.45s ease; }
   .dash-sub { font-size: 0.65rem; color: var(--muted); }
 
   .filters-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -281,10 +289,12 @@
     <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
     <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
   </div>
-  <div class="dashboard">
-    <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
-    <div class="dash-item"><div class="dash-title">전체 진도</div><div class="dash-score" id="stat-progress">0%</div></div>
-    <div class="dash-item"><div class="dash-title">오늘 복습</div><div class="dash-score" id="stat-due">0</div></div>
+  <div class="mastery">
+    <div class="mastery-head">
+      <span class="mastery-label">전체 정복률</span>
+      <span class="mastery-val" id="mastery-val">0% (0/0)</span>
+    </div>
+    <div class="mastery-track"><div class="mastery-fill" id="mastery-fill"></div></div>
   </div>
 
   <button class="filter-toggle" id="filter-toggle" onclick="toggleFilters()">🔍 과목·연도·검색 필터 ▾</button>
@@ -362,9 +372,13 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 20;
+const BUILD = 21;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 21, date: "260624", notes: [
+    "대시보드 둘째 줄(연속 학습일·전체 진도·오늘 복습) → ‘전체 정복률 진행 바’로 교체. 903문제 중 맞힌 비율을 0→100%로 채워지는 막대로 표시",
+    "‘오늘 복습’ 기능은 필터에 그대로 있어요(📅 오늘 복습)"
+  ]},
   { n: 20, date: "260624", notes: [
     "이전/다음 버튼을 양옆 세로바 → 화면 하단 고정 바로 변경. 보기 글씨가 좁아지던 문제 해결(전체 폭 사용), 스크롤 없이 항상 손닿는 위치에서 넘기기",
     "보기 줄바꿈을 단어 단위로 정리(어색한 ‘위하여’ 분리 개선)",
@@ -2271,16 +2285,18 @@ function updateDashboard() {
     }
   });
 
-  const progressPct = total ? Math.round((answered / total) * 100) : 0;
-  const dueCount = Object.keys(srs).filter(qid => isDue(qid)).length;
-
   const acc = o => o.tot ? Math.round((o.ok / o.tot) * 100) : 0;
   document.getElementById("score-bible").textContent = acc(bySubj["성경"]) + "%";
   document.getElementById("score-history").textContent = acc(bySubj["교회사"]) + "%";
   document.getElementById("score-law").textContent = acc(bySubj["헌법"]) + "%";
-  document.getElementById("stat-progress").textContent = progressPct + "%";
-  document.getElementById("stat-streak").textContent = (streakInfo.streak || 0) + "일";
-  document.getElementById("stat-due").textContent = dueCount;
+
+  // 전체 정복률 진행 바
+  const ok = bySubj["성경"].ok + bySubj["교회사"].ok + bySubj["헌법"].ok;
+  const masteryPct = total ? Math.round((ok / total) * 100) : 0;
+  const fill = document.getElementById("mastery-fill");
+  const val = document.getElementById("mastery-val");
+  if (fill) fill.style.width = masteryPct + "%";
+  if (val) val.textContent = masteryPct + "% (" + ok + "/" + total + ")";
 }
 
 function saveSRS(qid, success) {
