@@ -246,9 +246,9 @@
   </div>
 
   <div class="dashboard">
-    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div><div class="dash-sub" id="sub-bible">진도 0% (0/0)</div></div>
-    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div><div class="dash-sub" id="sub-history">진도 0% (0/0)</div></div>
-    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div><div class="dash-sub" id="sub-law">진도 0% (0/0)</div></div>
+    <div class="dash-item"><div class="dash-title">성경 정답률</div><div class="dash-score" id="score-bible">0%</div></div>
+    <div class="dash-item"><div class="dash-title">교회사 정답률</div><div class="dash-score" id="score-history">0%</div></div>
+    <div class="dash-item"><div class="dash-title">헌법 정답률</div><div class="dash-score" id="score-law">0%</div></div>
   </div>
   <div class="dashboard">
     <div class="dash-item"><div class="dash-title">연속 학습일</div><div class="dash-score" id="stat-streak">0일</div></div>
@@ -1982,80 +1982,80 @@ function finishExam(reason) {
 
   const cArea = document.getElementById("content-area");
   cArea.innerHTML = `
-// ==========================================
-// [학습 모드] 렌더링
-// ==========================================
-function renderStudy(cArea) {
+    <div class="card">
+      <div class="q-text">${title}</div>
+      <div style="font-weight:bold; font-size:1.2rem; margin-bottom:10px;">점수: ${score}점 (${correct}/${total})</div>
+      ${wrongItems.length ? `
+        <div style="margin-top:10px;">
+          ${wrongItems.map(w => `
+            <div style="padding:10px; border-top:1px dashed var(--line);">
+              <div style="color:var(--gold); font-weight:bold;">오답: ${w.q.year}년 ${w.q.subj}</div>
+              <div>${w.q.q}</div>
+              <div style="margin-top:6px;">정답: ${w.q.a + 1}번 / 선택: ${w.picked !== undefined ? w.picked + 1 : "미응답"}</div>
+              <div style="margin-top:6px; color:var(--muted);">${w.q.e || ""}</div>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div>오답이 없습니다.</div>`}
+      <button class="nav-btn primary" style="margin-top:15px;" onclick="render()">다시 돌아가기</button>
+    </div>
+  `;
+  updateDashboard();
+}
+
+function checkAns(picked) {
   const list = getList(false);
   const q = list[state.idx];
   const qid = getQId(q);
-  const rec = progress[qid];
-  
-  let html = `
-    <div class="side-nav-wrap">
-      <button class="side-nav-btn" onclick="moveIdx(-1)" title="이전 문제">◀</button>
-      
-      <div class="card" style="margin-bottom: 0; flex: 1; min-width: 0;">
-        <div class="q-meta">
-          <div>${state.idx + 1} / ${list.length} &nbsp;|&nbsp; ${q.year}년 ${q.subj} ${q.no ? q.no+'번' : ''}</div>
-          <div class="meta-right">
-            <span class="star" onclick="toggleBm('${qid}')" style="color:${bookmarks[qid] ? 'var(--gold)' : '#ccc'}">★</span>
-          </div>
-        </div>
-        <div class="q-text">Q. ${q.q}</div>
-        <div class="options">
-  `;
-  
-  q.opts.forEach((opt, i) => {
-    html += `<div class="opt" id="opt-${i}">${i + 1}. ${opt}</div>`;
-  });
-  
-  html += `
-        </div>
-        <div class="ans-box" id="ans-box">
-          <strong>정답: ${q.a + 1}번</strong><br><br>
-          ${q.e}
-        </div>
-        <div id="fb-slot"></div>
-      </div>
-      
-      <button class="side-nav-btn primary" onclick="moveIdx(1)" title="다음 문제">▶</button>
-    </div>
-  `;
-  
-  cArea.innerHTML = html;
-  
-  // 마킹 정보 표시
-  if (rec === 'O') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--green)">[맞힘]</span>`;
-  if (rec === 'X') document.querySelector('.q-meta').innerHTML += ` <span style="color:var(--red)">[틀림]</span>`;
-  
-  q.opts.forEach((opt, i) => {
-    document.getElementById(`opt-${i}`).onclick = () => {
-      if (showAns) return;
-      showAns = true;
-      
-      if (i === q.a) {
-        progress[qid] = 'O';
-      } else {
-        progress[qid] = 'X';
-        
-        // 오답 노트 카운트 증가
-        if (!wrongNotes[qid]) wrongNotes[qid] = { count: 0, last: '' };
-        wrongNotes[qid].count++;
-        wrongNotes[qid].last = new Date().toISOString().split('T')[0];
-        localStorage.setItem("wrongNotes", JSON.stringify(wrongNotes));
-        
-        // ✨ 에빙하우스 오답 자동 반복 (틀리면 맨 뒤에 다시 추가)
-        list.push(q);
-        showToast("오답 노트에 기록되었습니다.<br>이 문제는 뒤에서 다시 출제됩니다.");
-      }
-      save();
-      updateDashboard();
-      
-      document.getElementById(`opt-${q.a}`).classList.add("correct");
-      if (i !== q.a) document.getElementById(`opt-${i}`).classList.add("wrong");
-      document.getElementById("ans-box").style.display = "block";
-    };
+  const isCorrect = picked === q.a;
+
+  const opts = document.querySelectorAll(".opt");
+  opts.forEach(o => { o.classList.add("answered"); o.classList.remove("eliminated"); });
+  document.querySelectorAll("#options-area .opt-x").forEach(x => x.style.display = "none");
+  opts[picked].classList.add("selected");
+  opts[q.a].classList.add("correct");
+  if (!isCorrect) opts[picked].classList.add("wrong");
+
+  if (!isCorrect) { saveWrong(qid); saveSRS(qid, false); }
+  else { saveSRS(qid, true); }
+
+  const title = isCorrect ? "정답입니다!" : `오답 · 정답은 ${q.a + 1}번`;
+  const icon = isCorrect ? "✓" : "✕";
+  const expHtml = q.e ? `<div class="fb-exp">${q.e}</div>` : "";
+  const tagsHtml = isCorrect ? "" :
+    `<div class="fb-tags">${["헷갈림", "암기부족", "실수"].map(t =>
+      `<button class="fb-tag" onclick="setTag('${qid}', '${t}')">${t}</button>`).join("")}</div>`;
+
+  const slot = document.getElementById("fb-slot");
+  slot.innerHTML = `
+    <div class="fb-panel ${isCorrect ? "ok" : "bad"}">
+      <div class="fb-head"><div class="fb-icon">${icon}</div><div class="fb-title">${title}</div></div>
+      ${expHtml}
+      ${tagsHtml}
+      <button class="fb-gemini" id="fb-gemini-btn">✨ 이 문제 AI에게 물어보기</button>
+      <button class="fb-next" onclick="moveIdx(1)">계속하기 ▶</button>
+    </div>`;
+
+  // Gemini 버튼: 문제를 복사하고 Gemini를 연다 (특수문자 escape 회피 위해 JS로 연결)
+  const gprompt =
+    `다음은 대한예수교장로회(통합) 목사고시 ${q.subj} 기출문제야. 쉽게 풀어서 설명해주고, 정답인 이유와 다른 보기가 오답인 이유도 알려줘.\n\n` +
+    `[문제] ${plainText(q.q)}\n` +
+    q.opts.map((o, i) => `${i + 1}. ${plainText(o)}`).join("\n") +
+    `\n\n정답: ${q.a + 1}번`;
+  const gbtn = document.getElementById("fb-gemini-btn");
+  if (gbtn) gbtn.onclick = () => askGemini(gprompt);
+
+  updateStats(qid, isCorrect);
+  progress[qid] = isCorrect ? "O" : "X";
+  updateStreak();
+  saveAll();
+  invalidateList();
+  updateDashboard();
+
+  // 피드백 패널(계속하기 버튼)이 화면에 들어오도록 살짝 스크롤
+  requestAnimationFrame(() => {
+    const y = slot.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 16;
+    if (y > window.pageYOffset) smoothScrollTo(y);
   });
 }
 
@@ -2095,9 +2095,8 @@ function smoothScrollTo(y) {
 function scrollToSolve() {
   const el = document.getElementById("content-area");
   if (!el) return;
-  // ✨ 문제영역(content-area) 상단을 화면 최상단에 딱 맞춤으로써, 
-  // 그 위에 있는 대시보드와 필터 영역을 시야 밖으로 넘겨버립니다 (몰입도 상승)
-  const doIt = () => smoothScrollTo(el.getBoundingClientRect().top + window.pageYOffset - 12);
+  const doIt = () => smoothScrollTo(el.getBoundingClientRect().top + window.pageYOffset - 8);
+  // 새로 렌더된 레이아웃이 안정된 뒤 스크롤 (iOS 타이밍 대응)
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(doIt, 30)));
 }
 
@@ -2200,53 +2199,27 @@ function updateStreak() {
 
 function updateDashboard() {
   const base = allQuestions.filter(q => q.year !== "빈출");
-  
-  // c: 맞힌 수, t: 풀이 시도 횟수 (정답률용)
-  // ans: 한 번이라도 풀어본 문제 수, tot: 과목별 전체 문제 수 (진도율용)
-  const bySubj = { 
-    "성경": { c: 0, t: 0, ans: 0, tot: 0 }, 
-    "교회사": { c: 0, t: 0, ans: 0, tot: 0 }, 
-    "헌법": { c: 0, t: 0, ans: 0, tot: 0 } 
-  };
-  let totalAll = 0, answeredAll = 0;
+  const bySubj = { "성경": { c: 0, t: 0 }, "교회사": { c: 0, t: 0 }, "헌법": { c: 0, t: 0 } };
+  let total = 0, answered = 0;
 
   base.forEach(q => {
     const qid = getQId(q);
     const st = getAttempt(qid);
-    
-    // 전체 진도 통계 업데이트
-    if (st.t > 0) answeredAll++;
-    totalAll++;
-    
-    // 과목별 통계 업데이트
+    if (st.t > 0) answered++;
+    total++;
     if (bySubj[q.subj]) {
-      bySubj[q.subj].tot++;
-      if (st.t > 0) bySubj[q.subj].ans++; 
       bySubj[q.subj].c += st.c;
       bySubj[q.subj].t += st.t;
     }
   });
 
-  const progressPct = totalAll ? Math.round((answeredAll / totalAll) * 100) : 0;
+  const progressPct = total ? Math.round((answered / total) * 100) : 0;
   const dueCount = Object.keys(srs).filter(qid => isDue(qid)).length;
 
   const acc = obj => obj.t ? Math.round((obj.c / obj.t) * 100) : 0;
-  const prog = obj => obj.tot ? Math.round((obj.ans / obj.tot) * 100) : 0;
-
-  // 정답률 및 진도율 HTML 텍스트 주입
   document.getElementById("score-bible").textContent = acc(bySubj["성경"]) + "%";
-  const subBible = document.getElementById("sub-bible");
-  if(subBible) subBible.textContent = `진도 ${prog(bySubj["성경"])}% (${bySubj["성경"].ans}/${bySubj["성경"].tot})`;
-
   document.getElementById("score-history").textContent = acc(bySubj["교회사"]) + "%";
-  const subHist = document.getElementById("sub-history");
-  if(subHist) subHist.textContent = `진도 ${prog(bySubj["교회사"])}% (${bySubj["교회사"].ans}/${bySubj["교회사"].tot})`;
-
   document.getElementById("score-law").textContent = acc(bySubj["헌법"]) + "%";
-  const subLaw = document.getElementById("sub-law");
-  if(subLaw) subLaw.textContent = `진도 ${prog(bySubj["헌법"])}% (${bySubj["헌법"].ans}/${bySubj["헌법"].tot})`;
-
-  // 하단 공통 대시보드 (전체 진도 등)
   document.getElementById("stat-progress").textContent = progressPct + "%";
   document.getElementById("stat-streak").textContent = (streakInfo.streak || 0) + "일";
   document.getElementById("stat-due").textContent = dueCount;
@@ -2555,7 +2528,7 @@ window.onload = () => {
         const opts = document.querySelectorAll("#options-area .opt");
         const i = parseInt(e.key, 10) - 1;
         if (opts[i]) { e.preventDefault(); checkAns(i); }
-      } else if (e.key === "ArrowRight" || (e.key === "Enter" || e.key === " ") && answered) {
+      } else if (e.key === "ArrowRight" || (e.key === "Enter" && answered)) {
         e.preventDefault(); moveIdx(1);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault(); moveIdx(-1);
