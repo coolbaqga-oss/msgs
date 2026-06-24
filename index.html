@@ -315,6 +315,7 @@
     <div class="filters">
       <button class="chip" data-filter="due">📅 오늘 복습</button>
       <button class="chip" data-filter="wrong">❌ 오답만</button>
+      <button class="chip" data-filter="unsolved">🎯 아직 안 맞힌 것만</button>
       <button class="chip" data-filter="bookmark">⭐ 별표</button>
       <div class="adv-wrap">
         <button class="chip adv-toggle" onclick="toggleAdv(event)">⚙️ 고급</button>
@@ -376,9 +377,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 25;
+const BUILD = 26;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 26, date: "260624", notes: [
+    "‘🎯 아직 안 맞힌 것만’ 필터 추가 — 오답(X) + 한 번도 안 푼 문제(미응시)를 모두 모아서 풀 수 있어요. 과목 정복률을 100%로 끌어올릴 때 사용(켠 시점 목록 고정으로 순서대로 한 바퀴)"
+  ]},
   { n: 25, date: "260624", notes: [
     "‘오답만’ 버그 수정 — 풀던 중 목록이 줄어 번호가 꼬이고 ‘다 풀었다’가 일찍 뜨던 문제 해결. 이제 오답만을 켠 시점의 목록이 고정되어 처음부터 끝까지 순서대로 풀립니다(다시 켜면 그 시점 기준으로 새로 잡힘)"
   ]},
@@ -1476,7 +1480,7 @@ let state = {
   examCount: 33,
   freqOnly: false, wrongOnly: false, shuffled: false,
   bookmarkOnly: false, search: "", tagFilter: "all",
-  wrongnoteOnly: false, weakOnly: false, dueOnly: false,
+  wrongnoteOnly: false, weakOnly: false, dueOnly: false, unsolvedOnly: false,
   lastQid: localStorage.getItem("mok_last") || null,
   lastQids: JSON.parse(localStorage.getItem("mok_lasts") || "{}"),  // 과목별 위치
   pendingResume: false
@@ -1498,6 +1502,14 @@ let wrongSnapActive = false;
 function captureWrongSnapshot() {
   wrongSnapshot = new Set(Object.keys(progress).filter(qid => progress[qid] === "X"));
   wrongSnapActive = true;
+}
+// '아직 안 맞힌 것만' = 현재 O가 아닌 모든 문제(오답 X + 미응시). 켠 시점 고정.
+let unsolvedSnapshot = new Set();
+let unsolvedSnapActive = false;
+function captureUnsolvedSnapshot() {
+  unsolvedSnapshot = new Set();
+  allQuestions.forEach(q => { const id = getQId(q); if (progress[id] !== "O") unsolvedSnapshot.add(id); });
+  unsolvedSnapActive = true;
 }
 
 function normalize(s) { return (s || "").toLowerCase().trim(); }
@@ -1587,6 +1599,7 @@ function getWeakIds(list) {
 function buildList(forExam) {
   const search = normalize(state.search);
   if (!forExam && state.wrongOnly && !wrongSnapActive) captureWrongSnapshot();
+  if (!forExam && state.unsolvedOnly && !unsolvedSnapActive) captureUnsolvedSnapshot();
   let temp = allQuestions.filter(q => {
     if (!q || !q.q) return false;
     const isFreq = q.year === "빈출";
@@ -1607,6 +1620,7 @@ function buildList(forExam) {
       const qid = getQId(q);
       if (state.dueOnly && !isDue(qid)) return false;
       if (state.wrongOnly && !wrongSnapshot.has(qid)) return false;
+      if (state.unsolvedOnly && !unsolvedSnapshot.has(qid)) return false;
       if (state.bookmarkOnly && !bookmarks[qid]) return false;
       if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
     }
@@ -1633,6 +1647,7 @@ function getList(forExam) {
     shuffled: state.shuffled, bookmarkOnly: state.bookmarkOnly,
     search: state.search, tagFilter: state.tagFilter,
     wrongnoteOnly: state.wrongnoteOnly, weakOnly: state.weakOnly, dueOnly: state.dueOnly,
+    unsolvedOnly: state.unsolvedOnly,
     forExam
   });
   if (listCache.key !== key) {
@@ -2386,7 +2401,7 @@ function saveWrong(qid) {
 function syncAllUI() {
   updateSubjUI();
   updateYearUI();
-  const fmap = { due: "dueOnly", wrong: "wrongOnly", shuffle: "shuffled", bookmark: "bookmarkOnly", freq: "freqOnly", wrongnote: "wrongnoteOnly", weak: "weakOnly" };
+  const fmap = { due: "dueOnly", wrong: "wrongOnly", unsolved: "unsolvedOnly", shuffle: "shuffled", bookmark: "bookmarkOnly", freq: "freqOnly", wrongnote: "wrongnoteOnly", weak: "weakOnly" };
   document.querySelectorAll(".chip[data-filter]").forEach(btn => {
     btn.classList.toggle("on", !!state[fmap[btn.dataset.filter]]);
   });
@@ -2582,6 +2597,7 @@ window.onload = () => {
   const filterMap = {
     due: "dueOnly",
     wrong: "wrongOnly",
+    unsolved: "unsolvedOnly",
     shuffle: "shuffled",
     bookmark: "bookmarkOnly",
     freq: "freqOnly",
@@ -2597,6 +2613,10 @@ window.onload = () => {
       if (btn.dataset.filter === "wrong") {
         if (state.wrongOnly) captureWrongSnapshot();  // 켠 시점 오답 목록 고정
         else wrongSnapActive = false;
+      }
+      if (btn.dataset.filter === "unsolved") {
+        if (state.unsolvedOnly) captureUnsolvedSnapshot();  // 켠 시점 미정복 목록 고정
+        else unsolvedSnapActive = false;
       }
       if (btn.dataset.filter === "shuffle") {
         state.idx = 0;
