@@ -376,9 +376,12 @@
 /* ===== 업데이트 내역 =====
    수정할 때마다: BUILD 숫자 +1, BUILD_DATE를 수정한 날짜(yymmdd)로,
    그리고 CHANGELOG 맨 위에 { n: BUILD, date: BUILD_DATE, notes:[...] } 한 덩어리 추가 */
-const BUILD = 24;
+const BUILD = 25;
 const BUILD_DATE = "260624";
 const CHANGELOG = [
+  { n: 25, date: "260624", notes: [
+    "‘오답만’ 버그 수정 — 풀던 중 목록이 줄어 번호가 꼬이고 ‘다 풀었다’가 일찍 뜨던 문제 해결. 이제 오답만을 켠 시점의 목록이 고정되어 처음부터 끝까지 순서대로 풀립니다(다시 켜면 그 시점 기준으로 새로 잡힘)"
+  ]},
   { n: 24, date: "260624", notes: [
     "오답노트 정리 — 상단 과목 칩(전체·성경·교회사·헌법)으로 걸러보기. ‘전체’에선 과목별로 구분 헤더를 넣어 묶음(더 이상 뒤죽박죽 X). 선택한 과목은 저장됨"
   ]},
@@ -1489,6 +1492,13 @@ let streakInfo = JSON.parse(localStorage.getItem("mok_streak")) || { last: "", s
 let exam = { active: false, list: [], idx: 0, answers: [], start: 0, duration: 0, timerId: null, source: "", timed: false };
 
 let listCache = { key: "", list: [] };
+// '오답만'을 켠 시점의 오답 목록을 고정(스냅샷). 푸는 도중 목록이 줄어 번호가 꼬이는 것 방지.
+let wrongSnapshot = new Set();
+let wrongSnapActive = false;
+function captureWrongSnapshot() {
+  wrongSnapshot = new Set(Object.keys(progress).filter(qid => progress[qid] === "X"));
+  wrongSnapActive = true;
+}
 
 function normalize(s) { return (s || "").toLowerCase().trim(); }
 function formatDate(d) { return d.toISOString().split("T")[0]; }
@@ -1576,6 +1586,7 @@ function getWeakIds(list) {
 
 function buildList(forExam) {
   const search = normalize(state.search);
+  if (!forExam && state.wrongOnly && !wrongSnapActive) captureWrongSnapshot();
   let temp = allQuestions.filter(q => {
     if (!q || !q.q) return false;
     const isFreq = q.year === "빈출";
@@ -1595,7 +1606,7 @@ function buildList(forExam) {
     if (!forExam) {
       const qid = getQId(q);
       if (state.dueOnly && !isDue(qid)) return false;
-      if (state.wrongOnly && progress[qid] !== "X") return false;
+      if (state.wrongOnly && !wrongSnapshot.has(qid)) return false;
       if (state.bookmarkOnly && !bookmarks[qid]) return false;
       if (state.tagFilter !== "all" && wrongNotes[qid]?.tag !== state.tagFilter) return false;
     }
@@ -1770,6 +1781,7 @@ function gotoQuestion(qid) {
   state.mode = "study";
   state.subj = "all"; state.years = [];
   state.wrongOnly = false; state.bookmarkOnly = false; state.dueOnly = false;
+  wrongSnapActive = false;
   state.freqOnly = false; state.wrongnoteOnly = false; state.weakOnly = false;
   state.tagFilter = "all"; state.search = ""; state.shuffled = false;
   invalidateList();
@@ -2270,7 +2282,7 @@ function endStudy() {
   scrollToSolve();
 }
 function retryWrong() {
-  state.wrongOnly = true; invalidateList();
+  state.wrongOnly = true; captureWrongSnapshot(); invalidateList();
   const list = getList(false);
   if (!list.length) {
     state.wrongOnly = false; invalidateList();
@@ -2582,6 +2594,10 @@ window.onload = () => {
       const key = filterMap[btn.dataset.filter];
       state[key] = !state[key];
       btn.classList.toggle("on");
+      if (btn.dataset.filter === "wrong") {
+        if (state.wrongOnly) captureWrongSnapshot();  // 켠 시점 오답 목록 고정
+        else wrongSnapActive = false;
+      }
       if (btn.dataset.filter === "shuffle") {
         state.idx = 0;
         state.pendingResume = false;
